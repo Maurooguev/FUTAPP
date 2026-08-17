@@ -1,0 +1,62 @@
+.standings-block {
+  margin-bottom: 34px;
+}
+
+.standings-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
+
+.standings-header h2 {
+  font-size: 34px;
+  color: #0f172a;
+}
+
+.standings-wrap {
+  overflow-x: auto;
+}
+
+.standings-table {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+  background: white;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 12px 26px rgba(15, 23, 42, 0.08);
+}
+
+.standings-table th,
+.standings-table td {
+  padding: 15px 14px;
+  text-align: center;
+  border-bottom: 1px solid #eef2f7;
+  vertical-align: middle;
+}
+
+.standings-table th {
+  background: #1d4ed8;
+  color: white;
+  font-size: 14px;
+}
+
+.standings-table tbody tr:hover {
+  background: #f8fbff;
+}
+
+.top-row {
+  background: #eefbf3;
+}
+
+.team-cell {
+  text-align: left;
+  font-weight: 700;
+}
+
+@media (max-width: 768px) {
+  .standings-header h2 {
+    font-size: 24px;
+  }
+}

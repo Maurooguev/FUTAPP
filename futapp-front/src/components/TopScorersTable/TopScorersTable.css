@@ -1,0 +1,44 @@
+.top-table-card {
+  background: white;
+  border: 1px solid #e8eef6;
+  border-radius: 22px;
+  padding: 22px;
+  box-shadow: 0 12px 26px rgba(15, 23, 42, 0.07);
+  overflow: hidden;
+}
+
+.top-table-header {
+  margin-bottom: 18px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #eef2f7;
+}
+
+.top-table-header h2 {
+  font-size: 28px;
+}
+
+.top-table {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+}
+
+.top-table th,
+.top-table td {
+  padding: 12px 10px;
+  text-align: center;
+  border-bottom: 1px solid #eef2f7;
+  vertical-align: middle;
+}
+
+.top-table th {
+  background: #f1f5f9;
+  color: #0f172a;
+  font-size: 14px;
+}
+
+@media (max-width: 768px) {
+  .top-table-header h2 {
+    font-size: 24px;
+  }
+}

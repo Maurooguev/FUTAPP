@@ -1,0 +1,137 @@
+.fixture-block {
+  margin-bottom: 34px;
+}
+
+.fixture-header {
+  margin-bottom: 18px;
+}
+
+.fixture-header h2 {
+  font-size: 34px;
+  color: #0f172a;
+  margin-bottom: 6px;
+}
+
+.fixture-header p {
+  color: #64748b;
+}
+
+.fixture-tabs {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding-bottom: 12px;
+  margin-bottom: 20px;
+}
+
+.fixture-tab {
+  white-space: nowrap;
+  background: white;
+  border: 1px solid #dbe2ea;
+  color: #0f172a;
+  padding: 10px 16px;
+  border-radius: 999px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.fixture-tab.active {
+  background: #1d4ed8;
+  color: white;
+  border-color: #1d4ed8;
+}
+
+.fixture-current {
+  background: white;
+  border: 1px solid #e8eef6;
+  border-radius: 18px;
+  padding: 18px;
+  margin-bottom: 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.fixture-current h3 {
+  font-size: 24px;
+}
+
+.fixture-current span {
+  color: #64748b;
+  font-weight: 700;
+}
+
+.fixture-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 18px;
+}
+
+.fixture-match-card {
+  background: white;
+  border: 1px solid #e8eef6;
+  border-radius: 20px;
+  padding: 20px;
+  cursor: pointer;
+  transition: 0.2s ease;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.07);
+}
+
+.fixture-match-card:hover {
+  transform: translateY(-4px);
+}
+
+.fixture-match-status {
+  display: inline-block;
+  padding: 7px 12px;
+  border-radius: 999px;
+  background: #dbeafe;
+  color: #1d4ed8;
+  font-size: 12px;
+  font-weight: 800;
+  margin-bottom: 14px;
+}
+
+.fixture-score-line {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 12px;
+  align-items: center;
+  text-align: center;
+  margin-bottom: 12px;
+}
+
+.fixture-score-line span {
+  font-weight: 800;
+}
+
+.fixture-score-line strong {
+  color: #1d4ed8;
+  font-size: 20px;
+}
+
+.fixture-match-card p {
+  color: #64748b;
+  text-align: center;
+}
+
+.fixture-empty {
+  background: white;
+  border: 1px solid #e8eef6;
+  border-radius: 20px;
+  padding: 28px;
+  color: #64748b;
+}
+
+@media (max-width: 768px) {
+  .fixture-header h2 {
+    font-size: 24px;
+  }
+
+  .fixture-score-line {
+    grid-template-columns: 1fr;
+  }
+}
+.fixture-admin-actions { display: flex; gap: 7px; }
+.fixture-admin-actions button { padding: 7px 10px; background: #e2e8f0; color: #334155; font-size: 12px; }
+.fixture-admin-actions .danger { background: #fee2e2; color: #b91c1c; }

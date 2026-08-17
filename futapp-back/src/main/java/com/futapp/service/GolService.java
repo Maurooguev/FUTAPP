@@ -1,0 +1,154 @@
+package com.futapp.service;
+
+import com.futapp.dto.GolRequestDTO;
+import com.futapp.dto.GolResponseDTO;
+import com.futapp.dto.GoleadorDTO;
+import com.futapp.exception.ResourceNotFoundException;
+import com.futapp.model.Equipo;
+import com.futapp.model.Gol;
+import com.futapp.model.Jugador;
+import com.futapp.model.Partido;
+import com.futapp.repository.EquipoRepository;
+import com.futapp.repository.GolRepository;
+import com.futapp.repository.JugadorRepository;
+import com.futapp.repository.PartidoRepository;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+@Service
+public class GolService {
+
+    private final GolRepository golRepository;
+    private final PartidoRepository partidoRepository;
+    private final JugadorRepository jugadorRepository;
+    private final EquipoRepository equipoRepository;
+
+    public GolService(GolRepository golRepository,
+                      PartidoRepository partidoRepository,
+                      JugadorRepository jugadorRepository,
+                      EquipoRepository equipoRepository) {
+        this.golRepository = golRepository;
+        this.partidoRepository = partidoRepository;
+        this.jugadorRepository = jugadorRepository;
+        this.equipoRepository = equipoRepository;
+    }
+
+    public List<GolResponseDTO> listarGoles() {
+        return golRepository.findAll()
+                .stream()
+                .map(this::convertirAResponseDTO)
+                .collect(Collectors.toList());
+    }
+
+    public GolResponseDTO obtenerGolPorId(Long id) {
+        Gol gol = golRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Gol no encontrado con id: " + id));
+
+        return convertirAResponseDTO(gol);
+    }
+
+    public List<GolResponseDTO> listarGolesPorPartido(Long idPartido) {
+        return golRepository.findByPartidoIdPartido(idPartido)
+                .stream()
+                .map(this::convertirAResponseDTO)
+                .collect(Collectors.toList());
+    }
+
+    public List<GolResponseDTO> listarGolesPorJugador(Long idJugador) {
+        return golRepository.findByJugadorIdJugador(idJugador)
+                .stream()
+                .map(this::convertirAResponseDTO)
+                .collect(Collectors.toList());
+    }
+
+    public List<GoleadorDTO> obtenerGoleadoresPorTorneo(Long idTorneo) {
+        return golRepository.obtenerGoleadoresPorTorneo(idTorneo);
+    }
+
+    public GolResponseDTO crearGol(GolRequestDTO requestDTO) {
+        Gol gol = new Gol();
+        cargarDatosGol(gol, requestDTO);
+        return convertirAResponseDTO(golRepository.save(gol));
+    }
+
+    public GolResponseDTO actualizarGol(Long id, GolRequestDTO requestDTO) {
+        Gol gol = golRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Gol no encontrado con id: " + id));
+
+        cargarDatosGol(gol, requestDTO);
+        return convertirAResponseDTO(golRepository.save(gol));
+    }
+
+    public void eliminarGol(Long id) {
+        if (!golRepository.existsById(id)) {
+            throw new ResourceNotFoundException("Gol no encontrado con id: " + id);
+        }
+        golRepository.deleteById(id);
+    }
+
+    private void cargarDatosGol(Gol gol, GolRequestDTO requestDTO) {
+        Partido partido = partidoRepository.findById(requestDTO.getIdPartido())
+                .orElseThrow(() -> new ResourceNotFoundException("Partido no encontrado con id: " + requestDTO.getIdPartido()));
+
+        Jugador jugador = jugadorRepository.findById(requestDTO.getIdJugador())
+                .orElseThrow(() -> new ResourceNotFoundException("Jugador no encontrado con id: " + requestDTO.getIdJugador()));
+
+        Equipo equipo = equipoRepository.findById(requestDTO.getIdEquipo())
+                .orElseThrow(() -> new ResourceNotFoundException("Equipo no encontrado con id: " + requestDTO.getIdEquipo()));
+
+        validarReglasDeNegocio(requestDTO, partido, jugador, equipo);
+
+        gol.setMinuto(requestDTO.getMinuto());
+        gol.setTipoGol(requestDTO.getTipoGol());
+        gol.setObservacion(requestDTO.getObservacion());
+        gol.setPartido(partido);
+        gol.setJugador(jugador);
+        gol.setEquipo(equipo);
+    }
+
+    private void validarReglasDeNegocio(GolRequestDTO requestDTO,
+                                        Partido partido,
+                                        Jugador jugador,
+                                        Equipo equipo) {
+
+        if (requestDTO.getMinuto() == null || requestDTO.getMinuto() <= 0) {
+            throw new IllegalArgumentException("El minuto del gol debe ser mayor a 0");
+        }
+
+        if (requestDTO.getMinuto() > 130) {
+            throw new IllegalArgumentException("El minuto del gol no puede ser mayor a 130");
+        }
+
+        if (!jugador.getEquipo().getIdEquipo().equals(equipo.getIdEquipo())) {
+            throw new IllegalArgumentException("El jugador no pertenece al equipo indicado para el gol");
+        }
+
+        boolean equipoParticipaEnPartido =
+                partido.getEquipoLocal().getIdEquipo().equals(equipo.getIdEquipo()) ||
+                partido.getEquipoVisitante().getIdEquipo().equals(equipo.getIdEquipo());
+
+        if (!equipoParticipaEnPartido) {
+            throw new IllegalArgumentException("El equipo indicado no participa en el partido");
+        }
+
+        if ("PROGRAMADO".equalsIgnoreCase(partido.getEstado())) {
+            throw new IllegalArgumentException("No se pueden registrar goles en un partido programado");
+        }
+    }
+
+    private GolResponseDTO convertirAResponseDTO(Gol gol) {
+        return new GolResponseDTO(
+                gol.getIdGol(),
+                gol.getMinuto(),
+                gol.getTipoGol(),
+                gol.getObservacion(),
+                gol.getPartido().getIdPartido(),
+                gol.getJugador().getIdJugador(),
+                gol.getJugador().getNombre() + " " + gol.getJugador().getApellido(),
+                gol.getEquipo().getIdEquipo(),
+                gol.getEquipo().getNombre()
+        );
+    }
+}

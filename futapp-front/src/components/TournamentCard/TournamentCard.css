@@ -1,0 +1,123 @@
+.tournament-card,
+.featured-tournament-card {
+  cursor: pointer;
+  transition: 0.25s ease;
+}
+
+.tournament-card:hover,
+.featured-tournament-card:hover {
+  transform: translateY(-5px);
+}
+
+.tournament-card {
+  background: white;
+  border-radius: 20px;
+  padding: 22px;
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.07);
+}
+
+.tournament-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.tournament-card h3 {
+  font-size: 20px;
+  color: #0f172a;
+}
+
+.tournament-card p {
+  color: #64748b;
+  line-height: 1.6;
+}
+
+.tournament-card-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 16px;
+  color: #475569;
+  font-weight: 600;
+}
+
+.featured-tournament-card {
+  background: linear-gradient(145deg, #0f172a, #162544);
+  color: white;
+  border-radius: 24px;
+  padding: 24px;
+  box-shadow: 0 16px 34px rgba(15, 23, 42, 0.18);
+}
+
+.featured-tournament-card h3 {
+  font-size: 24px;
+  margin: 16px 0 10px;
+}
+
+.featured-tournament-card p {
+  color: #cbd5e1;
+  line-height: 1.6;
+}
+
+.tournament-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.tournament-location {
+  color: #93c5fd;
+  font-weight: 600;
+}
+
+.tournament-meta {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 18px;
+  color: #dbeafe;
+  font-weight: 600;
+  gap: 12px;
+}
+
+.tournament-link {
+  background: transparent;
+  color: #93c5fd;
+  padding: 0;
+  margin-top: 14px;
+  font-weight: 800;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 7px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.3px;
+}
+
+.status-badge.small {
+  font-size: 11px;
+}
+
+.status-badge.activo {
+  background: rgba(34, 197, 94, 0.16);
+  color: #16a34a;
+}
+
+.featured-tournament-card .status-badge.activo {
+  background: rgba(34, 197, 94, 0.18);
+  color: #86efac;
+}
+
+.status-badge.finalizado {
+  background: rgba(239, 68, 68, 0.15);
+  color: #dc2626;
+}
+
+.featured-tournament-card .status-badge.finalizado {
+  background: rgba(239, 68, 68, 0.18);
+  color: #fca5a5;
+}

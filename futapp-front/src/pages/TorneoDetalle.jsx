@@ -1,0 +1,292 @@
+import { useEffect, useMemo, useState } from "react";
+import { useParams } from "react-router-dom";
+
+import useAuth from "../context/useAuth";
+import { puedeAdministrar } from "../utils/roles";
+import { API_URL, apiFetch } from "../config/api";
+
+import TournamentHero from "../components/TournamentHero/TournamentHero";
+import StatsCard from "../components/StatsCard/StatsCard";
+import StandingsTable from "../components/StandingsTable/StandingsTable";
+import TopScorersTable from "../components/TopScorersTable/TopScorersTable";
+import TopCardsTable from "../components/TopCardsTable/TopCardsTable";
+import MatchModal from "../components/MatchModal/MatchModal";
+import FixtureByDate from "../components/FixtureByDate/FixtureByDate";
+import ResultModal from "../components/ResultModal/ResultModal";
+import TournamentFormModal from "../components/TournamentFormModal/TournamentFormModal";
+import MatchFormModal from "../components/MatchFormModal/MatchFormModal";
+import TeamManagement from "../components/TeamManagement/TeamManagement";
+import DateFormModal from "../components/DateFormModal/DateFormModal";
+
+function TorneoDetalle() {
+  const { id } = useParams();
+  const { usuario } = useAuth();
+  const puedeEditar = puedeAdministrar(usuario);
+
+  const [torneo, setTorneo] = useState(null);
+  const [tabla, setTabla] = useState([]);
+  const [goleadores, setGoleadores] = useState([]);
+  const [fechas, setFechas] = useState([]);
+  const [partidos, setPartidos] = useState([]);
+  const [tarjetas, setTarjetas] = useState([]);
+  const [equipos, setEquipos] = useState([]);
+  const [partidoSeleccionado, setPartidoSeleccionado] = useState(null);
+  const [mostrarResultado, setMostrarResultado] = useState(false);
+  const [mostrarEdicion, setMostrarEdicion] = useState(false);
+  const [mostrarPartido, setMostrarPartido] = useState(false);
+  const [mostrarFecha, setMostrarFecha] = useState(false);
+  const [partidoEnEdicion, setPartidoEnEdicion] = useState(null);
+  const [fechaEnEdicion, setFechaEnEdicion] = useState(null);
+  const [adminError, setAdminError] = useState("");
+
+  const eliminarRecurso = async (url, message, onSuccess) => {
+    if (!window.confirm(message)) return;
+    setAdminError("");
+    try {
+      const response = await apiFetch(url, { method: "DELETE" });
+      if (!response.ok) { const payload = await response.json().catch(() => null); throw new Error(payload?.message || "No se pudo eliminar"); }
+      onSuccess();
+    } catch (requestError) { setAdminError(requestError.message); }
+  };
+  
+  useEffect(() => {
+    fetch(`${API_URL}/torneos/${id}`)
+      .then((res) => res.json())
+      .then((data) => setTorneo(data))
+      .catch((err) => console.error("Torneo:", err));
+
+    fetch(`${API_URL}/torneos/${id}/tabla`)
+      .then((res) => res.json())
+      .then((data) => setTabla(data))
+      .catch((err) => console.error("Tabla:", err));
+
+    fetch(`${API_URL}/goles/torneo/${id}/goleadores`)
+      .then((res) => res.json())
+      .then((data) => setGoleadores(data))
+      .catch((err) => console.error("Goleadores:", err));
+
+    fetch(`${API_URL}/fechas/torneo/${id}`)
+      .then((res) => res.json())
+      .then((data) => setFechas(data))
+      .catch((err) => console.error("Fechas:", err));
+
+    fetch(`${API_URL}/partidos/torneo/${id}`)
+      .then((res) => res.json())
+      .then((data) => setPartidos(data))
+      .catch((err) => console.error("Partidos:", err));
+
+    fetch(`${API_URL}/tarjetas`)
+      .then((res) => res.json())
+      .then((data) => setTarjetas(data))
+      .catch((err) => console.error("Tarjetas:", err));
+
+    fetch(`${API_URL}/equipos/torneo/${id}`)
+      .then((res) => res.json())
+      .then((data) => setEquipos(data))
+      .catch((err) => console.error("Equipos:", err));
+  }, [id]);
+
+  const fechaActual = useMemo(() => {
+    if (fechas.length === 0) return null;
+
+    const fechasOrdenadas = [...fechas].sort(
+      (a, b) => a.numeroFecha - b.numeroFecha
+    );
+
+    const activa = fechasOrdenadas.find(
+      (fecha) => fecha.estado?.toUpperCase() === "ACTIVA"
+    );
+
+    return activa || fechasOrdenadas[fechasOrdenadas.length - 1];
+  }, [fechas]);
+
+  const topGoleadores = useMemo(() => {
+    return [...goleadores].slice(0, 5);
+  }, [goleadores]);
+
+  const topAmarillas = useMemo(() => {
+    if (tarjetas.length === 0 || partidos.length === 0) return [];
+
+    const idsPartidosTorneo = new Set(partidos.map((p) => p.idPartido));
+
+    const amarillas = tarjetas.filter(
+      (tarjeta) =>
+        idsPartidosTorneo.has(tarjeta.idPartido) &&
+        tarjeta.tipoTarjeta?.toUpperCase() === "AMARILLA"
+    );
+
+    const acumulado = {};
+
+    for (const tarjeta of amarillas) {
+      const key = tarjeta.idJugador;
+
+      if (!acumulado[key]) {
+        acumulado[key] = {
+          idJugador: tarjeta.idJugador,
+          nombreJugador: tarjeta.nombreJugador,
+          nombreEquipo: tarjeta.nombreEquipo,
+          cantidad: 0,
+        };
+      }
+
+      acumulado[key].cantidad += 1;
+    }
+
+    return Object.values(acumulado)
+      .sort(
+        (a, b) =>
+          b.cantidad - a.cantidad ||
+          a.nombreJugador.localeCompare(b.nombreJugador)
+      )
+      .slice(0, 5);
+  }, [tarjetas, partidos]);
+
+  const proximosPartidos = useMemo(() => {
+    return partidos
+      .filter((partido) => partido.estado?.toUpperCase() === "PROGRAMADO")
+      .sort((a, b) => {
+        if (a.idFecha !== b.idFecha) return a.idFecha - b.idFecha;
+        return a.fechaHora.localeCompare(b.fechaHora);
+      })
+      .slice(0, 6);
+  }, [partidos]);
+
+  const partidosJugados = useMemo(() => {
+    return partidos.filter(
+      (partido) => partido.estado?.toUpperCase() === "FINALIZADO"
+    ).length;
+  }, [partidos]);
+
+  if (!torneo) {
+    return <p style={{ padding: "20px" }}>Cargando...</p>;
+  }
+
+const recargarDatosTorneo = () => {
+  fetch(`${API_URL}/torneos/${id}/tabla`)
+    .then((res) => res.json())
+    .then((data) => setTabla(data));
+
+  fetch(`${API_URL}/partidos/torneo/${id}`)
+    .then((res) => res.json())
+    .then((data) => setPartidos(data));
+
+  fetch(`${API_URL}/goles/torneo/${id}/goleadores`)
+    .then((res) => res.json())
+    .then((data) => setGoleadores(data));
+
+  fetch(`${API_URL}/tarjetas`)
+    .then((res) => res.json())
+    .then((data) => setTarjetas(data));
+};
+
+  return (
+    <div className="torneo-page">
+      <TournamentHero torneo={torneo} fechaActual={fechaActual} />
+
+      {puedeEditar && (
+        <div className="admin-actions">
+          <button onClick={() => setMostrarEdicion(true)}>Editar torneo</button>
+          <button onClick={() => setMostrarResultado(true)}>Cargar resultado</button>
+          <button onClick={() => setMostrarFecha(true)}>Agregar jornada</button>
+          <button onClick={() => setMostrarPartido(true)}>Agregar partido</button>
+        </div>
+      )}
+      {adminError && <div className="admin-actions"><p className="tournament-form-error">{adminError}</p></div>}
+
+      <main className="torneo-content">
+        <div className="torneo-shell">
+          <div className="torneo-stats-grid">
+            <StatsCard label="Torneo" value={torneo.nombre} />
+            <StatsCard label="Partidos jugados" value={partidosJugados} />
+            <StatsCard label="Próximos partidos" value={proximosPartidos.length} />
+            <StatsCard
+              label="Goleador líder"
+              value={
+                topGoleadores.length > 0
+                  ? topGoleadores[0].nombreJugador
+                  : "Sin datos"
+              }
+            />
+          </div>
+
+          <StandingsTable tabla={tabla} />
+
+          <TeamManagement
+            torneoId={id}
+            equipos={equipos}
+            canManage={puedeEditar}
+            onTeamDeleted={(teamId) => setEquipos((current) => current.filter((team) => team.idEquipo !== teamId))}
+            onTeamSaved={(savedTeam) => {
+              setEquipos((current) => {
+                const exists = current.some((team) => team.idEquipo === savedTeam.idEquipo);
+                return exists
+                  ? current.map((team) => team.idEquipo === savedTeam.idEquipo ? savedTeam : team)
+                  : [...current, savedTeam];
+              });
+            }}
+          />
+
+          <div className="torneo-dobles" id="stats">
+            <TopScorersTable goleadores={topGoleadores} />
+            <TopCardsTable jugadores={topAmarillas} />
+          </div>
+
+          <FixtureByDate
+            fechas={fechas}
+            partidos={partidos}
+            onSelectPartido={setPartidoSeleccionado}
+            canManage={puedeEditar}
+            onEditDate={(fecha) => { setFechaEnEdicion(fecha); setMostrarFecha(true); }}
+            onDeleteDate={(fecha) => eliminarRecurso(`${API_URL}/fechas/${fecha.idFecha}`, `¿Eliminar la fecha ${fecha.numeroFecha}?`, () => setFechas((current) => current.filter((item) => item.idFecha !== fecha.idFecha)))}
+            onEditMatch={(partido) => { setPartidoEnEdicion(partido); setMostrarPartido(true); }}
+            onDeleteMatch={(partido) => eliminarRecurso(`${API_URL}/partidos/${partido.idPartido}`, `¿Eliminar ${partido.nombreEquipoLocal} vs ${partido.nombreEquipoVisitante}?`, () => setPartidos((current) => current.filter((item) => item.idPartido !== partido.idPartido)))}
+          />
+
+          <MatchModal
+            partido={partidoSeleccionado}
+            onClose={() => setPartidoSeleccionado(null)}
+            canManage={puedeEditar}
+            onChanged={recargarDatosTorneo}
+          />
+          {mostrarResultado && (
+            <ResultModal
+              partidos={partidos}
+              onClose={() => setMostrarResultado(false)}
+              onResultadoGuardado={recargarDatosTorneo}
+          />
+)}
+          {mostrarEdicion && (
+            <TournamentFormModal
+              torneo={torneo}
+              onClose={() => setMostrarEdicion(false)}
+              onSaved={setTorneo}
+            />
+          )}
+          {mostrarPartido && (
+            <MatchFormModal
+              torneoId={id}
+              fechas={fechas}
+              equipos={equipos}
+              partido={partidoEnEdicion}
+              onClose={() => { setMostrarPartido(false); setPartidoEnEdicion(null); }}
+              onSaved={(savedMatch) => {
+                setPartidos((current) => current.some((item) => item.idPartido === savedMatch.idPartido) ? current.map((item) => item.idPartido === savedMatch.idPartido ? savedMatch : item) : [...current, savedMatch]);
+              }}
+            />
+          )}
+          {mostrarFecha && (
+            <DateFormModal
+              torneoId={id}
+              nextNumber={Math.max(0, ...fechas.map((fecha) => fecha.numeroFecha)) + 1}
+              fecha={fechaEnEdicion}
+              onClose={() => { setMostrarFecha(false); setFechaEnEdicion(null); }}
+              onSaved={(savedDate) => setFechas((current) => current.some((item) => item.idFecha === savedDate.idFecha) ? current.map((item) => item.idFecha === savedDate.idFecha ? savedDate : item) : [...current, savedDate])}
+            />
+          )}
+        </div>
+      </main>
+    </div>
+  );
+}
+
+export default TorneoDetalle;

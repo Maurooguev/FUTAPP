@@ -1,0 +1,26 @@
+.team-management { margin: 32px 0; }
+.team-management-head { display: flex; align-items: end; justify-content: space-between; gap: 20px; margin-bottom: 18px; }
+.team-management-head span { color: #2563eb; font-size: 12px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+.team-management-head h2 { margin: 5px 0; color: #0f172a; }
+.team-management-head p { margin: 0; color: #64748b; }
+.team-management-head > button { background: #2563eb; color: #fff; }
+.team-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.team-card { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 14px; border: 1px solid #e2e8f0; border-radius: 18px; padding: 16px; background: #fff; }
+.team-avatar { display: grid; width: 52px; height: 52px; place-items: center; border-radius: 16px; background: #dbeafe; color: #1d4ed8; font-weight: 900; }
+.team-card h3, .roster-player h3 { margin: 0; color: #0f172a; }
+.team-card p, .team-card small, .roster-player p { margin: 4px 0 0; color: #64748b; }
+.team-card-actions { display: flex; flex-direction: column; gap: 7px; }
+.team-card-actions button { padding: 8px 11px; background: #0f172a; color: #fff; }
+.team-card-actions .team-edit { background: #e2e8f0; color: #334155; }
+.team-card-actions .team-delete { background: #fee2e2; color: #b91c1c; }
+.team-empty, .roster-empty { border: 1px dashed #94a3b8; border-radius: 16px; padding: 24px; text-align: center; color: #64748b; }
+.team-empty h3 { margin: 0 0 6px; color: #334155; }
+.roster-list { display: grid; gap: 10px; margin-top: 20px; }
+.roster-player { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 12px; border: 1px solid #e2e8f0; border-radius: 14px; padding: 12px; }
+.roster-number { display: grid; width: 38px; height: 38px; place-items: center; border-radius: 50%; background: #0f172a; color: #fff; }
+.roster-status { color: #15803d; font-size: 12px; font-weight: 800; }
+.roster-player-actions { display: flex; align-items: center; gap: 7px; }
+.roster-player-actions button { padding: 7px 9px; background: #e2e8f0; color: #334155; font-size: 12px; }
+.roster-player-actions .danger { background: #fee2e2; color: #b91c1c; }
+.roster-player-form { margin-top: 18px; border-radius: 16px; padding: 18px; background: #f8fafc; }
+@media (max-width: 760px) { .team-grid { grid-template-columns: 1fr; } .team-management-head { align-items: stretch; flex-direction: column; } .team-card { grid-template-columns: auto 1fr; } .team-card-actions { grid-column: 1 / -1; flex-direction: row; } }

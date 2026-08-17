@@ -1,0 +1,8 @@
+.upcoming-card {
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.upcoming-card:hover {
+  transform: translateY(-4px);
+}
