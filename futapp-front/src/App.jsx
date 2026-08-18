@@ -11,6 +11,7 @@ import EquipoPerfil from "./pages/EquipoPerfil";
 import JugadorPerfil from "./pages/JugadorPerfil";
 import Solicitudes from "./pages/Solicitudes";
 import MiPerfilJugador from "./pages/MiPerfilJugador";
+import MiPerfilRedirect from "./pages/MiPerfilRedirect";
 
 function App() {
   return (
@@ -22,7 +23,8 @@ function App() {
         <Route path="/equipo/:id" element={<EquipoPerfil />} />
         <Route path="/jugador/:id" element={<JugadorPerfil />} />
         <Route path="/solicitudes" element={<Solicitudes />} />
-        <Route path="/mi-perfil-jugador" element={<MiPerfilJugador />} />
+        <Route path="/mi-perfil-jugador" element={<MiPerfilRedirect />} />
+        <Route path="/mi-perfil-jugador/editar" element={<MiPerfilJugador />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/mis-torneos" element={<MisTorneos />} />

@@ -28,6 +28,8 @@
 .player-facts,.player-stats { display: grid; grid-template-columns: repeat(4,1fr); gap: 1px; margin-top: 14px; overflow: hidden; border: 1px solid #dbe3e8; border-radius: 7px; background: #dbe3e8; }.player-facts div,.player-stats div { padding: 14px; background: #fff; }.player-facts span,.player-stats span { display: block; color: #64748b; font-size: 10px; }.player-facts strong { font-size: 13px; }.player-stats { border: 0; }.player-stats div { background: #f1f5f7; text-align: center; }.player-stats strong { display: block; color: #0877a7; font-size: 24px; }.profile-note { color: #64748b; }
 .profile-message { padding: 30px; border: 1px solid #dbe3e8; background: #fff; text-align: center; }
 .profile-claim-button { padding: 9px 12px; background: #12a85a; color: #fff; font-size: 11px; }
+.profile-edit-link { margin-left: auto; padding: 9px 12px; border-radius: 4px; background: #fff; color: #0877a7 !important; font-size: 11px !important; font-weight: 800; text-decoration: none; }
+.profile-back-link { display: inline-block; margin-bottom: 8px; color: #0877a7; font-size: 11px; font-weight: 800; text-decoration: none; }
 .profile-owner-actions { display: flex; align-items: center; gap: 7px; margin-left: auto; }
 .profile-owner-actions button { padding: 8px 11px; border: 1px solid #0877a7; background: #0877a7; color: #fff; font-size: 10px; }
 .profile-owner-badge { padding: 6px 9px; border-radius: 999px; background: #e8f7ef; color: #17603a; font-size: 10px; font-weight: 800; }
