@@ -6,7 +6,7 @@
     radial-gradient(circle at left center, rgba(29, 78, 216, 0.25), transparent 22%),
     linear-gradient(135deg, #0f172a, #1d4ed8);
   color: white;
-  padding: 100px 20px 90px;
+  padding: 38px 20px 34px;
 }
 
 .home-hero-overlay {
@@ -18,61 +18,61 @@
 
 .home-hero-content {
   position: relative;
-  max-width: 980px;
+  max-width: 820px;
   margin: 0 auto;
   text-align: center;
 }
 
 .home-hero-chip {
   display: inline-block;
-  padding: 8px 14px;
-  border-radius: 999px;
+  padding: 5px 9px;
+  border-radius: 3px;
   background: rgba(255, 255, 255, 0.12);
   color: #dbeafe;
-  font-size: 14px;
+  font-size: 11px;
   font-weight: 800;
-  margin-bottom: 20px;
+  margin-bottom: 12px;
 }
 
 .home-hero h1 {
-  font-size: 62px;
-  line-height: 1.03;
+  font-size: 38px;
+  line-height: 1.1;
   font-weight: 800;
-  margin-bottom: 20px;
+  margin-bottom: 14px;
 }
 
 .home-hero p {
-  max-width: 760px;
-  margin: 0 auto 30px;
-  font-size: 20px;
+  max-width: 680px;
+  margin: 0 auto 18px;
+  font-size: 15px;
   color: #dbeafe;
-  line-height: 1.6;
+  line-height: 1.45;
 }
 
 .home-search-box {
-  max-width: 700px;
+  max-width: 580px;
   margin: 0 auto;
   display: flex;
-  gap: 12px;
+  gap: 7px;
   background: rgba(255, 255, 255, 0.08);
-  padding: 12px;
-  border-radius: 18px;
+  padding: 7px;
+  border-radius: 7px;
   backdrop-filter: blur(10px);
 }
 
 .home-search-box input {
   flex: 1;
-  padding: 16px 18px;
-  border-radius: 12px;
+  padding: 10px 12px;
+  border-radius: 5px;
   border: none;
   outline: none;
-  font-size: 16px;
+  font-size: 13px;
 }
 
 .home-hero-buttons {
-  margin-top: 24px;
+  margin-top: 14px;
   display: flex;
-  gap: 14px;
+  gap: 8px;
   justify-content: center;
   flex-wrap: wrap;
 }
@@ -80,8 +80,9 @@
 .home-btn-primary,
 .home-btn-secondary {
   border: none;
-  padding: 12px 18px;
-  border-radius: 12px;
+  padding: 9px 14px;
+  border-radius: 5px;
+  font-size: 12px;
   cursor: pointer;
   font-weight: 800;
   transition: 0.2s ease;
