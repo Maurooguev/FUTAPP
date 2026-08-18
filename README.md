@@ -122,6 +122,17 @@ el mismo flujo de acceso entre la web y futuras aplicaciones Android/iOS.
 El DNI de los jugadores es opcional. Cuando se informa, debe ser único. El
 número de camiseta también debe ser único dentro de cada equipo.
 
+## Participaciones e historial
+
+Los perfiles permanentes de clubes y jugadores se complementan con
+`InscripcionEquipo` e `InscripcionJugador`. Estas relaciones conservan el
+torneo, plantel, dorsal, posición, estado y fechas de alta o baja de cada
+participación. Los datos existentes se migran automáticamente y las nuevas
+altas generan su inscripción correspondiente.
+
+Esta base permite que un club participe en varios torneos y que un jugador
+forme parte de distintos planteles sin duplicar su perfil público.
+
 Cada torneo nuevo queda asociado al organizador que lo crea y recibe un codigo
 publico unico con formato `FUT-XXXXXX`. El buscador acepta ese codigo o el
 nombre. La seccion `Mis torneos` muestra las competencias administrables por la

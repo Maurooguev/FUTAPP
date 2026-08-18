@@ -5,16 +5,21 @@ import com.futapp.dto.EquipoResponseDTO;
 import com.futapp.exception.ResourceNotFoundException;
 import com.futapp.model.Equipo;
 import com.futapp.model.Torneo;
+import com.futapp.model.InscripcionEquipo;
 import com.futapp.repository.EquipoRepository;
 import com.futapp.repository.TorneoRepository;
 import com.futapp.repository.JugadorRepository;
 import com.futapp.repository.PartidoRepository;
+import com.futapp.repository.InscripcionEquipoRepository;
+import com.futapp.repository.InscripcionJugadorRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@Transactional
 public class EquipoService {
 
     private final EquipoRepository equipoRepository;
@@ -22,15 +27,21 @@ public class EquipoService {
     private final JugadorRepository jugadorRepository;
     private final PartidoRepository partidoRepository;
     private final TorneoAuthorizationService authorization;
+    private final InscripcionEquipoRepository inscripcionesEquipo;
+    private final InscripcionJugadorRepository inscripcionesJugador;
 
     public EquipoService(EquipoRepository equipoRepository, TorneoRepository torneoRepository,
                          JugadorRepository jugadorRepository, PartidoRepository partidoRepository,
-                         TorneoAuthorizationService authorization) {
+                         TorneoAuthorizationService authorization,
+                         InscripcionEquipoRepository inscripcionesEquipo,
+                         InscripcionJugadorRepository inscripcionesJugador) {
         this.equipoRepository = equipoRepository;
         this.torneoRepository = torneoRepository;
         this.jugadorRepository = jugadorRepository;
         this.partidoRepository = partidoRepository;
         this.authorization = authorization;
+        this.inscripcionesEquipo = inscripcionesEquipo;
+        this.inscripcionesJugador = inscripcionesJugador;
     }
 
     public List<EquipoResponseDTO> listarEquipos() {
@@ -73,6 +84,7 @@ public class EquipoService {
         equipo.setTorneo(torneo);
 
         Equipo equipoGuardado = equipoRepository.save(equipo);
+        crearInscripcionSiFalta(equipoGuardado, torneo);
         return convertirAResponseDTO(equipoGuardado);
     }
 
@@ -97,6 +109,7 @@ public class EquipoService {
         equipo.setTorneo(torneo);
 
         Equipo equipoActualizado = equipoRepository.save(equipo);
+        crearInscripcionSiFalta(equipoActualizado, torneo);
         return convertirAResponseDTO(equipoActualizado);
     }
 
@@ -113,6 +126,8 @@ public class EquipoService {
             throw new IllegalArgumentException("No se puede eliminar el equipo porque tiene partidos asociados");
         }
 
+        inscripcionesJugador.deleteByInscripcionEquipoEquipoIdEquipo(id);
+        inscripcionesEquipo.deleteByEquipoIdEquipo(id);
         equipoRepository.deleteById(id);
     }
 
@@ -137,5 +152,15 @@ public class EquipoService {
 
     private String normalizarOpcional(String valor) {
         return valor == null || valor.isBlank() ? null : valor.trim();
+    }
+
+    private void crearInscripcionSiFalta(Equipo equipo, Torneo torneo) {
+        if (inscripcionesEquipo.findByEquipoIdEquipoAndTorneoIdTorneo(
+                equipo.getIdEquipo(), torneo.getIdTorneo()).isPresent()) return;
+        InscripcionEquipo inscripcion = new InscripcionEquipo();
+        inscripcion.setEquipo(equipo);
+        inscripcion.setTorneo(torneo);
+        inscripcion.setEstado("ACTIVA");
+        inscripcionesEquipo.save(inscripcion);
     }
 }

@@ -5,16 +5,21 @@ import com.futapp.dto.JugadorResponseDTO;
 import com.futapp.exception.ResourceNotFoundException;
 import com.futapp.model.Equipo;
 import com.futapp.model.Jugador;
+import com.futapp.model.InscripcionJugador;
 import com.futapp.repository.EquipoRepository;
 import com.futapp.repository.JugadorRepository;
 import com.futapp.repository.GolRepository;
 import com.futapp.repository.TarjetaRepository;
+import com.futapp.repository.InscripcionEquipoRepository;
+import com.futapp.repository.InscripcionJugadorRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@Transactional
 public class JugadorService {
 
     private final JugadorRepository jugadorRepository;
@@ -22,15 +27,21 @@ public class JugadorService {
     private final GolRepository golRepository;
     private final TarjetaRepository tarjetaRepository;
     private final TorneoAuthorizationService authorization;
+    private final InscripcionEquipoRepository inscripcionesEquipo;
+    private final InscripcionJugadorRepository inscripcionesJugador;
 
     public JugadorService(JugadorRepository jugadorRepository, EquipoRepository equipoRepository,
                           GolRepository golRepository, TarjetaRepository tarjetaRepository,
-                          TorneoAuthorizationService authorization) {
+                          TorneoAuthorizationService authorization,
+                          InscripcionEquipoRepository inscripcionesEquipo,
+                          InscripcionJugadorRepository inscripcionesJugador) {
         this.jugadorRepository = jugadorRepository;
         this.equipoRepository = equipoRepository;
         this.golRepository = golRepository;
         this.tarjetaRepository = tarjetaRepository;
         this.authorization = authorization;
+        this.inscripcionesEquipo = inscripcionesEquipo;
+        this.inscripcionesJugador = inscripcionesJugador;
     }
 
     public List<JugadorResponseDTO> listarJugadores() {
@@ -75,6 +86,7 @@ public class JugadorService {
         jugador.setEquipo(equipo);
 
         Jugador jugadorGuardado = jugadorRepository.save(jugador);
+        crearInscripcionSiFalta(jugadorGuardado, equipo);
         return convertirAResponseDTO(jugadorGuardado);
     }
 
@@ -101,6 +113,7 @@ public class JugadorService {
         jugador.setEquipo(equipo);
 
         Jugador jugadorActualizado = jugadorRepository.save(jugador);
+        crearInscripcionSiFalta(jugadorActualizado, equipo);
         return convertirAResponseDTO(jugadorActualizado);
     }
 
@@ -114,6 +127,7 @@ public class JugadorService {
             throw new IllegalArgumentException("No se puede eliminar el jugador porque tiene goles o tarjetas asociados");
         }
 
+        inscripcionesJugador.deleteByJugadorIdJugador(id);
         jugadorRepository.deleteById(id);
     }
 
@@ -157,5 +171,25 @@ public class JugadorService {
                 throw new IllegalArgumentException("Ya existe un jugador con ese DNI");
             }
         }
+    }
+
+    private void crearInscripcionSiFalta(Jugador jugador, Equipo equipo) {
+        var inscripcionEquipo = inscripcionesEquipo
+                .findByEquipoIdEquipoAndTorneoIdTorneo(
+                        equipo.getIdEquipo(), equipo.getTorneo().getIdTorneo())
+                .orElseThrow(() -> new IllegalStateException("El equipo no tiene una inscripción activa"));
+        InscripcionJugador inscripcion = inscripcionesJugador
+                .findByInscripcionEquipoIdInscripcionAndJugadorIdJugador(
+                        inscripcionEquipo.getIdInscripcion(), jugador.getIdJugador())
+                .orElseGet(() -> {
+                    InscripcionJugador nueva = new InscripcionJugador();
+                    nueva.setInscripcionEquipo(inscripcionEquipo);
+                    nueva.setJugador(jugador);
+                    return nueva;
+                });
+        inscripcion.setNumeroCamiseta(jugador.getNumeroCamiseta());
+        inscripcion.setPosicion(jugador.getPosicion());
+        inscripcion.setEstado("ACTIVA");
+        inscripcionesJugador.save(inscripcion);
     }
 }
