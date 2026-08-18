@@ -38,6 +38,9 @@ public class TablaPosicionService {
         }
 
         for (Partido partido : partidos) {
+            if (!"FINALIZADO".equalsIgnoreCase(partido.getEstado())) {
+                continue;
+            }
             if (partido.getGolesLocal() == null || partido.getGolesVisitante() == null) {
                 continue;
             }
@@ -91,8 +94,8 @@ public class TablaPosicionService {
 
         resultado.sort(
             Comparator.comparingInt(TablaPosicionDTO::getPuntos).reversed()
-                .thenComparingInt(TablaPosicionDTO::getDiferenciaGol).reversed()
-                .thenComparingInt(TablaPosicionDTO::getGolesFavor).reversed()
+                .thenComparing(Comparator.comparingInt(TablaPosicionDTO::getDiferenciaGol).reversed())
+                .thenComparing(Comparator.comparingInt(TablaPosicionDTO::getGolesFavor).reversed())
                 .thenComparing(TablaPosicionDTO::getNombreEquipo)
         );
 

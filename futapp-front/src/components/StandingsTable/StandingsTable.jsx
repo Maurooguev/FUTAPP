@@ -15,6 +15,9 @@ function StandingsTable({ tabla }) {
               <th>Equipo</th>
               <th>Pts</th>
               <th>PJ</th>
+              <th>PG</th>
+              <th>PE</th>
+              <th>PP</th>
               <th>GF</th>
               <th>GC</th>
               <th>DG</th>
@@ -28,6 +31,9 @@ function StandingsTable({ tabla }) {
                 <td className="team-cell">{fila.nombreEquipo}</td>
                 <td>{fila.puntos}</td>
                 <td>{fila.partidosJugados}</td>
+                <td>{fila.ganados}</td>
+                <td>{fila.empatados}</td>
+                <td>{fila.perdidos}</td>
                 <td>{fila.golesFavor}</td>
                 <td>{fila.golesContra}</td>
                 <td>{fila.diferenciaGol}</td>
