@@ -21,6 +21,8 @@ public class JugadorRequestDTO {
     @NotBlank(message = "La posición es obligatoria")
     private String posicion;
     private String foto;
+    private String apodo;
+    private String piernaHabil;
     @NotBlank(message = "El estado es obligatorio")
     private String estado;
     @NotNull(message = "El equipo es obligatorio")
@@ -84,6 +86,11 @@ public class JugadorRequestDTO {
     public void setFoto(String foto) {
         this.foto = foto;
     }
+
+    public String getApodo() { return apodo; }
+    public void setApodo(String apodo) { this.apodo = apodo; }
+    public String getPiernaHabil() { return piernaHabil; }
+    public void setPiernaHabil(String piernaHabil) { this.piernaHabil = piernaHabil; }
 
     public String getEstado() {
         return estado;

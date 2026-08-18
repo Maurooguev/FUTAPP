@@ -5,6 +5,9 @@ import "../TournamentFormModal/TournamentFormModal.css";
 const EMPTY_TEAM = {
   nombre: "",
   escudo: "",
+  descripcion: "",
+  fotoPlantel: "",
+  emailContacto: "",
   colorCamiseta: "",
   barrio: "",
   responsable: "",
@@ -24,6 +27,9 @@ function TeamFormModal({ torneoId, equipo, onClose, onSaved }) {
         ? {
             nombre: equipo.nombre ?? "",
             escudo: equipo.escudo ?? "",
+            descripcion: equipo.descripcion ?? "",
+            fotoPlantel: equipo.fotoPlantel ?? "",
+            emailContacto: equipo.emailContacto ?? "",
             colorCamiseta: equipo.colorCamiseta ?? "",
             barrio: equipo.barrio ?? "",
             responsable: equipo.responsable ?? "",
@@ -78,9 +84,12 @@ function TeamFormModal({ torneoId, equipo, onClose, onSaved }) {
             <label>Color de camiseta<input name="colorCamiseta" value={form.colorCamiseta} onChange={updateField} maxLength="80" required /></label>
             <label>Responsable<input name="responsable" value={form.responsable} onChange={updateField} maxLength="120" required /></label>
             <label>Teléfono<input name="telefonoContacto" value={form.telefonoContacto} onChange={updateField} maxLength="40" required /></label>
+            <label>Email de contacto<input type="email" name="emailContacto" value={form.emailContacto} onChange={updateField} maxLength="160" /></label>
             <label>Estado<select name="estado" value={form.estado} onChange={updateField}><option value="ACTIVO">Activo</option><option value="INACTIVO">Inactivo</option></select></label>
           </div>
           <label>Escudo (URL opcional)<input name="escudo" value={form.escudo} onChange={updateField} maxLength="500" /></label>
+          <label>Foto del plantel (URL opcional)<input name="fotoPlantel" value={form.fotoPlantel} onChange={updateField} maxLength="500" /></label>
+          <label>Descripción<textarea name="descripcion" value={form.descripcion} onChange={updateField} maxLength="1000" rows="4" /></label>
           {error && <p className="tournament-form-error">{error}</p>}
           <div className="tournament-form-actions">
             <button type="button" className="tournament-form-cancel" onClick={onClose}>Cancelar</button>

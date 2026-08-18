@@ -62,6 +62,9 @@ public class EquipoService {
         Equipo equipo = new Equipo();
         equipo.setNombre(requestDTO.getNombre());
         equipo.setEscudo(requestDTO.getEscudo());
+        equipo.setDescripcion(normalizarOpcional(requestDTO.getDescripcion()));
+        equipo.setFotoPlantel(normalizarOpcional(requestDTO.getFotoPlantel()));
+        equipo.setEmailContacto(normalizarOpcional(requestDTO.getEmailContacto()));
         equipo.setColorCamiseta(requestDTO.getColorCamiseta());
         equipo.setBarrio(requestDTO.getBarrio());
         equipo.setResponsable(requestDTO.getResponsable());
@@ -83,6 +86,9 @@ public class EquipoService {
 
         equipo.setNombre(requestDTO.getNombre());
         equipo.setEscudo(requestDTO.getEscudo());
+        equipo.setDescripcion(normalizarOpcional(requestDTO.getDescripcion()));
+        equipo.setFotoPlantel(normalizarOpcional(requestDTO.getFotoPlantel()));
+        equipo.setEmailContacto(normalizarOpcional(requestDTO.getEmailContacto()));
         equipo.setColorCamiseta(requestDTO.getColorCamiseta());
         equipo.setBarrio(requestDTO.getBarrio());
         equipo.setResponsable(requestDTO.getResponsable());
@@ -115,6 +121,10 @@ public class EquipoService {
                 equipo.getIdEquipo(),
                 equipo.getNombre(),
                 equipo.getEscudo(),
+                equipo.getCodigoPublico(),
+                equipo.getDescripcion(),
+                equipo.getFotoPlantel(),
+                equipo.getEmailContacto(),
                 equipo.getColorCamiseta(),
                 equipo.getBarrio(),
                 equipo.getResponsable(),
@@ -123,5 +133,9 @@ public class EquipoService {
                 equipo.getTorneo().getIdTorneo(),
                 equipo.getTorneo().getNombre()
         );
+    }
+
+    private String normalizarOpcional(String valor) {
+        return valor == null || valor.isBlank() ? null : valor.trim();
     }
 }

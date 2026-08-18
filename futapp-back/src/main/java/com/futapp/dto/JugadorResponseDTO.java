@@ -6,6 +6,9 @@ public class JugadorResponseDTO {
     private String nombre;
     private String apellido;
     private String dni;
+    private String codigoPublico;
+    private String apodo;
+    private String piernaHabil;
     private String fechaNacimiento;
     private Integer numeroCamiseta;
     private String posicion;
@@ -18,12 +21,16 @@ public class JugadorResponseDTO {
     }
 
     public JugadorResponseDTO(Long idJugador, String nombre, String apellido, String dni,
+                              String codigoPublico, String apodo, String piernaHabil,
                               String fechaNacimiento, Integer numeroCamiseta, String posicion,
                               String foto, String estado, Long idEquipo, String nombreEquipo) {
         this.idJugador = idJugador;
         this.nombre = nombre;
         this.apellido = apellido;
         this.dni = dni;
+        this.codigoPublico = codigoPublico;
+        this.apodo = apodo;
+        this.piernaHabil = piernaHabil;
         this.fechaNacimiento = fechaNacimiento;
         this.numeroCamiseta = numeroCamiseta;
         this.posicion = posicion;
@@ -64,6 +71,13 @@ public class JugadorResponseDTO {
     public void setDni(String dni) {
         this.dni = dni;
     }
+
+    public String getCodigoPublico() { return codigoPublico; }
+    public void setCodigoPublico(String codigoPublico) { this.codigoPublico = codigoPublico; }
+    public String getApodo() { return apodo; }
+    public void setApodo(String apodo) { this.apodo = apodo; }
+    public String getPiernaHabil() { return piernaHabil; }
+    public void setPiernaHabil(String piernaHabil) { this.piernaHabil = piernaHabil; }
 
     public String getFechaNacimiento() {
         return fechaNacimiento;

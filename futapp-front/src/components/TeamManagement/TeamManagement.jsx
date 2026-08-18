@@ -3,6 +3,7 @@ import TeamFormModal from "./TeamFormModal";
 import TeamRosterModal from "./TeamRosterModal";
 import "./TeamManagement.css";
 import { API_URL, apiFetch } from "../../config/api";
+import { Link } from "react-router-dom";
 
 function TeamManagement({ torneoId, equipos, canManage, onTeamSaved, onTeamDeleted }) {
   const [editingTeam, setEditingTeam] = useState(null);
@@ -32,9 +33,9 @@ function TeamManagement({ torneoId, equipos, canManage, onTeamSaved, onTeamDelet
       {equipos.length === 0 ? <div className="team-empty"><h3>Este torneo todavía no tiene equipos</h3><p>Agregá al menos dos para poder programar partidos.</p></div> : (
         <div className="team-grid">{equipos.map((team) => (
           <article className="team-card" key={team.idEquipo}>
-            <div className="team-avatar">{team.nombre.slice(0, 2).toUpperCase()}</div>
+            <div className="team-avatar">{team.escudo ? <img src={team.escudo} alt="" /> : team.nombre.slice(0, 2).toUpperCase()}</div>
             <div className="team-card-copy"><h3>{team.nombre}</h3><p>{team.barrio} · {team.colorCamiseta}</p><small>Responsable: {team.responsable}</small></div>
-            <div className="team-card-actions"><button type="button" onClick={() => setRosterTeam(team)}>Ver plantel</button>{canManage && <><button type="button" className="team-edit" onClick={() => openEditTeam(team)}>Editar</button><button type="button" className="team-delete" onClick={() => deleteTeam(team)}>Eliminar</button></>}</div>
+            <div className="team-card-actions"><Link className="team-profile-link" to={`/equipo/${team.idEquipo}`}>Ver perfil</Link><button type="button" onClick={() => setRosterTeam(team)}>Ver plantel</button>{canManage && <><button type="button" className="team-edit" onClick={() => openEditTeam(team)}>Editar</button><button type="button" className="team-delete" onClick={() => deleteTeam(team)}>Eliminar</button></>}</div>
           </article>
         ))}</div>
       )}

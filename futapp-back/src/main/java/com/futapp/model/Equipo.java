@@ -1,6 +1,7 @@
 package com.futapp.model;
 
 import jakarta.persistence.*;
+import java.util.UUID;
 
 @Entity
 @Table(name = "equipo")
@@ -13,6 +14,18 @@ public class Equipo {
 
     private String nombre;
     private String escudo;
+
+    @Column(name = "codigo_publico", nullable = false, unique = true, length = 10)
+    private String codigoPublico;
+
+    @Column(length = 1000)
+    private String descripcion;
+
+    @Column(name = "foto_plantel", length = 500)
+    private String fotoPlantel;
+
+    @Column(name = "email_contacto")
+    private String emailContacto;
 
     @Column(name = "color_camiseta")
     private String colorCamiseta;
@@ -30,6 +43,13 @@ public class Equipo {
     private Torneo torneo;
 
     public Equipo() {
+    }
+
+    @PrePersist
+    void generarCodigoPublico() {
+        if (codigoPublico == null || codigoPublico.isBlank()) {
+            codigoPublico = "EQ-" + UUID.randomUUID().toString().replace("-", "").substring(0, 7).toUpperCase();
+        }
     }
 
     public Long getIdEquipo() {
@@ -55,6 +75,15 @@ public class Equipo {
     public void setEscudo(String escudo) {
         this.escudo = escudo;
     }
+
+    public String getCodigoPublico() { return codigoPublico; }
+    public void setCodigoPublico(String codigoPublico) { this.codigoPublico = codigoPublico; }
+    public String getDescripcion() { return descripcion; }
+    public void setDescripcion(String descripcion) { this.descripcion = descripcion; }
+    public String getFotoPlantel() { return fotoPlantel; }
+    public void setFotoPlantel(String fotoPlantel) { this.fotoPlantel = fotoPlantel; }
+    public String getEmailContacto() { return emailContacto; }
+    public void setEmailContacto(String emailContacto) { this.emailContacto = emailContacto; }
 
     public String getColorCamiseta() {
         return colorCamiseta;

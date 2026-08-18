@@ -1,6 +1,7 @@
 package com.futapp.model;
 
 import jakarta.persistence.*;
+import java.util.UUID;
 
 @Entity
 @Table(name = "jugador")
@@ -14,6 +15,14 @@ public class Jugador {
     private String nombre;
     private String apellido;
     private String dni;
+
+    @Column(name = "codigo_publico", nullable = false, unique = true, length = 11)
+    private String codigoPublico;
+
+    private String apodo;
+
+    @Column(name = "pierna_habil")
+    private String piernaHabil;
 
     @Column(name = "fecha_nacimiento")
     private String fechaNacimiento;
@@ -30,6 +39,13 @@ public class Jugador {
     private Equipo equipo;
 
     public Jugador() {
+    }
+
+    @PrePersist
+    void generarCodigoPublico() {
+        if (codigoPublico == null || codigoPublico.isBlank()) {
+            codigoPublico = "JUG-" + UUID.randomUUID().toString().replace("-", "").substring(0, 7).toUpperCase();
+        }
     }
 
     public Long getIdJugador() {
@@ -63,6 +79,13 @@ public class Jugador {
     public void setDni(String dni) {
         this.dni = dni;
     }
+
+    public String getCodigoPublico() { return codigoPublico; }
+    public void setCodigoPublico(String codigoPublico) { this.codigoPublico = codigoPublico; }
+    public String getApodo() { return apodo; }
+    public void setApodo(String apodo) { this.apodo = apodo; }
+    public String getPiernaHabil() { return piernaHabil; }
+    public void setPiernaHabil(String piernaHabil) { this.piernaHabil = piernaHabil; }
 
     public String getFechaNacimiento() {
         return fechaNacimiento;

@@ -10,6 +10,10 @@ public class EquipoRequestDTO {
     @Size(max = 120, message = "El nombre del equipo no puede superar los 120 caracteres")
     private String nombre;
     private String escudo;
+    @Size(max = 1000, message = "La descripción no puede superar los 1000 caracteres")
+    private String descripcion;
+    private String fotoPlantel;
+    private String emailContacto;
     @NotBlank(message = "El color de camiseta es obligatorio")
     private String colorCamiseta;
     @NotBlank(message = "El barrio es obligatorio")
@@ -41,6 +45,13 @@ public class EquipoRequestDTO {
     public void setEscudo(String escudo) {
         this.escudo = escudo;
     }
+
+    public String getDescripcion() { return descripcion; }
+    public void setDescripcion(String descripcion) { this.descripcion = descripcion; }
+    public String getFotoPlantel() { return fotoPlantel; }
+    public void setFotoPlantel(String fotoPlantel) { this.fotoPlantel = fotoPlantel; }
+    public String getEmailContacto() { return emailContacto; }
+    public void setEmailContacto(String emailContacto) { this.emailContacto = emailContacto; }
 
     public String getColorCamiseta() {
         return colorCamiseta;

@@ -11,6 +11,8 @@ function PlayerForm({ equipoId, player, onSaved, onCancel }) {
     numeroCamiseta: player?.numeroCamiseta ?? "",
     posicion: player?.posicion ?? "Delantero",
     foto: player?.foto ?? "",
+    apodo: player?.apodo ?? "",
+    piernaHabil: player?.piernaHabil ?? "",
     estado: player?.estado ?? "ACTIVO",
   });
   const [saving, setSaving] = useState(false);
@@ -47,10 +49,12 @@ function PlayerForm({ equipoId, player, onSaved, onCancel }) {
       <div className="tournament-form-grid">
         <label>Nombre<input name="nombre" value={form.nombre} onChange={updateField} required /></label>
         <label>Apellido<input name="apellido" value={form.apellido} onChange={updateField} required /></label>
+        <label>Apodo<input name="apodo" value={form.apodo} onChange={updateField} /></label>
         <label>DNI (opcional)<input name="dni" value={form.dni} onChange={updateField} /></label>
         <label>Fecha de nacimiento<input type="date" name="fechaNacimiento" value={form.fechaNacimiento} onChange={updateField} required /></label>
         <label>Número de camiseta<input type="number" name="numeroCamiseta" value={form.numeroCamiseta} onChange={updateField} min="1" max="99" required /></label>
         <label>Posición<select name="posicion" value={form.posicion} onChange={updateField}><option>Arquero</option><option>Defensor</option><option>Mediocampista</option><option>Delantero</option></select></label>
+        <label>Pierna hábil<select name="piernaHabil" value={form.piernaHabil} onChange={updateField}><option value="">Sin informar</option><option>Derecha</option><option>Izquierda</option><option>Ambas</option></select></label>
       </div>
       <label>Foto (URL opcional)<input name="foto" value={form.foto} onChange={updateField} /></label>
       {error && <p className="tournament-form-error">{error}</p>}

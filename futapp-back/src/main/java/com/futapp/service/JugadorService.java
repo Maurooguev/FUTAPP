@@ -69,6 +69,8 @@ public class JugadorService {
         jugador.setNumeroCamiseta(requestDTO.getNumeroCamiseta());
         jugador.setPosicion(requestDTO.getPosicion());
         jugador.setFoto(requestDTO.getFoto());
+        jugador.setApodo(normalizarOpcional(requestDTO.getApodo()));
+        jugador.setPiernaHabil(normalizarOpcional(requestDTO.getPiernaHabil()));
         jugador.setEstado(requestDTO.getEstado());
         jugador.setEquipo(equipo);
 
@@ -93,6 +95,8 @@ public class JugadorService {
         jugador.setNumeroCamiseta(requestDTO.getNumeroCamiseta());
         jugador.setPosicion(requestDTO.getPosicion());
         jugador.setFoto(requestDTO.getFoto());
+        jugador.setApodo(normalizarOpcional(requestDTO.getApodo()));
+        jugador.setPiernaHabil(normalizarOpcional(requestDTO.getPiernaHabil()));
         jugador.setEstado(requestDTO.getEstado());
         jugador.setEquipo(equipo);
 
@@ -119,6 +123,9 @@ public class JugadorService {
                 jugador.getNombre(),
                 jugador.getApellido(),
                 jugador.getDni(),
+                jugador.getCodigoPublico(),
+                jugador.getApodo(),
+                jugador.getPiernaHabil(),
                 jugador.getFechaNacimiento(),
                 jugador.getNumeroCamiseta(),
                 jugador.getPosicion(),

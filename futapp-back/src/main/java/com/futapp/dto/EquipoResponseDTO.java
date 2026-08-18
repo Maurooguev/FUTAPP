@@ -5,6 +5,10 @@ public class EquipoResponseDTO {
     private Long idEquipo;
     private String nombre;
     private String escudo;
+    private String codigoPublico;
+    private String descripcion;
+    private String fotoPlantel;
+    private String emailContacto;
     private String colorCamiseta;
     private String barrio;
     private String responsable;
@@ -16,12 +20,17 @@ public class EquipoResponseDTO {
     public EquipoResponseDTO() {
     }
 
-    public EquipoResponseDTO(Long idEquipo, String nombre, String escudo, String colorCamiseta,
+    public EquipoResponseDTO(Long idEquipo, String nombre, String escudo, String codigoPublico,
+                             String descripcion, String fotoPlantel, String emailContacto, String colorCamiseta,
                              String barrio, String responsable, String telefonoContacto,
                              String estado, Long idTorneo, String nombreTorneo) {
         this.idEquipo = idEquipo;
         this.nombre = nombre;
         this.escudo = escudo;
+        this.codigoPublico = codigoPublico;
+        this.descripcion = descripcion;
+        this.fotoPlantel = fotoPlantel;
+        this.emailContacto = emailContacto;
         this.colorCamiseta = colorCamiseta;
         this.barrio = barrio;
         this.responsable = responsable;
@@ -54,6 +63,15 @@ public class EquipoResponseDTO {
     public void setEscudo(String escudo) {
         this.escudo = escudo;
     }
+
+    public String getCodigoPublico() { return codigoPublico; }
+    public void setCodigoPublico(String codigoPublico) { this.codigoPublico = codigoPublico; }
+    public String getDescripcion() { return descripcion; }
+    public void setDescripcion(String descripcion) { this.descripcion = descripcion; }
+    public String getFotoPlantel() { return fotoPlantel; }
+    public void setFotoPlantel(String fotoPlantel) { this.fotoPlantel = fotoPlantel; }
+    public String getEmailContacto() { return emailContacto; }
+    public void setEmailContacto(String emailContacto) { this.emailContacto = emailContacto; }
 
     public String getColorCamiseta() {
         return colorCamiseta;

@@ -3,6 +3,7 @@ import { API_URL, apiFetch } from "../../config/api";
 import PlayerForm from "./PlayerForm";
 import "../TournamentFormModal/TournamentFormModal.css";
 import "./TeamManagement.css";
+import { Link } from "react-router-dom";
 
 function TeamRosterModal({ equipo, canManage, onClose }) {
   const [players, setPlayers] = useState([]);
@@ -63,7 +64,7 @@ function TeamRosterModal({ equipo, canManage, onClose }) {
           {loading ? <p>Cargando plantel...</p> : players.length === 0 ? <p className="roster-empty">Todavía no hay jugadores.</p> : players.map((player) => (
             <article className="roster-player" key={player.idJugador}>
               <strong className="roster-number">{player.numeroCamiseta}</strong>
-              <div><h3>{player.nombre} {player.apellido}</h3><p>{player.posicion}{player.dni ? ` · DNI ${player.dni}` : ""}</p></div>
+              <div><h3><Link to={`/jugador/${player.idJugador}`} onClick={onClose}>{player.nombre} {player.apellido}</Link></h3><p>{player.posicion}{player.apodo ? ` · ${player.apodo}` : ""}</p></div>
               <div className="roster-player-actions">
                 <span className="roster-status">{player.estado}</span>
                 {canManage && <><button type="button" onClick={() => { setEditingPlayer(player); setShowForm(true); }}>Editar</button><button type="button" className="danger" onClick={() => deletePlayer(player)}>Eliminar</button></>}
