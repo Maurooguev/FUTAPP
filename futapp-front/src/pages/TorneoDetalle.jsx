@@ -182,7 +182,16 @@ const recargarDatosTorneo = () => {
 };
 
   const generarFixture = async () => {
-    if (!window.confirm(`Se crearán automáticamente las jornadas y todos los cruces entre los ${equipos.length} equipos. ¿Continuar?`)) return;
+    if (equipos.length < 2) {
+      setAdminError("Agregá al menos 2 equipos antes de generar el fixture.");
+      return;
+    }
+    if (partidos.length > 0) {
+      setAdminError("Para generar el fixture automático, el torneo no debe tener partidos cargados.");
+      return;
+    }
+    const detalleFechas = fechas.length > 0 ? " Se usarán primero las jornadas vacías que ya creaste." : "";
+    if (!window.confirm(`Se crearán automáticamente todos los cruces entre los ${equipos.length} equipos.${detalleFechas} ¿Continuar?`)) return;
     setAdminError("");
     setGenerandoFixture(true);
     try {
@@ -210,7 +219,7 @@ const recargarDatosTorneo = () => {
           <button onClick={() => setMostrarFecha(true)}>Agregar jornada</button>
           <button onClick={() => setMostrarPartido(true)}>Agregar partido</button>
           {torneo.formato?.toUpperCase() === "LIGA" && (
-            <button onClick={generarFixture} disabled={generandoFixture || equipos.length < 2 || fechas.length > 0 || partidos.length > 0}>
+            <button onClick={generarFixture} disabled={generandoFixture}>
               {generandoFixture ? "Generando..." : "Generar fixture automático"}
             </button>
           )}

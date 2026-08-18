@@ -93,9 +93,8 @@ public class PartidoService {
             throw new IllegalArgumentException("Por ahora el fixture automático está disponible para torneos con formato Liga");
         }
 
-        if (!partidoRepository.findByTorneoIdTorneo(idTorneo).isEmpty()
-                || !fechaRepository.findByTorneoIdTorneo(idTorneo).isEmpty()) {
-            throw new IllegalArgumentException("El fixture automático solo se puede generar si el torneo todavía no tiene jornadas ni partidos");
+        if (!partidoRepository.findByTorneoIdTorneo(idTorneo).isEmpty()) {
+            throw new IllegalArgumentException("El fixture automático solo se puede generar si el torneo todavía no tiene partidos");
         }
 
         List<Equipo> equipos = new ArrayList<>(equipoRepository.findByTorneoIdTorneo(idTorneo));
@@ -111,14 +110,25 @@ public class PartidoService {
         List<Equipo> rotacion = new ArrayList<>(equipos);
         List<Partido> partidosGenerados = new ArrayList<>();
         int cantidadFechas = rotacion.size() - 1;
+        List<Fecha> fechasExistentes = new ArrayList<>(fechaRepository.findByTorneoIdTorneo(idTorneo));
+        fechasExistentes.sort(Comparator.comparing(Fecha::getNumeroFecha));
+        int siguienteNumero = fechasExistentes.stream()
+                .map(Fecha::getNumeroFecha)
+                .max(Integer::compareTo)
+                .orElse(0) + 1;
 
         for (int ronda = 0; ronda < cantidadFechas; ronda++) {
-            Fecha fecha = new Fecha();
-            fecha.setNumeroFecha(ronda + 1);
-            fecha.setDescripcion("Fecha " + (ronda + 1));
-            fecha.setEstado(ronda == 0 ? "ACTIVA" : "PENDIENTE");
-            fecha.setTorneo(torneo);
-            fecha = fechaRepository.save(fecha);
+            Fecha fecha;
+            if (ronda < fechasExistentes.size()) {
+                fecha = fechasExistentes.get(ronda);
+            } else {
+                fecha = new Fecha();
+                fecha.setNumeroFecha(siguienteNumero++);
+                fecha.setDescripcion("Fecha " + fecha.getNumeroFecha());
+                fecha.setEstado(ronda == 0 ? "ACTIVA" : "PENDIENTE");
+                fecha.setTorneo(torneo);
+                fecha = fechaRepository.save(fecha);
+            }
 
             for (int indice = 0; indice < rotacion.size() / 2; indice++) {
                 Equipo primero = rotacion.get(indice);
