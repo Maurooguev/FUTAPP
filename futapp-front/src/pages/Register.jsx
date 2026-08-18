@@ -6,6 +6,7 @@ function Register() {
   const [nombre, setNombre] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [rol, setRol] = useState("JUGADOR");
   const [error, setError] = useState("");
 
   const { register } = useAuth();
@@ -15,7 +16,7 @@ function Register() {
     e.preventDefault();
 
     setError("");
-    try { await register(nombre, email, password); navigate("/"); } catch (registerError) { setError(registerError.message); }
+    try { await register(nombre, email, password, rol); navigate("/"); } catch (registerError) { setError(registerError.message); }
   };
 
   return (
@@ -44,6 +45,7 @@ function Register() {
           />
 
           <label>Contraseña</label><input type="password" minLength="8" value={password} onChange={(e) => setPassword(e.target.value)} required />
+          <label>Tipo de cuenta</label><select value={rol} onChange={(e) => setRol(e.target.value)}><option value="JUGADOR">Jugador</option><option value="DIRECTOR_EQUIPO">Director de equipo</option><option value="ORGANIZADOR">Organizador de torneo</option></select>
           {error && <p className="tournament-form-error">{error}</p>}
 
           <button type="submit" className="auth-btn">

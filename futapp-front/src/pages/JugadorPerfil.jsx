@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { API_URL } from "../config/api";
+import { API_URL, apiFetch } from "../config/api";
+import useAuth from "../context/useAuth";
 import "./Profiles.css";
 
 async function fetchJson(url, message) {
@@ -21,6 +22,7 @@ function calcularEdad(fecha) {
 
 function JugadorPerfil() {
   const { id } = useParams();
+  const { usuario } = useAuth();
   const [jugador, setJugador] = useState(null);
   const [equipo, setEquipo] = useState(null);
   const [partidos, setPartidos] = useState([]);
@@ -28,6 +30,13 @@ function JugadorPerfil() {
   const [tarjetas, setTarjetas] = useState([]);
   const [inscripciones, setInscripciones] = useState([]);
   const [error, setError] = useState("");
+  const [claimMessage, setClaimMessage] = useState("");
+
+  const claimPlayer = async () => {
+    const response = await apiFetch(`${API_URL}/reclamos/jugadores/${id}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ idTorneo: equipo.idTorneo, mensaje: "Este perfil soy yo" }) });
+    const payload = await response.json().catch(() => null);
+    setClaimMessage(response.ok ? "Solicitud enviada para aprobación." : payload?.message || "No se pudo enviar la solicitud");
+  };
 
   useEffect(() => {
     fetchJson(`${API_URL}/jugadores/${id}`, "No se encontró el jugador")
@@ -65,7 +74,9 @@ function JugadorPerfil() {
       <div className="profile-avatar player-avatar">{jugador.foto ? <img src={jugador.foto} alt={`${jugador.nombre} ${jugador.apellido}`} /> : jugador.numeroCamiseta}</div>
       <div><span className="profile-code">{jugador.codigoPublico}</span><h1>{jugador.nombre} {jugador.apellido}</h1>{jugador.apodo && <p className="player-nickname">“{jugador.apodo}”</p>}<Link to={`/equipo/${equipo.idEquipo}`}>{equipo.nombre}</Link></div>
       <strong className="shirt-number">#{jugador.numeroCamiseta}</strong>
+      {usuario?.rol === "JUGADOR" && <button className="profile-claim-button" onClick={claimPlayer}>Este jugador soy yo</button>}
     </section>
+    {claimMessage && <p className="profile-action-message">{claimMessage}</p>}
     <section className="player-facts"><div><span>Posición</span><strong>{jugador.posicion}</strong></div><div><span>Edad</span><strong>{calcularEdad(jugador.fechaNacimiento) ?? "—"}</strong></div><div><span>Nacimiento</span><strong>{jugador.fechaNacimiento || "—"}</strong></div><div><span>Pierna hábil</span><strong>{jugador.piernaHabil || "—"}</strong></div></section>
     <section className="profile-panel"><h2>Equipos y torneos</h2><div className="career-list">{inscripciones.map((item) => <article key={item.idInscripcionJugador}><Link to={`/equipo/${item.idEquipo}`}>{item.nombreEquipo}</Link><span>{item.nombreTorneo}</span><small>#{item.numeroCamiseta || "—"} · {item.posicion || "Sin posición"} · {item.estado}</small></article>)}</div></section>
     <section className="profile-panel"><h2>Estadísticas</h2><div className="player-stats"><div><strong>{historial.filter((p) => p.estado === "JUGADO" || p.estado === "FINALIZADO").length}</strong><span>Partidos del plantel</span></div><div><strong>{goles.length}</strong><span>Goles</span></div><div><strong>{amarillas}</strong><span>Amarillas</span></div><div><strong>{rojas}</strong><span>Rojas</span></div></div></section>

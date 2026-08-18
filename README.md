@@ -110,10 +110,20 @@ Restaurarlo (reemplaza los datos actuales y solicita confirmacion):
 
 ## Usuarios y permisos
 
-El registro crea una cuenta de organizador con contraseña cifrada mediante
+El registro crea una cuenta del tipo seleccionado con contraseña cifrada mediante
 BCrypt. Al iniciar sesión, el backend entrega un token Bearer revocable con una
 vigencia de siete días. Las consultas son públicas; crear, editar o eliminar
 datos requiere una sesión con rol `ORGANIZADOR` o `ADMIN`.
+
+El registro también admite cuentas `DIRECTOR_EQUIPO` y `JUGADOR`. Un director
+debe reclamar un club y recibir la aprobación del organizador del torneo. Un
+jugador debe reclamar su ficha; puede aprobarlo un director activo del equipo o
+el organizador cuando el club todavía no tiene director.
+
+Después de vincularse, el jugador solamente puede editar sus datos personales:
+foto, apodo, nacimiento, pierna hábil, equipo favorito, barrio, altura,
+nacionalidad, biografía e Instagram. No puede modificar equipos, dorsales,
+partidos, goles, tarjetas ni estadísticas oficiales.
 
 Los clientes pueden validar y recuperar la sesion guardada mediante
 `GET /auth/me` enviando `Authorization: Bearer <token>`. Esto permite compartir

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { API_URL } from "../config/api";
+import { API_URL, apiFetch } from "../config/api";
+import useAuth from "../context/useAuth";
 import "./Profiles.css";
 
 async function fetchJson(url, message) {
@@ -11,11 +12,19 @@ async function fetchJson(url, message) {
 
 function EquipoPerfil() {
   const { id } = useParams();
+  const { usuario } = useAuth();
   const [equipo, setEquipo] = useState(null);
   const [jugadores, setJugadores] = useState([]);
   const [partidos, setPartidos] = useState([]);
   const [inscripciones, setInscripciones] = useState([]);
   const [error, setError] = useState("");
+  const [claimMessage, setClaimMessage] = useState("");
+
+  const claimTeam = async () => {
+    const response = await apiFetch(`${API_URL}/reclamos/equipos/${id}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ idTorneo: equipo.idTorneo, mensaje: "Solicito administrar este equipo" }) });
+    const payload = await response.json().catch(() => null);
+    setClaimMessage(response.ok ? "Solicitud enviada al organizador." : payload?.message || "No se pudo enviar la solicitud");
+  };
 
   useEffect(() => {
     fetchJson(`${API_URL}/equipos/${id}`, "No se encontró el equipo")
@@ -49,7 +58,9 @@ function EquipoPerfil() {
     <section className="profile-identity">
       <div className="profile-avatar club-avatar">{equipo.escudo ? <img src={equipo.escudo} alt={`Escudo de ${equipo.nombre}`} /> : equipo.nombre.slice(0, 2).toUpperCase()}</div>
       <div><span className="profile-code">{equipo.codigoPublico}</span><h1>{equipo.nombre}</h1><p>{equipo.barrio || "Barrio sin informar"}</p></div>
+      {usuario?.rol === "DIRECTOR_EQUIPO" && <button className="profile-claim-button" onClick={claimTeam}>Reclamar equipo</button>}
     </section>
+    {claimMessage && <p className="profile-action-message">{claimMessage}</p>}
     <div className="profile-layout">
       <section className="profile-panel"><h2>Sobre el club</h2><p>{equipo.descripcion || "El club todavía no agregó una descripción."}</p><dl><div><dt>Responsable</dt><dd>{equipo.responsable}</dd></div><div><dt>Contacto</dt><dd>{equipo.telefonoContacto}</dd></div>{equipo.emailContacto && <div><dt>Email</dt><dd>{equipo.emailContacto}</dd></div>}</dl></section>
       <section className="profile-panel"><h2>Historial de torneos</h2><div className="enrollment-list">{inscripciones.map((item) => <Link className="history-link" to={`/torneo/${item.idTorneo}`} key={item.idInscripcion}><strong>{item.nombreTorneo}</strong><small>{item.estado} · {item.cantidadJugadores} jugadores</small><span>Ver torneo →</span></Link>)}</div></section>

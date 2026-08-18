@@ -27,7 +27,7 @@ class AuthControllerIntegrationTests {
         String registration = mockMvc.perform(post("/auth/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonMapper.writeValueAsString(new RegisterRequestDTO(
-                                "Organizador API", "api@test.local", "password123"))))
+                                "Organizador API", "api@test.local", "password123", "ORGANIZADOR"))))
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
         String token = jsonMapper.readTree(registration).get("token").asString();

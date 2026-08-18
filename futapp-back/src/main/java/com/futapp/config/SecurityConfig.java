@@ -25,6 +25,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/auth/login", "/auth/register", "/status", "/hola").permitAll()
                 .requestMatchers("/auth/me", "/auth/logout", "/torneos/mios").authenticated()
+                .requestMatchers("/reclamos/**", "/perfil-jugador/**").authenticated()
                 .requestMatchers(HttpMethod.GET, "/**").permitAll()
                 .anyRequest().hasAnyRole("ORGANIZADOR", "ADMIN"))
             .exceptionHandling(errors -> errors

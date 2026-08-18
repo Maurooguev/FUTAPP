@@ -21,6 +21,8 @@ function Header() {
           {(usuario?.rol === "ADMIN" || usuario?.rol === "ORGANIZADOR") && (
             <Link to="/mis-torneos">Mis torneos</Link>
           )}
+          {(usuario?.rol === "ADMIN" || usuario?.rol === "ORGANIZADOR" || usuario?.rol === "DIRECTOR_EQUIPO") && <Link to="/solicitudes">Solicitudes</Link>}
+          {usuario?.rol === "JUGADOR" && <Link to="/mi-perfil-jugador">Mi perfil</Link>}
         </nav>
 
         <div className="header-actions">

@@ -17,7 +17,7 @@ class AuthServiceTests {
 
     @Test
     void registraEIniciaSesionConCredencialesReales() {
-        var registration = authService.register(new RegisterRequestDTO("Organizador Test", "organizador@test.local", "password123"));
+        var registration = authService.register(new RegisterRequestDTO("Organizador Test", "organizador@test.local", "password123", "ORGANIZADOR"));
         assertNotNull(registration.token());
         assertEquals("ORGANIZADOR", registration.rol());
 

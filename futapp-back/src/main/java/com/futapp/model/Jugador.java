@@ -34,6 +34,17 @@ public class Jugador {
     private String foto;
     private String estado;
 
+    @OneToOne
+    @JoinColumn(name = "id_usuario", unique = true)
+    private Usuario usuario;
+
+    @Column(name = "equipo_favorito") private String equipoFavorito;
+    private String barrio;
+    @Column(name = "altura_cm") private Integer alturaCm;
+    private String nacionalidad;
+    @Column(length = 1000) private String biografia;
+    private String instagram;
+
     @ManyToOne
     @JoinColumn(name = "id_equipo", nullable = false)
     private Equipo equipo;
@@ -126,6 +137,21 @@ public class Jugador {
     public void setEstado(String estado) {
         this.estado = estado;
     }
+
+    public Usuario getUsuario() { return usuario; }
+    public void setUsuario(Usuario usuario) { this.usuario = usuario; }
+    public String getEquipoFavorito() { return equipoFavorito; }
+    public void setEquipoFavorito(String equipoFavorito) { this.equipoFavorito = equipoFavorito; }
+    public String getBarrio() { return barrio; }
+    public void setBarrio(String barrio) { this.barrio = barrio; }
+    public Integer getAlturaCm() { return alturaCm; }
+    public void setAlturaCm(Integer alturaCm) { this.alturaCm = alturaCm; }
+    public String getNacionalidad() { return nacionalidad; }
+    public void setNacionalidad(String nacionalidad) { this.nacionalidad = nacionalidad; }
+    public String getBiografia() { return biografia; }
+    public void setBiografia(String biografia) { this.biografia = biografia; }
+    public String getInstagram() { return instagram; }
+    public void setInstagram(String instagram) { this.instagram = instagram; }
 
     public Equipo getEquipo() {
         return equipo;
