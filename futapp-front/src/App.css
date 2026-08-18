@@ -1382,7 +1382,7 @@ button {
   }
 
   .home .hero-v2 h1 {
-    font-size: 48px;
+    font-size: 40px;
   }
 
   .home .hero-v2 p {
@@ -1391,7 +1391,14 @@ button {
   }
 
   .home .section {
-    padding: 52px 32px;
+    padding: 42px 32px;
+  }
+
+  .home .hero-content,
+  .home .section-header,
+  .home .cards-grid,
+  .home .stats-section {
+    max-width: 920px;
   }
 
   .torneo-page .tournament-hero {
@@ -1410,7 +1417,7 @@ button {
   }
 
   .torneo-page .tournament-hero h1 {
-    font-size: 30px;
+    font-size: 25px;
   }
 
   .torneo-page .tournament-hero p {
@@ -1438,6 +1445,7 @@ button {
   }
 
   .torneo-page .admin-actions {
+    max-width: 920px;
     margin: 16px auto 18px;
     gap: 8px;
   }
@@ -1449,8 +1457,8 @@ button {
   }
 
   .torneo-page .torneo-content {
-    max-width: 1240px;
-    padding: 24px 20px 50px;
+    width: min(920px, calc(100% - 32px));
+    padding: 20px 0 46px;
   }
 
   .torneo-page .torneo-stats-grid {
@@ -1484,7 +1492,7 @@ button {
   .torneo-page .standings-header h2,
   .torneo-page .team-management-head h2,
   .torneo-page .fixture-header h2 {
-    font-size: 25px;
+    font-size: 21px;
   }
 
   .torneo-page .standings-table th,
