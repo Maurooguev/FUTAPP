@@ -131,14 +131,6 @@
   opacity: 0.65;
 }
 
-.home-admin-toolbar {
-  display: flex;
-  max-width: 1180px;
-  justify-content: flex-end;
-  margin: 24px auto 0;
-  padding: 0 20px;
-}
-
 .match-form-empty {
   border: 1px solid #fed7aa;
   border-radius: 14px;

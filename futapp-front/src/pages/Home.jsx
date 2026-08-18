@@ -48,22 +48,25 @@ function Home() {
     navigate(`/torneo/${idTorneo}`);
   };
 
+  const irATorneos = () => {
+    document.getElementById("todos-torneos")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  const crearTorneo = () => {
+    if (canManage) setShowTournamentForm(true);
+    else navigate("/register");
+  };
+
   return (
     <div className="home">
 
-      <HeroHome busqueda={busqueda} onBusquedaChange={setBusqueda} />
-
-      {canManage && (
-        <div className="home-admin-toolbar">
-          <button
-            type="button"
-            className="home-admin-button"
-            onClick={() => setShowTournamentForm(true)}
-          >
-            + Crear torneo
-          </button>
-        </div>
-      )}
+      <HeroHome
+        busqueda={busqueda}
+        onBusquedaChange={setBusqueda}
+        onSearch={irATorneos}
+        onCreate={crearTorneo}
+        onExplore={irATorneos}
+      />
 
       <section className="stats-section">
         <div className="stat-card">
@@ -101,7 +104,7 @@ function Home() {
         </div>
       </section>
 
-      <section className="section section-soft">
+      <section className="section section-soft" id="todos-torneos">
         <SectionTitle
           chip="Explorar"
           title="Todos los torneos"
@@ -192,8 +195,8 @@ function Home() {
           <p>Empezá a centralizar resultados, estadísticas y equipos en una sola plataforma.</p>
 
           <div className="home-hero-buttons">
-            <button className="home-btn-primary">Registrarme</button>
-            <button className="home-btn-secondary">Ver torneos</button>
+            <button type="button" className="home-btn-primary" onClick={() => navigate(usuario ? "/mis-torneos" : "/register")}>{usuario ? "Mis torneos" : "Registrarme"}</button>
+            <button type="button" className="home-btn-secondary" onClick={irATorneos}>Ver torneos</button>
           </div>
         </div>
       </section>

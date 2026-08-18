@@ -1,6 +1,6 @@
 import "./HeroHome.css";
 
-function HeroHome({ busqueda, onBusquedaChange }) {
+function HeroHome({ busqueda, onBusquedaChange, onSearch, onCreate, onExplore }) {
   return (
     <section className="home-hero" id="inicio">
       <div className="home-hero-overlay" />
@@ -21,19 +21,19 @@ function HeroHome({ busqueda, onBusquedaChange }) {
           automáticas, goleadores, tarjetas, fixtures y resultados actualizados.
         </p>
 
-        <div className="home-search-box">
+        <form className="home-search-box" onSubmit={(event) => { event.preventDefault(); onSearch(); }}>
           <input
             type="text"
             placeholder="Buscar por código, nombre, ubicación o estado..."
             value={busqueda}
             onChange={(e) => onBusquedaChange(e.target.value)}
           />
-          <button className="home-btn-primary">Buscar</button>
-        </div>
+          <button type="submit" className="home-btn-primary">Buscar</button>
+        </form>
 
         <div className="home-hero-buttons">
-          <button className="home-btn-primary">Crear torneo</button>
-          <button className="home-btn-secondary">Explorar torneos</button>
+          <button type="button" className="home-btn-primary" onClick={onCreate}>Crear torneo</button>
+          <button type="button" className="home-btn-secondary" onClick={onExplore}>Explorar torneos</button>
         </div>
       </div>
     </section>
