@@ -1,6 +1,9 @@
 package com.futapp.config;
 
+import com.futapp.exception.ErrorResponse;
 import com.futapp.repository.AuthTokenRepository;
+import jakarta.servlet.http.HttpServletResponse;
+import tools.jackson.databind.json.JsonMapper;
 import org.springframework.context.annotation.*;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -16,13 +19,27 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 public class SecurityConfig {
     @Bean PasswordEncoder passwordEncoder() { return new BCryptPasswordEncoder(); }
     @Bean UserDetailsService userDetailsService() { return username -> { throw new UsernameNotFoundException(username); }; }
-    @Bean SecurityFilterChain filterChain(HttpSecurity http, AuthTokenRepository tokens) throws Exception {
+    @Bean SecurityFilterChain filterChain(HttpSecurity http, AuthTokenRepository tokens,
+                                          JsonMapper jsonMapper) throws Exception {
         return http.csrf(csrf -> csrf.disable()).cors(cors -> {}).sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/auth/login", "/auth/register", "/status", "/hola").permitAll()
-                .requestMatchers("/torneos/mios").authenticated()
+                .requestMatchers("/auth/me", "/auth/logout", "/torneos/mios").authenticated()
                 .requestMatchers(HttpMethod.GET, "/**").permitAll()
                 .anyRequest().hasAnyRole("ORGANIZADOR", "ADMIN"))
+            .exceptionHandling(errors -> errors
+                .authenticationEntryPoint((request, response, exception) -> {
+                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                    response.setContentType("application/json");
+                    jsonMapper.writeValue(response.getOutputStream(),
+                            new ErrorResponse(401, "Autenticación requerida"));
+                })
+                .accessDeniedHandler((request, response, exception) -> {
+                    response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                    response.setContentType("application/json");
+                    jsonMapper.writeValue(response.getOutputStream(),
+                            new ErrorResponse(403, "No tenés permisos para realizar esta acción"));
+                }))
             .addFilterBefore(new BearerTokenFilter(tokens), UsernamePasswordAuthenticationFilter.class)
             .build();
     }

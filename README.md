@@ -71,6 +71,7 @@ credenciales o conectar una base externa se pueden definir estas variables:
 - `DATABASE_URL`
 - `DATABASE_USERNAME`
 - `DATABASE_PASSWORD`
+- `CORS_ALLOWED_ORIGINS` (uno o varios origenes web separados por coma)
 - `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD` y `POSTGRES_PORT`
 
 `.env.example` contiene un ejemplo para desarrollo. No se deben subir
@@ -113,6 +114,10 @@ El registro crea una cuenta de organizador con contraseña cifrada mediante
 BCrypt. Al iniciar sesión, el backend entrega un token Bearer revocable con una
 vigencia de siete días. Las consultas son públicas; crear, editar o eliminar
 datos requiere una sesión con rol `ORGANIZADOR` o `ADMIN`.
+
+Los clientes pueden validar y recuperar la sesion guardada mediante
+`GET /auth/me` enviando `Authorization: Bearer <token>`. Esto permite compartir
+el mismo flujo de acceso entre la web y futuras aplicaciones Android/iOS.
 
 El DNI de los jugadores es opcional. Cuando se informa, debe ser único. El
 número de camiseta también debe ser único dentro de cada equipo.
