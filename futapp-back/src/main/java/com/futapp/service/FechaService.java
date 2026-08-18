@@ -4,12 +4,15 @@ import com.futapp.dto.FechaRequestDTO;
 import com.futapp.dto.FechaResponseDTO;
 import com.futapp.exception.ResourceNotFoundException;
 import com.futapp.model.Fecha;
+import com.futapp.model.Partido;
 import com.futapp.model.Torneo;
 import com.futapp.repository.FechaRepository;
 import com.futapp.repository.TorneoRepository;
 import com.futapp.repository.PartidoRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -93,6 +96,41 @@ public class FechaService {
             throw new IllegalArgumentException("No se puede eliminar la jornada porque tiene partidos asociados");
         }
         fechaRepository.deleteById(id);
+    }
+
+    @Transactional
+    public FechaResponseDTO cerrarFecha(Long id) {
+        Fecha fecha = fechaRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Fecha no encontrada con id: " + id));
+        authorization.verificarGestion(fecha.getTorneo());
+
+        if ("FINALIZADA".equalsIgnoreCase(fecha.getEstado())) {
+            throw new IllegalArgumentException("La jornada ya está finalizada");
+        }
+
+        List<Partido> partidos = partidoRepository.findByFechaIdFecha(id);
+        if (partidos.isEmpty()) {
+            throw new IllegalArgumentException("No se puede cerrar una jornada sin partidos");
+        }
+        boolean quedanPartidos = partidos.stream()
+                .anyMatch(partido -> !"FINALIZADO".equalsIgnoreCase(partido.getEstado()));
+        if (quedanPartidos) {
+            throw new IllegalArgumentException("Todos los partidos deben tener un resultado antes de cerrar la jornada");
+        }
+
+        fecha.setEstado("FINALIZADA");
+        fechaRepository.save(fecha);
+
+        fechaRepository.findByTorneoIdTorneo(fecha.getTorneo().getIdTorneo()).stream()
+                .filter(siguiente -> siguiente.getNumeroFecha() > fecha.getNumeroFecha())
+                .filter(siguiente -> !"FINALIZADA".equalsIgnoreCase(siguiente.getEstado()))
+                .min(Comparator.comparing(Fecha::getNumeroFecha))
+                .ifPresent(siguiente -> {
+                    siguiente.setEstado("ACTIVA");
+                    fechaRepository.save(siguiente);
+                });
+
+        return convertirAResponseDTO(fecha);
     }
 
     private FechaResponseDTO convertirAResponseDTO(Fecha fecha) {

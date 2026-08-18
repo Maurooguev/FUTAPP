@@ -271,6 +271,17 @@ const recargarDatosTorneo = () => {
             onSelectPartido={setPartidoSeleccionado}
             canManage={puedeEditar}
             onEditDate={(fecha) => { setFechaEnEdicion(fecha); setMostrarFecha(true); }}
+            onCloseDate={async (fecha) => {
+              if (!window.confirm(`¿Cerrar la fecha ${fecha.numeroFecha}? Todos sus partidos deben estar finalizados.`)) return;
+              setAdminError("");
+              try {
+                const response = await apiFetch(`${API_URL}/fechas/${fecha.idFecha}/cerrar`, { method: "PUT" });
+                const payload = await response.json().catch(() => null);
+                if (!response.ok) throw new Error(payload?.message || "No se pudo cerrar la jornada");
+                const fechasResponse = await fetch(`${API_URL}/fechas/torneo/${id}`);
+                setFechas(await fechasResponse.json());
+              } catch (requestError) { setAdminError(requestError.message); }
+            }}
             onDeleteDate={(fecha) => eliminarRecurso(`${API_URL}/fechas/${fecha.idFecha}`, `¿Eliminar la fecha ${fecha.numeroFecha}?`, () => setFechas((current) => current.filter((item) => item.idFecha !== fecha.idFecha)))}
             onEditMatch={(partido) => { setPartidoEnEdicion(partido); setMostrarPartido(true); }}
             onDeleteMatch={(partido) => eliminarRecurso(`${API_URL}/partidos/${partido.idPartido}`, `¿Eliminar ${partido.nombreEquipoLocal} vs ${partido.nombreEquipoVisitante}?`, () => setPartidos((current) => current.filter((item) => item.idPartido !== partido.idPartido)))}

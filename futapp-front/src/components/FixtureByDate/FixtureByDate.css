@@ -135,6 +135,7 @@
 .fixture-admin-actions { display: flex; gap: 7px; }
 .fixture-admin-actions button { padding: 7px 10px; background: #e2e8f0; color: #334155; font-size: 12px; }
 .fixture-admin-actions .danger { background: #fee2e2; color: #b91c1c; }
+.fixture-admin-actions .close-date { background: #dcfce7; color: #166534; }
 .fixture-quick-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: 14px; }
 .fixture-quick-actions button { padding: 9px 8px; border-radius: 9px; background: #e2e8f0; color: #334155; font-size: 12px; font-weight: 800; }
 .fixture-quick-actions .result { background: #dcfce7; color: #166534; }

@@ -43,6 +43,11 @@ public class FechaController {
         return fechaService.actualizarFecha(id, requestDTO);
     }
 
+    @PutMapping("/{id}/cerrar")
+    public FechaResponseDTO cerrarFecha(@PathVariable Long id) {
+        return fechaService.cerrarFecha(id);
+    }
+
     @DeleteMapping("/{id}")
     public String eliminarFecha(@PathVariable Long id) {
         fechaService.eliminarFecha(id);
