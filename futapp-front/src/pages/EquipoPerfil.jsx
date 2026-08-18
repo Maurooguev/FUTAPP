@@ -3,6 +3,12 @@ import { Link, useParams } from "react-router-dom";
 import { API_URL } from "../config/api";
 import "./Profiles.css";
 
+async function fetchJson(url, message) {
+  const response = await fetch(url);
+  if (!response.ok) throw new Error(message);
+  return response.json();
+}
+
 function EquipoPerfil() {
   const { id } = useParams();
   const [equipo, setEquipo] = useState(null);
@@ -11,18 +17,19 @@ function EquipoPerfil() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    fetch(`${API_URL}/equipos/${id}`)
-      .then(async (response) => {
-        if (!response.ok) throw new Error("No se encontró el equipo");
-        const team = await response.json();
+    fetchJson(`${API_URL}/equipos/${id}`, "No se encontró el equipo")
+      .then(async (team) => {
         setEquipo(team);
         return Promise.all([
-          fetch(`${API_URL}/jugadores/equipo/${id}`).then((res) => res.json()),
-          fetch(`${API_URL}/partidos/torneo/${team.idTorneo}`).then((res) => res.json()),
+          fetchJson(`${API_URL}/jugadores/equipo/${id}`, "No se pudo cargar el plantel"),
+          fetchJson(`${API_URL}/partidos/torneo/${team.idTorneo}`, "No se pudieron cargar los partidos"),
         ]);
       })
-      .then(([players, matches]) => { setJugadores(players); setPartidos(matches); })
-      .catch((requestError) => setError(requestError.message));
+      .then(([players, matches]) => {
+        setJugadores(Array.isArray(players) ? players : []);
+        setPartidos(Array.isArray(matches) ? matches : []);
+      })
+      .catch((requestError) => setError(`${requestError.message}. Actualizá la página para reintentar.`));
   }, [id]);
 
   const historial = useMemo(() => partidos.filter((partido) =>

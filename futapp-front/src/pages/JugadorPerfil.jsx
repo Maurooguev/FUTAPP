@@ -3,6 +3,12 @@ import { Link, useParams } from "react-router-dom";
 import { API_URL } from "../config/api";
 import "./Profiles.css";
 
+async function fetchJson(url, message) {
+  const response = await fetch(url);
+  if (!response.ok) throw new Error(message);
+  return response.json();
+}
+
 function calcularEdad(fecha) {
   if (!fecha) return null;
   const nacimiento = new Date(`${fecha}T00:00:00`);
@@ -23,21 +29,23 @@ function JugadorPerfil() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    fetch(`${API_URL}/jugadores/${id}`)
-      .then(async (response) => {
-        if (!response.ok) throw new Error("No se encontró el jugador");
-        const player = await response.json();
+    fetchJson(`${API_URL}/jugadores/${id}`, "No se encontró el jugador")
+      .then(async (player) => {
         setJugador(player);
-        const team = await fetch(`${API_URL}/equipos/${player.idEquipo}`).then((res) => res.json());
+        const team = await fetchJson(`${API_URL}/equipos/${player.idEquipo}`, "No se pudo cargar el equipo");
         setEquipo(team);
         return Promise.all([
-          fetch(`${API_URL}/partidos/torneo/${team.idTorneo}`).then((res) => res.json()),
-          fetch(`${API_URL}/goles/jugador/${id}`).then((res) => res.json()),
-          fetch(`${API_URL}/tarjetas/jugador/${id}`).then((res) => res.json()),
+          fetchJson(`${API_URL}/partidos/torneo/${team.idTorneo}`, "No se pudieron cargar los partidos"),
+          fetchJson(`${API_URL}/goles/jugador/${id}`, "No se pudieron cargar los goles"),
+          fetchJson(`${API_URL}/tarjetas/jugador/${id}`, "No se pudieron cargar las tarjetas"),
         ]);
       })
-      .then(([matches, goals, cards]) => { setPartidos(matches); setGoles(goals); setTarjetas(cards); })
-      .catch((requestError) => setError(requestError.message));
+      .then(([matches, goals, cards]) => {
+        setPartidos(Array.isArray(matches) ? matches : []);
+        setGoles(Array.isArray(goals) ? goals : []);
+        setTarjetas(Array.isArray(cards) ? cards : []);
+      })
+      .catch((requestError) => setError(`${requestError.message}. Actualizá la página para reintentar.`));
   }, [id]);
 
   const historial = useMemo(() => equipo ? partidos.filter((partido) =>
