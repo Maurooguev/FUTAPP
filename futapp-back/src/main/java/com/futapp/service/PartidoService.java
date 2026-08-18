@@ -15,6 +15,9 @@ import com.futapp.repository.TorneoRepository;
 import com.futapp.repository.GolRepository;
 import com.futapp.repository.TarjetaRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -78,6 +81,71 @@ public class PartidoService {
         Partido partido = new Partido();
         cargarDatosPartido(partido, requestDTO);
         return convertirAResponseDTO(partidoRepository.save(partido));
+    }
+
+    @Transactional
+    public List<PartidoResponseDTO> generarFixture(Long idTorneo) {
+        authorization.verificarGestion(idTorneo);
+        Torneo torneo = torneoRepository.findById(idTorneo)
+                .orElseThrow(() -> new ResourceNotFoundException("Torneo no encontrado con id: " + idTorneo));
+
+        if (!"LIGA".equalsIgnoreCase(torneo.getFormato())) {
+            throw new IllegalArgumentException("Por ahora el fixture automático está disponible para torneos con formato Liga");
+        }
+
+        if (!partidoRepository.findByTorneoIdTorneo(idTorneo).isEmpty()
+                || !fechaRepository.findByTorneoIdTorneo(idTorneo).isEmpty()) {
+            throw new IllegalArgumentException("El fixture automático solo se puede generar si el torneo todavía no tiene jornadas ni partidos");
+        }
+
+        List<Equipo> equipos = new ArrayList<>(equipoRepository.findByTorneoIdTorneo(idTorneo));
+        equipos.sort(Comparator.comparing(Equipo::getIdEquipo));
+        if (equipos.size() < 2) {
+            throw new IllegalArgumentException("Se necesitan al menos 2 equipos para generar el fixture");
+        }
+
+        if (equipos.size() % 2 != 0) {
+            equipos.add(null);
+        }
+
+        List<Equipo> rotacion = new ArrayList<>(equipos);
+        List<Partido> partidosGenerados = new ArrayList<>();
+        int cantidadFechas = rotacion.size() - 1;
+
+        for (int ronda = 0; ronda < cantidadFechas; ronda++) {
+            Fecha fecha = new Fecha();
+            fecha.setNumeroFecha(ronda + 1);
+            fecha.setDescripcion("Fecha " + (ronda + 1));
+            fecha.setEstado(ronda == 0 ? "ACTIVA" : "PENDIENTE");
+            fecha.setTorneo(torneo);
+            fecha = fechaRepository.save(fecha);
+
+            for (int indice = 0; indice < rotacion.size() / 2; indice++) {
+                Equipo primero = rotacion.get(indice);
+                Equipo segundo = rotacion.get(rotacion.size() - 1 - indice);
+                if (primero == null || segundo == null) {
+                    continue;
+                }
+
+                boolean invertirLocalia = (ronda + indice) % 2 != 0;
+                Partido partido = new Partido();
+                partido.setTorneo(torneo);
+                partido.setFecha(fecha);
+                partido.setEquipoLocal(invertirLocalia ? segundo : primero);
+                partido.setEquipoVisitante(invertirLocalia ? primero : segundo);
+                partido.setFechaHora("");
+                partido.setEstado("PROGRAMADO");
+                partido.setGolesLocal(0);
+                partido.setGolesVisitante(0);
+                partido.setObservaciones("Horario a confirmar");
+                partidosGenerados.add(partidoRepository.save(partido));
+            }
+
+            Equipo ultimo = rotacion.remove(rotacion.size() - 1);
+            rotacion.add(1, ultimo);
+        }
+
+        return partidosGenerados.stream().map(this::convertirAResponseDTO).toList();
     }
 
     public PartidoResponseDTO actualizarPartido(Long id, PartidoRequestDTO requestDTO) {

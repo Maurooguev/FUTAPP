@@ -39,6 +39,7 @@ function TorneoDetalle() {
   const [partidoEnEdicion, setPartidoEnEdicion] = useState(null);
   const [fechaEnEdicion, setFechaEnEdicion] = useState(null);
   const [adminError, setAdminError] = useState("");
+  const [generandoFixture, setGenerandoFixture] = useState(false);
 
   const eliminarRecurso = async (url, message, onSuccess) => {
     if (!window.confirm(message)) return;
@@ -180,6 +181,24 @@ const recargarDatosTorneo = () => {
     .then((data) => setTarjetas(data));
 };
 
+  const generarFixture = async () => {
+    if (!window.confirm(`Se crearán automáticamente las jornadas y todos los cruces entre los ${equipos.length} equipos. ¿Continuar?`)) return;
+    setAdminError("");
+    setGenerandoFixture(true);
+    try {
+      const response = await apiFetch(`${API_URL}/partidos/torneo/${id}/generar-fixture`, { method: "POST" });
+      const payload = await response.json().catch(() => null);
+      if (!response.ok) throw new Error(payload?.message || "No se pudo generar el fixture");
+      const fechasResponse = await fetch(`${API_URL}/fechas/torneo/${id}`);
+      setFechas(await fechasResponse.json());
+      setPartidos(payload);
+    } catch (requestError) {
+      setAdminError(requestError.message);
+    } finally {
+      setGenerandoFixture(false);
+    }
+  };
+
   return (
     <div className="torneo-page">
       <TournamentHero torneo={torneo} fechaActual={fechaActual} />
@@ -190,6 +209,11 @@ const recargarDatosTorneo = () => {
           <button onClick={() => { setPartidoResultado(null); setMostrarResultado(true); }}>Cargar resultado</button>
           <button onClick={() => setMostrarFecha(true)}>Agregar jornada</button>
           <button onClick={() => setMostrarPartido(true)}>Agregar partido</button>
+          {torneo.formato?.toUpperCase() === "LIGA" && (
+            <button onClick={generarFixture} disabled={generandoFixture || equipos.length < 2 || fechas.length > 0 || partidos.length > 0}>
+              {generandoFixture ? "Generando..." : "Generar fixture automático"}
+            </button>
+          )}
         </div>
       )}
       {adminError && <div className="admin-actions"><p className="tournament-form-error">{adminError}</p></div>}

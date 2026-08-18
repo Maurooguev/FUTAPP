@@ -44,6 +44,11 @@ public class PartidoController {
         return partidoService.crearPartido(requestDTO);
     }
 
+    @PostMapping("/torneo/{idTorneo}/generar-fixture")
+    public List<PartidoResponseDTO> generarFixture(@PathVariable Long idTorneo) {
+        return partidoService.generarFixture(idTorneo);
+    }
+
     @PutMapping("/{id}")
     public PartidoResponseDTO actualizarPartido(@PathVariable Long id, @Valid @RequestBody PartidoRequestDTO requestDTO) {
         return partidoService.actualizarPartido(id, requestDTO);

@@ -100,7 +100,7 @@ function FixtureByDate({ fechas, partidos, onSelectPartido, canManage, onEditDat
                 <span>{partido.nombreEquipoVisitante}</span>
               </div>
 
-              <p>{partido.fechaHora}</p>
+              <p>{partido.fechaHora || partido.observaciones || "Horario a confirmar"}</p>
               {canManage && <div className="fixture-quick-actions" onClick={(event) => event.stopPropagation()}>
                 <button className="result" onClick={() => onLoadResult(partido)}>Cargar resultado</button>
                 <button className="incidents" onClick={() => onSelectPartido(partido)}>Goles y tarjetas</button>
