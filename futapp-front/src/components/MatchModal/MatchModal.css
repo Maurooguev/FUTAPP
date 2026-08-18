@@ -154,6 +154,8 @@
     font-size: 24px;
   }
 }
+.match-modal a { color: inherit; text-decoration: none; }
+.match-modal a:hover { color: #0877a7; text-decoration: underline; }
 .match-add-event { margin: 10px 0; padding: 8px 11px; background: #2563eb; color: #fff; }
 .match-delete-event { margin-left: auto; padding: 5px 9px; background: #fee2e2; color: #b91c1c; }
 .match-incident-form { display: grid; gap: 8px; margin: 10px 0 16px; border-radius: 12px; padding: 12px; background: #f8fafc; }

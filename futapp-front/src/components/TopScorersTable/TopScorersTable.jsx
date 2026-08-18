@@ -1,4 +1,5 @@
 import "./TopScorersTable.css";
+import { Link } from "react-router-dom";
 
 function TopScorersTable({ goleadores }) {
   return (
@@ -21,8 +22,8 @@ function TopScorersTable({ goleadores }) {
           {goleadores.map((goleador, index) => (
             <tr key={goleador.idJugador}>
               <td>{index + 1}</td>
-              <td>{goleador.nombreJugador}</td>
-              <td>{goleador.nombreEquipo}</td>
+              <td><Link to={`/jugador/${goleador.idJugador}`}>{goleador.nombreJugador}</Link></td>
+              <td><Link to={`/equipo/${goleador.idEquipo}`}>{goleador.nombreEquipo}</Link></td>
               <td>{goleador.cantidadGoles}</td>
             </tr>
           ))}

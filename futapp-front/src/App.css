@@ -1221,6 +1221,16 @@ button {
   margin-bottom: 4px;
 }
 
+.profile-entity-link {
+  color: inherit;
+  text-decoration: none;
+}
+
+.profile-entity-link:hover {
+  color: #0877a7;
+  text-decoration: underline;
+}
+
 .incidencia-card p,
 .empty-text {
   color: #64748b;

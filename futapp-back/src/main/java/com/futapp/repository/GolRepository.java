@@ -23,6 +23,7 @@ public interface GolRepository extends JpaRepository<Gol, Long> {
         SELECT new com.futapp.dto.GoleadorDTO(
             j.idJugador,
             CONCAT(j.nombre, ' ', j.apellido),
+            e.idEquipo,
             e.nombre,
             COUNT(g.idGol)
         )
@@ -32,7 +33,7 @@ public interface GolRepository extends JpaRepository<Gol, Long> {
         JOIN g.partido p
         JOIN p.torneo t
         WHERE t.idTorneo = :idTorneo
-        GROUP BY j.idJugador, j.nombre, j.apellido, e.nombre
+        GROUP BY j.idJugador, j.nombre, j.apellido, e.idEquipo, e.nombre
         ORDER BY COUNT(g.idGol) DESC
     """)
     List<GoleadorDTO> obtenerGoleadoresPorTorneo(Long idTorneo);

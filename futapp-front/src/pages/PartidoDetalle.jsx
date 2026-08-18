@@ -41,19 +41,19 @@ function PartidoDetalle() {
           <span className="partido-chip">Fecha {partido.numeroFecha}</span>
 
           <div className="scoreboard">
-            <div className="team-box">
+            <Link className="team-box profile-entity-link" to={`/equipo/${partido.idEquipoLocal}`}>
               <div className="team-mark">{partido.nombreEquipoLocal?.charAt(0)}</div>
               <h2>{partido.nombreEquipoLocal}</h2>
               <strong>{partido.golesLocal}</strong>
-            </div>
+            </Link>
 
             <div className="versus">VS</div>
 
-            <div className="team-box">
+            <Link className="team-box profile-entity-link" to={`/equipo/${partido.idEquipoVisitante}`}>
               <div className="team-mark">{partido.nombreEquipoVisitante?.charAt(0)}</div>
               <h2>{partido.nombreEquipoVisitante}</h2>
               <strong>{partido.golesVisitante}</strong>
-            </div>
+            </Link>
           </div>
 
           <p className="partido-info">
@@ -74,8 +74,8 @@ function PartidoDetalle() {
                 <div className="incidencia-card" key={gol.idGol}>
                   <strong>{gol.minuto}'</strong>
                   <div>
-                    <h3>{gol.nombreJugador}</h3>
-                    <p>{gol.nombreEquipo} · {gol.tipoGol}</p>
+                    <h3><Link className="profile-entity-link" to={`/jugador/${gol.idJugador}`}>{gol.nombreJugador}</Link></h3>
+                    <p><Link className="profile-entity-link" to={`/equipo/${gol.idEquipo}`}>{gol.nombreEquipo}</Link> · {gol.tipoGol}</p>
                   </div>
                 </div>
               ))
@@ -92,9 +92,9 @@ function PartidoDetalle() {
                 <div className="incidencia-card" key={tarjeta.idTarjeta}>
                   <strong>{tarjeta.minuto ? `${tarjeta.minuto}'` : "-"}</strong>
                   <div>
-                    <h3>{tarjeta.nombreJugador}</h3>
+                    <h3><Link className="profile-entity-link" to={`/jugador/${tarjeta.idJugador}`}>{tarjeta.nombreJugador}</Link></h3>
                     <p>
-                      {tarjeta.nombreEquipo} · {tarjeta.tipoTarjeta}
+                      <Link className="profile-entity-link" to={`/equipo/${tarjeta.idEquipo}`}>{tarjeta.nombreEquipo}</Link> · {tarjeta.tipoTarjeta}
                       {tarjeta.motivo ? ` · ${tarjeta.motivo}` : ""}
                     </p>
                   </div>

@@ -1,4 +1,5 @@
 import "./TopCardsTable.css";
+import { Link } from "react-router-dom";
 
 function TopCardsTable({ jugadores }) {
   return (
@@ -21,8 +22,8 @@ function TopCardsTable({ jugadores }) {
           {jugadores.map((jugador, index) => (
             <tr key={jugador.idJugador}>
               <td>{index + 1}</td>
-              <td>{jugador.nombreJugador}</td>
-              <td>{jugador.nombreEquipo}</td>
+              <td><Link to={`/jugador/${jugador.idJugador}`}>{jugador.nombreJugador}</Link></td>
+              <td><Link to={`/equipo/${jugador.idEquipo}`}>{jugador.nombreEquipo}</Link></td>
               <td>{jugador.cantidad}</td>
             </tr>
           ))}

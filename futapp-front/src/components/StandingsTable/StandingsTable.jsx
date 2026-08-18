@@ -1,4 +1,5 @@
 import "./StandingsTable.css";
+import { Link } from "react-router-dom";
 
 function StandingsTable({ tabla }) {
   return (
@@ -28,7 +29,7 @@ function StandingsTable({ tabla }) {
             {tabla.map((fila, index) => (
               <tr key={fila.idEquipo} className={index === 0 ? "top-row" : ""}>
                 <td>{index + 1}</td>
-                <td className="team-cell">{fila.nombreEquipo}</td>
+                <td className="team-cell"><Link to={`/equipo/${fila.idEquipo}`}>{fila.nombreEquipo}</Link></td>
                 <td>{fila.puntos}</td>
                 <td>{fila.partidosJugados}</td>
                 <td>{fila.ganados}</td>

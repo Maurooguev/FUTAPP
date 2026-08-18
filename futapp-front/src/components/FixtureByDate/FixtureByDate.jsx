@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import "./FixtureByDate.css";
 
 function FixtureByDate({ fechas, partidos, onSelectPartido, canManage, onEditDate, onCloseDate, onDeleteDate, onEditMatch, onDeleteMatch, onLoadResult }) {
@@ -93,7 +94,7 @@ function FixtureByDate({ fechas, partidos, onSelectPartido, canManage, onEditDat
               <div className="fixture-match-status">{partido.estado}</div>
 
               <div className="fixture-score-line">
-                <span>{partido.nombreEquipoLocal}</span>
+                <Link to={`/equipo/${partido.idEquipoLocal}`} onClick={(event) => event.stopPropagation()}>{partido.nombreEquipoLocal}</Link>
 
                 <strong>
                   {partido.estado?.toUpperCase() === "FINALIZADO"
@@ -101,7 +102,7 @@ function FixtureByDate({ fechas, partidos, onSelectPartido, canManage, onEditDat
                     : "vs"}
                 </strong>
 
-                <span>{partido.nombreEquipoVisitante}</span>
+                <Link to={`/equipo/${partido.idEquipoVisitante}`} onClick={(event) => event.stopPropagation()}>{partido.nombreEquipoVisitante}</Link>
               </div>
 
               <p>{partido.fechaHora || partido.observaciones || "Horario a confirmar"}</p>

@@ -101,7 +101,7 @@
   margin-bottom: 12px;
 }
 
-.fixture-score-line span {
+.fixture-score-line span, .fixture-score-line a {
   font-weight: 800;
 }
 
@@ -132,6 +132,8 @@
     grid-template-columns: 1fr;
   }
 }
+.fixture-score-line a { color: inherit; text-decoration: none; }
+.fixture-score-line a:hover { color: #0877a7; text-decoration: underline; }
 .fixture-admin-actions { display: flex; gap: 7px; }
 .fixture-admin-actions button { padding: 7px 10px; background: #e2e8f0; color: #334155; font-size: 12px; }
 .fixture-admin-actions .danger { background: #fee2e2; color: #b91c1c; }

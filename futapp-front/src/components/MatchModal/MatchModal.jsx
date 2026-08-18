@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import "./MatchModal.css";
 import { API_URL, apiFetch } from "../../config/api";
 import MatchIncidentForm from "./MatchIncidentForm";
+import { Link } from "react-router-dom";
 
 function MatchModal({ partido, onClose, canManage, onChanged }) {
   const [goles, setGoles] = useState([]);
@@ -48,21 +49,21 @@ function MatchModal({ partido, onClose, canManage, onChanged }) {
         <div className="match-modal-header">
           <span>Fecha {partido.numeroFecha}</span>
           <h2>
-            {partido.nombreEquipoLocal} vs {partido.nombreEquipoVisitante}
+            <Link to={`/equipo/${partido.idEquipoLocal}`} onClick={onClose}>{partido.nombreEquipoLocal}</Link> vs <Link to={`/equipo/${partido.idEquipoVisitante}`} onClick={onClose}>{partido.nombreEquipoVisitante}</Link>
           </h2>
           <p>{partido.fechaHora} · {partido.estado}</p>
         </div>
 
         <div className="match-score">
           <div>
-            <h3>{partido.nombreEquipoLocal}</h3>
+            <h3><Link to={`/equipo/${partido.idEquipoLocal}`} onClick={onClose}>{partido.nombreEquipoLocal}</Link></h3>
             <strong>{partido.golesLocal}</strong>
           </div>
 
           <span>VS</span>
 
           <div>
-            <h3>{partido.nombreEquipoVisitante}</h3>
+            <h3><Link to={`/equipo/${partido.idEquipoVisitante}`} onClick={onClose}>{partido.nombreEquipoVisitante}</Link></h3>
             <strong>{partido.golesVisitante}</strong>
           </div>
         </div>
@@ -80,8 +81,8 @@ function MatchModal({ partido, onClose, canManage, onChanged }) {
                 <div className="match-event" key={gol.idGol}>
                   <strong>{gol.minuto}'</strong>
                   <div>
-                    <h4>{gol.nombreJugador}</h4>
-                    <p>{gol.nombreEquipo} · {gol.tipoGol}</p>
+                    <h4><Link to={`/jugador/${gol.idJugador}`} onClick={onClose}>{gol.nombreJugador}</Link></h4>
+                    <p><Link to={`/equipo/${gol.idEquipo}`} onClick={onClose}>{gol.nombreEquipo}</Link> · {gol.tipoGol}</p>
                   </div>
                   {canManage && <button className="match-delete-event" onClick={() => deleteIncident("goles", gol.idGol)}>×</button>}
                 </div>
@@ -101,9 +102,9 @@ function MatchModal({ partido, onClose, canManage, onChanged }) {
                 <div className="match-event" key={tarjeta.idTarjeta}>
                   <strong>{tarjeta.minuto ? `${tarjeta.minuto}'` : "-"}</strong>
                   <div>
-                    <h4>{tarjeta.nombreJugador}</h4>
+                    <h4><Link to={`/jugador/${tarjeta.idJugador}`} onClick={onClose}>{tarjeta.nombreJugador}</Link></h4>
                     <p>
-                      {tarjeta.nombreEquipo} · {tarjeta.tipoTarjeta}
+                      <Link to={`/equipo/${tarjeta.idEquipo}`} onClick={onClose}>{tarjeta.nombreEquipo}</Link> · {tarjeta.tipoTarjeta}
                       {tarjeta.motivo ? ` · ${tarjeta.motivo}` : ""}
                     </p>
                   </div>
