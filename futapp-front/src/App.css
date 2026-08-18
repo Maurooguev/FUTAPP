@@ -1345,3 +1345,209 @@ button {
 .my-tournaments-shell { max-width: 1180px; margin: 0 auto; }
 .my-tournaments-shell h1 { margin: 8px 0; color: #0f172a; font-size: 42px; }
 .my-tournaments-shell > p { margin-bottom: 28px; color: #64748b; }
+
+/* Densidad de escritorio: más información visible sin depender del zoom. */
+@media (min-width: 769px) {
+  .app-layout .main-header {
+    padding: 12px 30px;
+  }
+
+  .app-layout .header-logo {
+    font-size: 23px;
+  }
+
+  .app-layout .header-logo-badge {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+  }
+
+  .app-layout .header-nav {
+    gap: 22px;
+    font-size: 14px;
+  }
+
+  .app-layout .header-link-button,
+  .app-layout .header-actions button {
+    padding: 9px 14px;
+    border-radius: 10px;
+    font-size: 13px;
+  }
+
+  .home .hero-v2 {
+    padding: 68px 20px 64px;
+  }
+
+  .home .hero-v2 h1 {
+    font-size: 48px;
+  }
+
+  .home .hero-v2 p {
+    font-size: 17px;
+    margin-bottom: 22px;
+  }
+
+  .home .section {
+    padding: 52px 32px;
+  }
+
+  .torneo-page .tournament-hero {
+    padding: 34px 24px 32px;
+  }
+
+  .torneo-page .tournament-back {
+    margin-bottom: 16px;
+    font-size: 14px;
+  }
+
+  .torneo-page .tournament-chip {
+    padding: 6px 11px;
+    margin-bottom: 12px;
+    font-size: 12px;
+  }
+
+  .torneo-page .tournament-hero h1 {
+    font-size: 42px;
+  }
+
+  .torneo-page .tournament-hero p {
+    font-size: 16px;
+    line-height: 1.45;
+  }
+
+  .torneo-page .tournament-info-grid {
+    margin-top: 22px;
+    gap: 12px;
+  }
+
+  .torneo-page .tournament-info-box {
+    padding: 13px 15px;
+    border-radius: 14px;
+  }
+
+  .torneo-page .tournament-info-box span {
+    margin-bottom: 5px;
+    font-size: 12px;
+  }
+
+  .torneo-page .tournament-info-box strong {
+    font-size: 19px;
+  }
+
+  .torneo-page .admin-actions {
+    margin: 16px auto 18px;
+    gap: 8px;
+  }
+
+  .torneo-page .admin-actions button {
+    padding: 9px 13px;
+    border-radius: 9px;
+    font-size: 12px;
+  }
+
+  .torneo-page .torneo-content {
+    max-width: 1240px;
+    padding: 24px 20px 50px;
+  }
+
+  .torneo-page .torneo-stats-grid {
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+
+  .torneo-page .stats-card {
+    padding: 15px 17px;
+    border-radius: 15px;
+  }
+
+  .torneo-page .stats-card span {
+    margin-bottom: 6px;
+    font-size: 12px;
+  }
+
+  .torneo-page .stats-card strong {
+    font-size: 19px;
+  }
+
+  .torneo-page .standings-block,
+  .torneo-page .torneo-dobles {
+    margin-bottom: 24px;
+  }
+
+  .torneo-page .standings-header {
+    margin-bottom: 12px;
+  }
+
+  .torneo-page .standings-header h2,
+  .torneo-page .team-management-head h2,
+  .torneo-page .fixture-header h2 {
+    font-size: 25px;
+  }
+
+  .torneo-page .standings-table th,
+  .torneo-page .standings-table td {
+    padding: 10px 9px;
+    font-size: 13px;
+  }
+
+  .torneo-page .team-management {
+    margin: 24px 0;
+  }
+
+  .torneo-page .team-management-head {
+    margin-bottom: 12px;
+  }
+
+  .torneo-page .team-card {
+    padding: 12px;
+    border-radius: 14px;
+  }
+
+  .torneo-page .team-avatar {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+  }
+
+  .torneo-page .top-table-card,
+  .torneo-page .cards-table-card {
+    padding: 16px;
+    border-radius: 16px;
+  }
+
+  .torneo-page .top-table-header h2,
+  .torneo-page .cards-table-header h2 {
+    font-size: 22px;
+  }
+
+  .torneo-page .top-table th,
+  .torneo-page .top-table td,
+  .torneo-page .cards-table th,
+  .torneo-page .cards-table td {
+    padding: 9px 8px;
+    font-size: 13px;
+  }
+
+  .torneo-page .fixture-block {
+    padding: 20px;
+    border-radius: 16px;
+  }
+
+  .torneo-page .fixture-tabs {
+    margin: 16px 0;
+  }
+
+  .torneo-page .fixture-tab {
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+
+  .torneo-page .fixture-grid {
+    gap: 12px;
+  }
+
+  .torneo-page .fixture-match-card {
+    padding: 14px;
+    border-radius: 14px;
+  }
+}
