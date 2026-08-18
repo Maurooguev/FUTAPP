@@ -23,7 +23,7 @@ function TeamManagement({ torneoId, equipos, canManage, onTeamSaved, onTeamDelet
   };
 
   return (
-    <section className="team-management">
+    <section className="team-management" id="equipos">
       <div className="team-management-head">
         <div><span>Participantes</span><h2>Equipos y planteles</h2><p>Administrá los clubes y sus jugadores.</p></div>
         {canManage && <button type="button" onClick={openNewTeam}>+ Agregar equipo</button>}

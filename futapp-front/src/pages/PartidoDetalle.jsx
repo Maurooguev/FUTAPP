@@ -42,6 +42,7 @@ function PartidoDetalle() {
 
           <div className="scoreboard">
             <div className="team-box">
+              <div className="team-mark">{partido.nombreEquipoLocal?.charAt(0)}</div>
               <h2>{partido.nombreEquipoLocal}</h2>
               <strong>{partido.golesLocal}</strong>
             </div>
@@ -49,6 +50,7 @@ function PartidoDetalle() {
             <div className="versus">VS</div>
 
             <div className="team-box">
+              <div className="team-mark">{partido.nombreEquipoVisitante?.charAt(0)}</div>
               <h2>{partido.nombreEquipoVisitante}</h2>
               <strong>{partido.golesVisitante}</strong>
             </div>

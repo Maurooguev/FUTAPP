@@ -34,7 +34,7 @@ function FixtureByDate({ fechas, partidos, onSelectPartido, canManage, onEditDat
 
   if (fechasOrdenadas.length === 0) {
     return (
-      <section className="fixture-block">
+      <section className="fixture-block" id="fixture">
         <h2>Fixture</h2>
         <div className="fixture-empty">
           <p>No hay fechas cargadas.</p>
@@ -44,7 +44,7 @@ function FixtureByDate({ fechas, partidos, onSelectPartido, canManage, onEditDat
   }
 
   return (
-    <section className="fixture-block">
+    <section className="fixture-block" id="fixture">
       <div className="fixture-header">
         <div>
           <h2>Fixture del torneo</h2>

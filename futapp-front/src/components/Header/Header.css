@@ -2,10 +2,10 @@
   position: sticky;
   top: 0;
   z-index: 100;
-  background: rgba(15, 23, 42, 0.94);
+  background: #075c83;
   backdrop-filter: blur(10px);
   color: white;
-  padding: 18px 42px;
+  padding: 12px 32px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -15,17 +15,17 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  font-size: 28px;
+  font-size: 23px;
   font-weight: 800;
 }
 
 .header-logo-badge {
-  width: 42px;
-  height: 42px;
-  border-radius: 12px;
+  width: 36px;
+  height: 36px;
+  border-radius: 4px;
   display: grid;
   place-items: center;
-  background: linear-gradient(135deg, #1d4ed8, #22c55e);
+  background: #08a4d6;
 }
 
 .header-nav {

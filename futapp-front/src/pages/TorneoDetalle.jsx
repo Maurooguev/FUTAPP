@@ -229,7 +229,7 @@ const recargarDatosTorneo = () => {
 
       <main className="torneo-content">
         <div className="torneo-shell">
-          <div className="torneo-stats-grid">
+          <div className="torneo-stats-grid" id="resumen">
             <StatsCard label="Torneo" value={torneo.nombre} />
             <StatsCard label="Partidos jugados" value={partidosJugados} />
             <StatsCard label="Próximos partidos" value={proximosPartidos.length} />
