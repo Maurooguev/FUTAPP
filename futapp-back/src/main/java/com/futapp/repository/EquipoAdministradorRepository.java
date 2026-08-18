@@ -6,5 +6,6 @@ import java.util.List;
 
 public interface EquipoAdministradorRepository extends JpaRepository<EquipoAdministrador, Long> {
     boolean existsByEquipoIdEquipoAndUsuarioIdUsuarioAndEstado(Long idEquipo, Long idUsuario, String estado);
+    boolean existsByEquipoIdEquipoAndEstado(Long idEquipo, String estado);
     List<EquipoAdministrador> findByUsuarioIdUsuarioAndEstado(Long idUsuario, String estado);
 }

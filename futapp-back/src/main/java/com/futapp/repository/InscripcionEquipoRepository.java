@@ -10,5 +10,6 @@ public interface InscripcionEquipoRepository extends JpaRepository<InscripcionEq
     List<InscripcionEquipo> findByTorneoIdTorneo(Long idTorneo);
     Optional<InscripcionEquipo> findByEquipoIdEquipoAndTorneoIdTorneo(Long idEquipo, Long idTorneo);
     boolean existsByEquipoIdEquipoAndTorneoIdTorneo(Long idEquipo, Long idTorneo);
+    boolean existsByEquipoIdEquipoAndTorneoPropietarioIdUsuarioAndEstado(Long idEquipo, Long idUsuario, String estado);
     void deleteByEquipoIdEquipo(Long idEquipo);
 }
