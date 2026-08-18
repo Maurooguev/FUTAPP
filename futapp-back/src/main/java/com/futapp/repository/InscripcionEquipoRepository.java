@@ -9,5 +9,6 @@ public interface InscripcionEquipoRepository extends JpaRepository<InscripcionEq
     List<InscripcionEquipo> findByEquipoIdEquipoOrderByFechaAltaDesc(Long idEquipo);
     List<InscripcionEquipo> findByTorneoIdTorneo(Long idTorneo);
     Optional<InscripcionEquipo> findByEquipoIdEquipoAndTorneoIdTorneo(Long idEquipo, Long idTorneo);
+    boolean existsByEquipoIdEquipoAndTorneoIdTorneo(Long idEquipo, Long idTorneo);
     void deleteByEquipoIdEquipo(Long idEquipo);
 }

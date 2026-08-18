@@ -133,6 +133,10 @@ altas generan su inscripción correspondiente.
 Esta base permite que un club participe en varios torneos y que un jugador
 forme parte de distintos planteles sin duplicar su perfil público.
 
+Desde la administración del torneo se puede crear un club o inscribir uno ya
+existente. Dentro de cada plantel también se puede crear un jugador o elegir un
+perfil preexistente, asignándole dorsal y posición específicos para ese torneo.
+
 Cada torneo nuevo queda asociado al organizador que lo crea y recibe un codigo
 publico unico con formato `FUT-XXXXXX`. El buscador acepta ese codigo o el
 nombre. La seccion `Mis torneos` muestra las competencias administrables por la

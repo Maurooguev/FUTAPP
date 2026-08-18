@@ -4,12 +4,14 @@ import TeamRosterModal from "./TeamRosterModal";
 import "./TeamManagement.css";
 import { API_URL, apiFetch } from "../../config/api";
 import { Link } from "react-router-dom";
+import ExistingTeamEnrollmentModal from "./ExistingTeamEnrollmentModal";
 
 function TeamManagement({ torneoId, equipos, canManage, onTeamSaved, onTeamDeleted }) {
   const [editingTeam, setEditingTeam] = useState(null);
   const [showTeamForm, setShowTeamForm] = useState(false);
   const [rosterTeam, setRosterTeam] = useState(null);
   const [error, setError] = useState("");
+  const [showExistingTeam, setShowExistingTeam] = useState(false);
 
   const openNewTeam = () => { setEditingTeam(null); setShowTeamForm(true); };
   const openEditTeam = (team) => { setEditingTeam(team); setShowTeamForm(true); };
@@ -27,7 +29,7 @@ function TeamManagement({ torneoId, equipos, canManage, onTeamSaved, onTeamDelet
     <section className="team-management" id="equipos">
       <div className="team-management-head">
         <div><span>Participantes</span><h2>Equipos y planteles</h2><p>Administrá los clubes y sus jugadores.</p></div>
-        {canManage && <button type="button" onClick={openNewTeam}>+ Agregar equipo</button>}
+        {canManage && <div className="team-head-actions"><button type="button" onClick={() => setShowExistingTeam(true)}>Inscribir club existente</button><button type="button" onClick={openNewTeam}>+ Crear club nuevo</button></div>}
       </div>
       {error && <p className="tournament-form-error">{error}</p>}
       {equipos.length === 0 ? <div className="team-empty"><h3>Este torneo todavía no tiene equipos</h3><p>Agregá al menos dos para poder programar partidos.</p></div> : (
@@ -40,7 +42,8 @@ function TeamManagement({ torneoId, equipos, canManage, onTeamSaved, onTeamDelet
         ))}</div>
       )}
       {showTeamForm && <TeamFormModal torneoId={torneoId} equipo={editingTeam} onClose={() => setShowTeamForm(false)} onSaved={onTeamSaved} />}
-      {rosterTeam && <TeamRosterModal equipo={rosterTeam} canManage={canManage} onClose={() => setRosterTeam(null)} />}
+      {rosterTeam && <TeamRosterModal equipo={rosterTeam} torneoId={torneoId} canManage={canManage} onClose={() => setRosterTeam(null)} />}
+      {showExistingTeam && <ExistingTeamEnrollmentModal torneoId={torneoId} currentTeams={equipos} onClose={() => setShowExistingTeam(false)} onSaved={onTeamSaved} />}
     </section>
   );
 }

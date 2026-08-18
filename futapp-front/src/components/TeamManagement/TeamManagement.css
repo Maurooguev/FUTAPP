@@ -4,6 +4,7 @@
 .team-management-head h2 { margin: 5px 0; color: #0f172a; }
 .team-management-head p { margin: 0; color: #64748b; }
 .team-management-head > button { background: #2563eb; color: #fff; }
+.team-head-actions { display: flex; gap: 7px; }.team-head-actions button { padding: 8px 11px; background: #0877a7; color: #fff; }
 .team-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
 .team-card { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 14px; border: 1px solid #e2e8f0; border-radius: 18px; padding: 16px; background: #fff; }
 .team-avatar { display: grid; width: 52px; height: 52px; place-items: center; border-radius: 16px; background: #dbeafe; color: #1d4ed8; font-weight: 900; }
@@ -27,7 +28,8 @@
 .roster-player-actions button { padding: 7px 9px; background: #e2e8f0; color: #334155; font-size: 12px; }
 .roster-player-actions .danger { background: #fee2e2; color: #b91c1c; }
 .roster-player-form { margin-top: 18px; border-radius: 16px; padding: 18px; background: #f8fafc; }
-@media (max-width: 760px) { .team-grid { grid-template-columns: 1fr; } .team-management-head { align-items: stretch; flex-direction: column; } .team-card { grid-template-columns: auto 1fr; } .team-card-actions { grid-column: 1 / -1; flex-direction: row; } }
+.roster-add-actions { display: flex; gap: 8px; margin: 12px 0; }
+@media (max-width: 760px) { .team-grid { grid-template-columns: 1fr; } .team-management-head { align-items: stretch; flex-direction: column; } .team-head-actions { flex-direction: column; }.team-card { grid-template-columns: auto 1fr; } .team-card-actions { grid-column: 1 / -1; flex-direction: row; } }
 .team-management { margin: 22px 0; }
 .team-management-head { margin-bottom: 10px; }
 .team-management-head h2 { font-size: 21px; }

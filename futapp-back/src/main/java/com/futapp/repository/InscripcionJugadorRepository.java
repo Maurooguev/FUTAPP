@@ -12,6 +12,7 @@ public interface InscripcionJugadorRepository extends JpaRepository<InscripcionJ
     boolean existsByInscripcionEquipoIdInscripcionAndJugadorIdJugador(Long idInscripcion, Long idJugador);
     Optional<InscripcionJugador> findByInscripcionEquipoIdInscripcionAndJugadorIdJugador(
             Long idInscripcion, Long idJugador);
+    boolean existsByInscripcionEquipoIdInscripcionAndNumeroCamiseta(Long idInscripcion, Integer numeroCamiseta);
     void deleteByJugadorIdJugador(Long idJugador);
     void deleteByInscripcionEquipoEquipoIdEquipo(Long idEquipo);
 }

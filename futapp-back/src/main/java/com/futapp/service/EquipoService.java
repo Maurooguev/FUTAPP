@@ -59,9 +59,9 @@ public class EquipoService {
     }
 
     public List<EquipoResponseDTO> listarEquiposPorTorneo(Long idTorneo) {
-        return equipoRepository.findByTorneoIdTorneo(idTorneo)
+        return inscripcionesEquipo.findByTorneoIdTorneo(idTorneo)
                 .stream()
-                .map(this::convertirAResponseDTO)
+                .map(inscripcion -> convertirAResponseDTO(inscripcion.getEquipo(), inscripcion.getTorneo()))
                 .collect(Collectors.toList());
     }
 
@@ -132,6 +132,10 @@ public class EquipoService {
     }
 
     private EquipoResponseDTO convertirAResponseDTO(Equipo equipo) {
+        return convertirAResponseDTO(equipo, equipo.getTorneo());
+    }
+
+    private EquipoResponseDTO convertirAResponseDTO(Equipo equipo, Torneo torneo) {
         return new EquipoResponseDTO(
                 equipo.getIdEquipo(),
                 equipo.getNombre(),
@@ -145,8 +149,8 @@ public class EquipoService {
                 equipo.getResponsable(),
                 equipo.getTelefonoContacto(),
                 equipo.getEstado(),
-                equipo.getTorneo().getIdTorneo(),
-                equipo.getTorneo().getNombre()
+                torneo.getIdTorneo(),
+                torneo.getNombre()
         );
     }
 
