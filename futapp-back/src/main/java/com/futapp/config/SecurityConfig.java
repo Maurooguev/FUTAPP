@@ -19,11 +19,11 @@ public class SecurityConfig {
     @Bean SecurityFilterChain filterChain(HttpSecurity http, AuthTokenRepository tokens) throws Exception {
         return http.csrf(csrf -> csrf.disable()).cors(cors -> {}).sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/auth/login", "/auth/register", "/status", "/hola", "/h2-console/**").permitAll()
+                .requestMatchers("/auth/login", "/auth/register", "/status", "/hola").permitAll()
                 .requestMatchers("/torneos/mios").authenticated()
                 .requestMatchers(HttpMethod.GET, "/**").permitAll()
                 .anyRequest().hasAnyRole("ORGANIZADOR", "ADMIN"))
             .addFilterBefore(new BearerTokenFilter(tokens), UsernamePasswordAuthenticationFilter.class)
-            .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin())).build();
+            .build();
     }
 }

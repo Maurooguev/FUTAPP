@@ -12,6 +12,11 @@ if (-not (Test-Path -LiteralPath (Join-Path $frontendPath "package.json"))) {
     throw "No se encontro el frontend en $frontendPath"
 }
 
+docker compose -f (Join-Path $projectRoot "compose.yaml") up -d --wait postgres
+if ($LASTEXITCODE -ne 0) {
+    throw "No se pudo iniciar PostgreSQL. Verifica que Docker Desktop este abierto."
+}
+
 $backendCommand = "Set-Location -LiteralPath '$backendPath'; .\mvnw.cmd spring-boot:run"
 
 Start-Process powershell `
@@ -20,4 +25,3 @@ Start-Process powershell `
 
 Set-Location -LiteralPath $frontendPath
 npm run dev
-

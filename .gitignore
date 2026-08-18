@@ -1,6 +1,8 @@
 # Backend
 futapp-back/target/
 futapp-back/data/*.db
+postgres-data/
+backups/
 
 # Frontend
 futapp-front/node_modules/

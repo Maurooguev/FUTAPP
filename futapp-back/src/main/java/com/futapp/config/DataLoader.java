@@ -3,6 +3,7 @@ package com.futapp.config;
 import com.futapp.model.*;
 import com.futapp.repository.*;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -11,6 +12,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Configuration
+@ConditionalOnProperty(name = "futapp.demo-data.enabled", havingValue = "true")
 public class DataLoader {
 
     @Bean

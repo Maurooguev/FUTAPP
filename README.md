@@ -5,13 +5,14 @@ partidos, resultados y estadisticas.
 
 ## Estructura
 
-- `futapp-back`: API REST con Java 21, Spring Boot, JPA y H2.
+- `futapp-back`: API REST con Java 21, Spring Boot, JPA, PostgreSQL y Flyway.
 - `futapp-front`: aplicacion web con React y Vite.
 
 ## Requisitos
 
 - Java 21
 - Node.js y npm
+- Docker Desktop
 
 ## Iniciar todo
 
@@ -21,21 +22,28 @@ Desde la carpeta raiz:
 .\dev.ps1
 ```
 
-El script abre el backend en otra terminal y ejecuta el frontend en la terminal
-actual.
+El script inicia PostgreSQL, abre el backend en otra terminal y ejecuta el
+frontend en la terminal actual.
 
 - Frontend: http://localhost:5173
 - Backend: http://localhost:8080
 - Estado del backend: http://localhost:8080/status
-- Consola H2: http://localhost:8080/h2-console
 
 Para detener cada servidor, presionar `Ctrl + C` en su terminal.
+
+PostgreSQL queda ejecutandose en Docker para conservar los datos. Se puede
+detener sin borrarlos con:
+
+```powershell
+docker compose stop postgres
+```
 
 ## Iniciar por separado
 
 Backend:
 
 ```powershell
+docker compose up -d --wait postgres
 .\futapp-back\mvnw.cmd -f .\futapp-back\pom.xml spring-boot:run
 ```
 
@@ -50,6 +58,54 @@ npm --prefix .\futapp-front run dev
 La API utiliza `http://localhost:8080` por defecto. Para cambiarla, copiar
 `futapp-front/.env.example` como `futapp-front/.env.local` y modificar
 `VITE_API_URL`.
+
+## Base de datos
+
+La estructura se administra con migraciones versionadas de Flyway. Hibernate
+solo valida que las entidades coincidan con el esquema y no modifica tablas al
+arrancar.
+
+La configuracion local predeterminada esta en `compose.yaml`. Para cambiar las
+credenciales o conectar una base externa se pueden definir estas variables:
+
+- `DATABASE_URL`
+- `DATABASE_USERNAME`
+- `DATABASE_PASSWORD`
+- `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD` y `POSTGRES_PORT`
+
+`.env.example` contiene un ejemplo para desarrollo. No se deben subir
+credenciales reales al repositorio.
+
+### Migrar los datos anteriores de H2
+
+Esta operacion se ejecuta una sola vez y exige que PostgreSQL todavia no tenga
+datos de Futapp. Conserva IDs, usuarios, contrasenas cifradas, tokens, torneos,
+equipos, jugadores, fechas, partidos y estadisticas.
+
+1. Detener el backend anterior con `Ctrl + C` para liberar el archivo H2.
+2. Abrir Docker Desktop.
+3. Desde la carpeta raiz ejecutar:
+
+```powershell
+.\migrate-h2-to-postgres.ps1
+```
+
+Si el destino contiene datos o ocurre un error, la importacion se cancela y la
+transaccion se revierte para evitar una migracion parcial.
+
+### Respaldos
+
+Crear un respaldo en la carpeta local ignorada `backups`:
+
+```powershell
+.\backup-postgres.ps1
+```
+
+Restaurarlo (reemplaza los datos actuales y solicita confirmacion):
+
+```powershell
+.\restore-postgres.ps1 -BackupPath .\backups\futapp-AAAAMMDD-HHMMSS.dump
+```
 
 ## Usuarios y permisos
 
@@ -71,6 +127,7 @@ propietario permanecen publicos en modo consulta.
 
 ```powershell
 .\futapp-back\mvnw.cmd -f .\futapp-back\pom.xml test
+.\futapp-back\mvnw.cmd -f .\futapp-back\pom.xml -Ph2-migration -DskipTests compile
 npm --prefix .\futapp-front run lint
 npm --prefix .\futapp-front run build
 ```
