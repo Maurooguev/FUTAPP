@@ -222,7 +222,7 @@ button {
 /* STATS */
 .stats-section {
   max-width: 920px;
-  margin: -34px auto 0;
+  margin: -18px auto 0;
   padding: 0 20px;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -1465,6 +1465,7 @@ button {
 
   .torneo-page .torneo-stats-grid {
     gap: 12px;
+    margin-top: 18px;
     margin-bottom: 24px;
   }
 
@@ -1607,6 +1608,7 @@ button {
 
 .torneo-page { background: #edf0f2; }
 .torneo-page .admin-actions { padding: 0; }
+.torneo-page .admin-actions + .torneo-content .torneo-stats-grid { margin-top: 8px; }
 .torneo-page .torneo-dobles { gap: 12px; }
 .partido-content { padding-bottom: 40px; }
 .incidencia-card { grid-template-columns: 42px 1fr; gap: 9px; padding: 9px 0; }
