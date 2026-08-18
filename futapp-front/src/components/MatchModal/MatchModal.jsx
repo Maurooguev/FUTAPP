@@ -36,6 +36,7 @@ function MatchModal({ partido, onClose, canManage, onChanged }) {
   }, [partido]);
 
   if (!partido) return null;
+  const isScheduled = partido.estado?.toUpperCase() === "PROGRAMADO";
 
   return (
     <div className="match-modal-backdrop" onClick={onClose}>
@@ -69,7 +70,7 @@ function MatchModal({ partido, onClose, canManage, onChanged }) {
         <div className="match-modal-grid">
           <section>
             <h3>Goles</h3>
-            {canManage && !formType && <button className="match-add-event" onClick={() => setFormType("goal")}>+ Agregar gol</button>}
+            {canManage && !isScheduled && !formType && <button className="match-add-event" onClick={() => setFormType("goal")}>+ Agregar gol</button>}
             {formType === "goal" && <MatchIncidentForm partido={partido} type="goal" onCancel={() => setFormType(null)} onSaved={(goal) => { setGoles((current) => [...current, goal]); onChanged?.(); }} />}
 
             {goles.length === 0 ? (
@@ -90,7 +91,7 @@ function MatchModal({ partido, onClose, canManage, onChanged }) {
 
           <section>
             <h3>Tarjetas</h3>
-            {canManage && !formType && <button className="match-add-event" onClick={() => setFormType("card")}>+ Agregar tarjeta</button>}
+            {canManage && !isScheduled && !formType && <button className="match-add-event" onClick={() => setFormType("card")}>+ Agregar tarjeta</button>}
             {formType === "card" && <MatchIncidentForm partido={partido} type="card" onCancel={() => setFormType(null)} onSaved={(card) => { setTarjetas((current) => [...current, card]); onChanged?.(); }} />}
 
             {tarjetas.length === 0 ? (
@@ -112,6 +113,7 @@ function MatchModal({ partido, onClose, canManage, onChanged }) {
             )}
           </section>
         </div>
+        {canManage && isScheduled && <p className="match-result-hint">Primero cargá el resultado del partido para habilitar goles y tarjetas.</p>}
         {error && <p className="tournament-form-error">{error}</p>}
       </div>
     </div>

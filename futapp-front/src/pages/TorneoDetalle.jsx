@@ -32,6 +32,7 @@ function TorneoDetalle() {
   const [equipos, setEquipos] = useState([]);
   const [partidoSeleccionado, setPartidoSeleccionado] = useState(null);
   const [mostrarResultado, setMostrarResultado] = useState(false);
+  const [partidoResultado, setPartidoResultado] = useState(null);
   const [mostrarEdicion, setMostrarEdicion] = useState(false);
   const [mostrarPartido, setMostrarPartido] = useState(false);
   const [mostrarFecha, setMostrarFecha] = useState(false);
@@ -186,7 +187,7 @@ const recargarDatosTorneo = () => {
       {puedeEditar && (
         <div className="admin-actions">
           <button onClick={() => setMostrarEdicion(true)}>Editar torneo</button>
-          <button onClick={() => setMostrarResultado(true)}>Cargar resultado</button>
+          <button onClick={() => { setPartidoResultado(null); setMostrarResultado(true); }}>Cargar resultado</button>
           <button onClick={() => setMostrarFecha(true)}>Agregar jornada</button>
           <button onClick={() => setMostrarPartido(true)}>Agregar partido</button>
         </div>
@@ -240,6 +241,7 @@ const recargarDatosTorneo = () => {
             onDeleteDate={(fecha) => eliminarRecurso(`${API_URL}/fechas/${fecha.idFecha}`, `¿Eliminar la fecha ${fecha.numeroFecha}?`, () => setFechas((current) => current.filter((item) => item.idFecha !== fecha.idFecha)))}
             onEditMatch={(partido) => { setPartidoEnEdicion(partido); setMostrarPartido(true); }}
             onDeleteMatch={(partido) => eliminarRecurso(`${API_URL}/partidos/${partido.idPartido}`, `¿Eliminar ${partido.nombreEquipoLocal} vs ${partido.nombreEquipoVisitante}?`, () => setPartidos((current) => current.filter((item) => item.idPartido !== partido.idPartido)))}
+            onLoadResult={(partido) => { setPartidoResultado(partido); setMostrarResultado(true); }}
           />
 
           <MatchModal
@@ -251,8 +253,13 @@ const recargarDatosTorneo = () => {
           {mostrarResultado && (
             <ResultModal
               partidos={partidos}
-              onClose={() => setMostrarResultado(false)}
-              onResultadoGuardado={recargarDatosTorneo}
+              partidoInicial={partidoResultado}
+              onClose={() => { setMostrarResultado(false); setPartidoResultado(null); }}
+              onResultadoGuardado={(partidoActualizado) => {
+                setPartidos((current) => current.map((partido) => partido.idPartido === partidoActualizado.idPartido ? partidoActualizado : partido));
+                recargarDatosTorneo();
+                setPartidoSeleccionado(partidoActualizado);
+              }}
           />
 )}
           {mostrarEdicion && (

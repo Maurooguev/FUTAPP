@@ -162,3 +162,4 @@
 .match-incident-actions { display: flex; justify-content: flex-end; gap: 8px; }
 .match-incident-actions button { padding: 7px 10px; }
 .match-incident-actions button[type="submit"] { background: #2563eb; color: #fff; }
+.match-result-hint { margin-top: 16px; border-radius: 12px; padding: 12px; background: #fef3c7; color: #92400e !important; font-weight: 700; }

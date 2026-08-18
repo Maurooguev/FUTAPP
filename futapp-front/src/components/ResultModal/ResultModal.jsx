@@ -2,12 +2,12 @@ import { useState } from "react";
 import "./ResultModal.css";
 import { API_URL, apiFetch } from "../../config/api";
 
-function ResultModal({ partidos, onClose, onResultadoGuardado }) {
+function ResultModal({ partidos, partidoInicial, onClose, onResultadoGuardado }) {
   const partidosDisponibles = partidos;
 
-  const [idPartido, setIdPartido] = useState("");
-  const [golesLocal, setGolesLocal] = useState(0);
-  const [golesVisitante, setGolesVisitante] = useState(0);
+  const [idPartido, setIdPartido] = useState(partidoInicial?.idPartido ?? "");
+  const [golesLocal, setGolesLocal] = useState(partidoInicial?.golesLocal ?? 0);
+  const [golesVisitante, setGolesVisitante] = useState(partidoInicial?.golesVisitante ?? 0);
 
   const partidoSeleccionado = partidos.find(
     (partido) => partido.idPartido === Number(idPartido)
@@ -39,7 +39,8 @@ const guardarResultado = async (e) => {
       throw new Error("Error al guardar resultado");
     }
 
-    onResultadoGuardado();
+    const partidoActualizado = await res.json();
+    onResultadoGuardado(partidoActualizado);
     onClose();
   } catch (error) {
     console.error(error);
@@ -59,7 +60,13 @@ const guardarResultado = async (e) => {
 
         <form onSubmit={guardarResultado}>
           <label>Partido</label>
-          <select
+          {partidoInicial ? (
+            <div className="result-selected-match">
+              <strong>{partidoInicial.nombreEquipoLocal}</strong>
+              <span>vs</span>
+              <strong>{partidoInicial.nombreEquipoVisitante}</strong>
+            </div>
+          ) : <select
             value={idPartido}
             onChange={(e) => setIdPartido(e.target.value)}
             required
@@ -72,7 +79,7 @@ const guardarResultado = async (e) => {
                 {partido.nombreEquipoVisitante}
               </option>
             ))}
-          </select>
+          </select>}
 
           <div className="result-score-inputs">
             <div>

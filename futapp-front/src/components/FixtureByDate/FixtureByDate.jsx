@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import "./FixtureByDate.css";
 
-function FixtureByDate({ fechas, partidos, onSelectPartido, canManage, onEditDate, onDeleteDate, onEditMatch, onDeleteMatch }) {
+function FixtureByDate({ fechas, partidos, onSelectPartido, canManage, onEditDate, onDeleteDate, onEditMatch, onDeleteMatch, onLoadResult }) {
   const fechasOrdenadas = useMemo(() => {
     return [...fechas].sort((a, b) => a.numeroFecha - b.numeroFecha);
   }, [fechas]);
@@ -101,7 +101,12 @@ function FixtureByDate({ fechas, partidos, onSelectPartido, canManage, onEditDat
               </div>
 
               <p>{partido.fechaHora}</p>
-              {canManage && <div className="fixture-admin-actions" onClick={(event) => event.stopPropagation()}><button onClick={() => onEditMatch(partido)}>Editar</button><button className="danger" onClick={() => onDeleteMatch(partido)}>Eliminar</button></div>}
+              {canManage && <div className="fixture-quick-actions" onClick={(event) => event.stopPropagation()}>
+                <button className="result" onClick={() => onLoadResult(partido)}>Cargar resultado</button>
+                <button className="incidents" onClick={() => onSelectPartido(partido)}>Goles y tarjetas</button>
+                <button onClick={() => onEditMatch(partido)}>Editar</button>
+                <button className="danger" onClick={() => onDeleteMatch(partido)}>Eliminar</button>
+              </div>}
             </div>
           ))}
         </div>
