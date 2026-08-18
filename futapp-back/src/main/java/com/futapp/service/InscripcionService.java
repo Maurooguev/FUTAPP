@@ -27,17 +27,20 @@ public class InscripcionService {
     private final JugadorRepository jugadores;
     private final TorneoRepository torneos;
     private final TorneoAuthorizationService authorization;
+    private final EquipoAuthorizationService equipoAuthorization;
 
     public InscripcionService(InscripcionEquipoRepository inscripcionesEquipo,
                               InscripcionJugadorRepository inscripcionesJugador,
                               EquipoRepository equipos, JugadorRepository jugadores,
-                              TorneoRepository torneos, TorneoAuthorizationService authorization) {
+                              TorneoRepository torneos, TorneoAuthorizationService authorization,
+                              EquipoAuthorizationService equipoAuthorization) {
         this.inscripcionesEquipo = inscripcionesEquipo;
         this.inscripcionesJugador = inscripcionesJugador;
         this.equipos = equipos;
         this.jugadores = jugadores;
         this.torneos = torneos;
         this.authorization = authorization;
+        this.equipoAuthorization = equipoAuthorization;
     }
 
     public List<InscripcionEquipoResponseDTO> historialEquipo(Long idEquipo) {
@@ -87,7 +90,7 @@ public class InscripcionService {
                                                            InscripcionJugadorRequestDTO request) {
         var inscripcionEquipo = inscripcionesEquipo.findById(idInscripcion)
                 .orElseThrow(() -> new ResourceNotFoundException("Inscripción no encontrada con id: " + idInscripcion));
-        authorization.verificarGestion(inscripcionEquipo.getTorneo());
+        equipoAuthorization.verificarGestion(inscripcionEquipo.getEquipo());
         var jugador = jugadores.findById(request.idJugador())
                 .orElseThrow(() -> new ResourceNotFoundException("Jugador no encontrado con id: " + request.idJugador()));
         if (inscripcionesJugador.existsByInscripcionEquipoIdInscripcionAndJugadorIdJugador(idInscripcion, request.idJugador())) {

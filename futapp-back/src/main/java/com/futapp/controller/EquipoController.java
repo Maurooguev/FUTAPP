@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/equipos")
@@ -26,6 +27,11 @@ public class EquipoController {
     @GetMapping("/{id}")
     public EquipoResponseDTO obtenerEquipo(@PathVariable Long id) {
         return equipoService.obtenerEquipoPorId(id);
+    }
+
+    @GetMapping("/{id}/permisos")
+    public Map<String, Boolean> obtenerPermisos(@PathVariable Long id) {
+        return Map.of("puedeGestionar", equipoService.puedeGestionar(id));
     }
 
     @GetMapping("/torneo/{idTorneo}")

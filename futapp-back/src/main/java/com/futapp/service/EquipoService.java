@@ -29,12 +29,14 @@ public class EquipoService {
     private final TorneoAuthorizationService authorization;
     private final InscripcionEquipoRepository inscripcionesEquipo;
     private final InscripcionJugadorRepository inscripcionesJugador;
+    private final EquipoAuthorizationService equipoAuthorization;
 
     public EquipoService(EquipoRepository equipoRepository, TorneoRepository torneoRepository,
                          JugadorRepository jugadorRepository, PartidoRepository partidoRepository,
                          TorneoAuthorizationService authorization,
                          InscripcionEquipoRepository inscripcionesEquipo,
-                         InscripcionJugadorRepository inscripcionesJugador) {
+                         InscripcionJugadorRepository inscripcionesJugador,
+                         EquipoAuthorizationService equipoAuthorization) {
         this.equipoRepository = equipoRepository;
         this.torneoRepository = torneoRepository;
         this.jugadorRepository = jugadorRepository;
@@ -42,6 +44,7 @@ public class EquipoService {
         this.authorization = authorization;
         this.inscripcionesEquipo = inscripcionesEquipo;
         this.inscripcionesJugador = inscripcionesJugador;
+        this.equipoAuthorization = equipoAuthorization;
     }
 
     public List<EquipoResponseDTO> listarEquipos() {
@@ -56,6 +59,12 @@ public class EquipoService {
                 .orElseThrow(() -> new ResourceNotFoundException("Equipo no encontrado con id: " + id));
 
         return convertirAResponseDTO(equipo);
+    }
+
+    public boolean puedeGestionar(Long id) {
+        Equipo equipo = equipoRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Equipo no encontrado con id: " + id));
+        return equipoAuthorization.puedeGestionar(equipo);
     }
 
     public List<EquipoResponseDTO> listarEquiposPorTorneo(Long idTorneo) {
@@ -91,7 +100,7 @@ public class EquipoService {
     public EquipoResponseDTO actualizarEquipo(Long id, EquipoRequestDTO requestDTO) {
         Equipo equipo = equipoRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Equipo no encontrado con id: " + id));
-        authorization.verificarGestion(equipo.getTorneo());
+        equipoAuthorization.verificarGestion(equipo);
 
         Torneo torneo = torneoRepository.findById(requestDTO.getIdTorneo())
                 .orElseThrow(() -> new ResourceNotFoundException("Torneo no encontrado con id: " + requestDTO.getIdTorneo()));
@@ -117,7 +126,7 @@ public class EquipoService {
         if (!equipoRepository.existsById(id)) {
             throw new ResourceNotFoundException("Equipo no encontrado con id: " + id);
         }
-        authorization.verificarGestion(equipoRepository.findById(id).orElseThrow().getTorneo());
+        equipoAuthorization.verificarGestion(equipoRepository.findById(id).orElseThrow());
 
         if (!jugadorRepository.findByEquipoIdEquipo(id).isEmpty()) {
             throw new IllegalArgumentException("No se puede eliminar el equipo porque tiene jugadores registrados");
