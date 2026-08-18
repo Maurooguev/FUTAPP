@@ -12,6 +12,7 @@ import JugadorPerfil from "./pages/JugadorPerfil";
 import Solicitudes from "./pages/Solicitudes";
 import MiPerfilJugador from "./pages/MiPerfilJugador";
 import MiPerfilRedirect from "./pages/MiPerfilRedirect";
+import MisEquipos from "./pages/MisEquipos";
 
 function App() {
   return (
@@ -28,6 +29,7 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/mis-torneos" element={<MisTorneos />} />
+        <Route path="/mis-equipos" element={<MisEquipos />} />
       </Route>
     </Routes>
   );

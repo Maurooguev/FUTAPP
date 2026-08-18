@@ -12,6 +12,10 @@ import com.futapp.repository.JugadorRepository;
 import com.futapp.repository.PartidoRepository;
 import com.futapp.repository.InscripcionEquipoRepository;
 import com.futapp.repository.InscripcionJugadorRepository;
+import com.futapp.repository.EquipoAdministradorRepository;
+import com.futapp.model.Usuario;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,13 +34,15 @@ public class EquipoService {
     private final InscripcionEquipoRepository inscripcionesEquipo;
     private final InscripcionJugadorRepository inscripcionesJugador;
     private final EquipoAuthorizationService equipoAuthorization;
+    private final EquipoAdministradorRepository administradores;
 
     public EquipoService(EquipoRepository equipoRepository, TorneoRepository torneoRepository,
                          JugadorRepository jugadorRepository, PartidoRepository partidoRepository,
                          TorneoAuthorizationService authorization,
                          InscripcionEquipoRepository inscripcionesEquipo,
                          InscripcionJugadorRepository inscripcionesJugador,
-                         EquipoAuthorizationService equipoAuthorization) {
+                         EquipoAuthorizationService equipoAuthorization,
+                         EquipoAdministradorRepository administradores) {
         this.equipoRepository = equipoRepository;
         this.torneoRepository = torneoRepository;
         this.jugadorRepository = jugadorRepository;
@@ -45,6 +51,7 @@ public class EquipoService {
         this.inscripcionesEquipo = inscripcionesEquipo;
         this.inscripcionesJugador = inscripcionesJugador;
         this.equipoAuthorization = equipoAuthorization;
+        this.administradores = administradores;
     }
 
     public List<EquipoResponseDTO> listarEquipos() {
@@ -59,6 +66,13 @@ public class EquipoService {
                 .orElseThrow(() -> new ResourceNotFoundException("Equipo no encontrado con id: " + id));
 
         return convertirAResponseDTO(equipo);
+    }
+
+    public List<EquipoResponseDTO> listarMisEquipos() {
+        Usuario usuario = usuarioActual();
+        if ("ADMIN".equals(usuario.getRol())) return listarEquipos();
+        return administradores.findByUsuarioIdUsuarioAndEstado(usuario.getIdUsuario(), "ACTIVO")
+                .stream().map(item -> convertirAResponseDTO(item.getEquipo())).toList();
     }
 
     public boolean puedeGestionar(Long id) {
@@ -175,5 +189,11 @@ public class EquipoService {
         inscripcion.setTorneo(torneo);
         inscripcion.setEstado("ACTIVA");
         inscripcionesEquipo.save(inscripcion);
+    }
+
+    private Usuario usuarioActual() {
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (principal instanceof Usuario usuario) return usuario;
+        throw new AccessDeniedException("Debés iniciar sesión");
     }
 }
