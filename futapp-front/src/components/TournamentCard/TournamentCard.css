@@ -121,3 +121,5 @@
   background: rgba(239, 68, 68, 0.18);
   color: #fca5a5;
 }
+.tournament-code { display: inline-block; margin-top: 10px; color: #2563eb; font-size: 12px; font-weight: 900; letter-spacing: .08em; }
+.featured-tournament-card .tournament-code { color: #93c5fd; }

@@ -6,6 +6,7 @@ import TorneoDetalle from "./pages/TorneoDetalle";
 import PartidoDetalle from "./pages/PartidoDetalle";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import MisTorneos from "./pages/MisTorneos";
 
 function App() {
   return (
@@ -16,6 +17,7 @@ function App() {
         <Route path="/partido/:id" element={<PartidoDetalle />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/mis-torneos" element={<MisTorneos />} />
       </Route>
     </Routes>
   );

@@ -10,6 +10,7 @@ function TournamentCard({ torneo, variant = "default", onClick }) {
           <span className={`status-badge ${estadoClass}`}>{torneo.estado}</span>
           <span className="tournament-location">{torneo.ubicacion}</span>
         </div>
+        <span className="tournament-code">{torneo.codigoPublico}</span>
 
         <h3>{torneo.nombre}</h3>
         <p>{torneo.descripcion}</p>
@@ -39,6 +40,7 @@ function TournamentCard({ torneo, variant = "default", onClick }) {
         <h3>{torneo.nombre}</h3>
         <span className={`status-badge small ${estadoClass}`}>{torneo.estado}</span>
       </div>
+      <span className="tournament-code">{torneo.codigoPublico}</span>
 
       <p>{torneo.descripcion}</p>
 

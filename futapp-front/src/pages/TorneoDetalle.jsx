@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 
 import useAuth from "../context/useAuth";
-import { puedeAdministrar } from "../utils/roles";
+import { puedeAdministrarTorneo } from "../utils/roles";
 import { API_URL, apiFetch } from "../config/api";
 
 import TournamentHero from "../components/TournamentHero/TournamentHero";
@@ -21,9 +21,9 @@ import DateFormModal from "../components/DateFormModal/DateFormModal";
 function TorneoDetalle() {
   const { id } = useParams();
   const { usuario } = useAuth();
-  const puedeEditar = puedeAdministrar(usuario);
 
   const [torneo, setTorneo] = useState(null);
+  const puedeEditar = puedeAdministrarTorneo(usuario, torneo);
   const [tabla, setTabla] = useState([]);
   const [goleadores, setGoleadores] = useState([]);
   const [fechas, setFechas] = useState([]);

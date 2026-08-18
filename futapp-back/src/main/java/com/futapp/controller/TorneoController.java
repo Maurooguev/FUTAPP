@@ -7,6 +7,8 @@ import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import com.futapp.model.Usuario;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 
 @RestController
 @RequestMapping("/torneos")
@@ -29,9 +31,16 @@ public class TorneoController {
         return torneoService.obtenerTorneoPorId(id);
     }
 
+    @GetMapping("/buscar")
+    public List<TorneoResponseDTO> buscar(@RequestParam String q) { return torneoService.buscar(q.trim()); }
+
+    @GetMapping("/mios")
+    public List<TorneoResponseDTO> misTorneos(@AuthenticationPrincipal Usuario usuario) { return torneoService.listarPropios(usuario); }
+
     @PostMapping
-    public TorneoResponseDTO crearTorneo(@Valid @RequestBody TorneoRequestDTO requestDTO) {
-        return torneoService.crearTorneo(requestDTO);
+    public TorneoResponseDTO crearTorneo(@Valid @RequestBody TorneoRequestDTO requestDTO,
+                                         @AuthenticationPrincipal Usuario usuario) {
+        return torneoService.crearTorneo(requestDTO, usuario);
     }
 
     @PutMapping("/{id}")

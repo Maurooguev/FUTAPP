@@ -24,15 +24,17 @@ public class GolService {
     private final PartidoRepository partidoRepository;
     private final JugadorRepository jugadorRepository;
     private final EquipoRepository equipoRepository;
+    private final TorneoAuthorizationService authorization;
 
     public GolService(GolRepository golRepository,
                       PartidoRepository partidoRepository,
                       JugadorRepository jugadorRepository,
-                      EquipoRepository equipoRepository) {
+                      EquipoRepository equipoRepository, TorneoAuthorizationService authorization) {
         this.golRepository = golRepository;
         this.partidoRepository = partidoRepository;
         this.jugadorRepository = jugadorRepository;
         this.equipoRepository = equipoRepository;
+        this.authorization = authorization;
     }
 
     public List<GolResponseDTO> listarGoles() {
@@ -68,6 +70,7 @@ public class GolService {
     }
 
     public GolResponseDTO crearGol(GolRequestDTO requestDTO) {
+        authorization.verificarGestion(partidoRepository.findById(requestDTO.getIdPartido()).orElseThrow().getTorneo());
         Gol gol = new Gol();
         cargarDatosGol(gol, requestDTO);
         return convertirAResponseDTO(golRepository.save(gol));
@@ -76,6 +79,7 @@ public class GolService {
     public GolResponseDTO actualizarGol(Long id, GolRequestDTO requestDTO) {
         Gol gol = golRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Gol no encontrado con id: " + id));
+        authorization.verificarGestion(gol.getPartido().getTorneo());
 
         cargarDatosGol(gol, requestDTO);
         return convertirAResponseDTO(golRepository.save(gol));
@@ -85,6 +89,7 @@ public class GolService {
         if (!golRepository.existsById(id)) {
             throw new ResourceNotFoundException("Gol no encontrado con id: " + id);
         }
+        authorization.verificarGestion(golRepository.findById(id).orElseThrow().getPartido().getTorneo());
         golRepository.deleteById(id);
     }
 

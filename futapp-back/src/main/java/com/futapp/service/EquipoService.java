@@ -21,13 +21,16 @@ public class EquipoService {
     private final TorneoRepository torneoRepository;
     private final JugadorRepository jugadorRepository;
     private final PartidoRepository partidoRepository;
+    private final TorneoAuthorizationService authorization;
 
     public EquipoService(EquipoRepository equipoRepository, TorneoRepository torneoRepository,
-                         JugadorRepository jugadorRepository, PartidoRepository partidoRepository) {
+                         JugadorRepository jugadorRepository, PartidoRepository partidoRepository,
+                         TorneoAuthorizationService authorization) {
         this.equipoRepository = equipoRepository;
         this.torneoRepository = torneoRepository;
         this.jugadorRepository = jugadorRepository;
         this.partidoRepository = partidoRepository;
+        this.authorization = authorization;
     }
 
     public List<EquipoResponseDTO> listarEquipos() {
@@ -52,6 +55,7 @@ public class EquipoService {
     }
 
     public EquipoResponseDTO crearEquipo(EquipoRequestDTO requestDTO) {
+        authorization.verificarGestion(requestDTO.getIdTorneo());
         Torneo torneo = torneoRepository.findById(requestDTO.getIdTorneo())
                 .orElseThrow(() -> new ResourceNotFoundException("Torneo no encontrado con id: " + requestDTO.getIdTorneo()));
 
@@ -72,6 +76,7 @@ public class EquipoService {
     public EquipoResponseDTO actualizarEquipo(Long id, EquipoRequestDTO requestDTO) {
         Equipo equipo = equipoRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Equipo no encontrado con id: " + id));
+        authorization.verificarGestion(equipo.getTorneo());
 
         Torneo torneo = torneoRepository.findById(requestDTO.getIdTorneo())
                 .orElseThrow(() -> new ResourceNotFoundException("Torneo no encontrado con id: " + requestDTO.getIdTorneo()));
@@ -93,6 +98,7 @@ public class EquipoService {
         if (!equipoRepository.existsById(id)) {
             throw new ResourceNotFoundException("Equipo no encontrado con id: " + id);
         }
+        authorization.verificarGestion(equipoRepository.findById(id).orElseThrow().getTorneo());
 
         if (!jugadorRepository.findByEquipoIdEquipo(id).isEmpty()) {
             throw new IllegalArgumentException("No se puede eliminar el equipo porque tiene jugadores registrados");

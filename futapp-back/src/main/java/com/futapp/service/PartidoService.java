@@ -27,19 +27,22 @@ public class PartidoService {
     private final EquipoRepository equipoRepository;
     private final GolRepository golRepository;
     private final TarjetaRepository tarjetaRepository;
+    private final TorneoAuthorizationService authorization;
 
     public PartidoService(PartidoRepository partidoRepository,
                           TorneoRepository torneoRepository,
                           FechaRepository fechaRepository,
                           EquipoRepository equipoRepository,
                           GolRepository golRepository,
-                          TarjetaRepository tarjetaRepository) {
+                          TarjetaRepository tarjetaRepository,
+                          TorneoAuthorizationService authorization) {
         this.partidoRepository = partidoRepository;
         this.torneoRepository = torneoRepository;
         this.fechaRepository = fechaRepository;
         this.equipoRepository = equipoRepository;
         this.golRepository = golRepository;
         this.tarjetaRepository = tarjetaRepository;
+        this.authorization = authorization;
     }
 
     public List<PartidoResponseDTO> listarPartidos() {
@@ -71,6 +74,7 @@ public class PartidoService {
     }
 
     public PartidoResponseDTO crearPartido(PartidoRequestDTO requestDTO) {
+        authorization.verificarGestion(requestDTO.getIdTorneo());
         Partido partido = new Partido();
         cargarDatosPartido(partido, requestDTO);
         return convertirAResponseDTO(partidoRepository.save(partido));
@@ -79,6 +83,7 @@ public class PartidoService {
     public PartidoResponseDTO actualizarPartido(Long id, PartidoRequestDTO requestDTO) {
         Partido partido = partidoRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Partido no encontrado con id: " + id));
+        authorization.verificarGestion(partido.getTorneo());
 
         cargarDatosPartido(partido, requestDTO);
         return convertirAResponseDTO(partidoRepository.save(partido));
@@ -88,6 +93,7 @@ public class PartidoService {
         if (!partidoRepository.existsById(id)) {
             throw new ResourceNotFoundException("Partido no encontrado con id: " + id);
         }
+        authorization.verificarGestion(partidoRepository.findById(id).orElseThrow().getTorneo());
         if (golRepository.existsByPartidoIdPartido(id) || tarjetaRepository.existsByPartidoIdPartido(id)) {
             throw new IllegalArgumentException("No se puede eliminar el partido porque tiene goles o tarjetas cargados");
         }
@@ -195,6 +201,7 @@ public class PartidoService {
 
         Partido partido = partidoRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Partido no encontrado con id: " + id));
+        authorization.verificarGestion(partido.getTorneo());
 
         if (dto.getGolesLocal() == null || dto.getGolesVisitante() == null) {
             throw new IllegalArgumentException("Debe informar ambos goles");

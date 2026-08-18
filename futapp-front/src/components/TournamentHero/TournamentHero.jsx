@@ -10,6 +10,7 @@ function TournamentHero({ torneo, fechaActual }) {
         </Link>
 
         <span className="tournament-chip">{torneo.formato}</span>
+        <span className="tournament-public-code">{torneo.codigoPublico}</span>
 
         <h1>{torneo.nombre}</h1>
         <p>{torneo.descripcion}</p>

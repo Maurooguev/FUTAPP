@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Configuration;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Configuration
 public class DataLoader {
@@ -23,6 +24,13 @@ public class DataLoader {
     ) {
         return args -> {
 
+            torneoRepository.findAll().stream()
+                    .filter(torneo -> torneo.getCodigoPublico() == null)
+                    .forEach(torneo -> {
+                        torneo.setCodigoPublico(generarCodigo(torneoRepository));
+                        torneoRepository.save(torneo);
+                    });
+
             if (torneoRepository.count() > 0) {
                 return;
             }
@@ -37,6 +45,7 @@ public class DataLoader {
             torneo1.setEstado("ACTIVO");
             torneo1.setFormato("Liga");
             torneo1.setCantidadEquipos(12);
+            torneo1.setCodigoPublico(generarCodigo(torneoRepository));
             torneo1 = torneoRepository.save(torneo1);
 
             List<Equipo> equiposT1 = crearEquipos(
@@ -108,6 +117,7 @@ public class DataLoader {
             torneo2.setEstado("FINALIZADO");
             torneo2.setFormato("Liga");
             torneo2.setCantidadEquipos(8);
+            torneo2.setCodigoPublico(generarCodigo(torneoRepository));
             torneo2 = torneoRepository.save(torneo2);
 
             List<Equipo> equiposT2 = crearEquipos(
@@ -200,6 +210,7 @@ public class DataLoader {
             torneo3.setEstado("ACTIVO");
             torneo3.setFormato("Liga");
             torneo3.setCantidadEquipos(10);
+            torneo3.setCodigoPublico(generarCodigo(torneoRepository));
             torneo3 = torneoRepository.save(torneo3);
 
             List<Equipo> equiposT3 = crearEquipos(
@@ -351,5 +362,12 @@ public class DataLoader {
                 golRepository.save(gol);
             }
         }
+    }
+
+    private String generarCodigo(TorneoRepository torneoRepository) {
+        String codigo;
+        do { codigo = "FUT-" + UUID.randomUUID().toString().replace("-", "").substring(0, 6).toUpperCase(); }
+        while (torneoRepository.existsByCodigoPublico(codigo));
+        return codigo;
     }
 }

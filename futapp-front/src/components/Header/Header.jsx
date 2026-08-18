@@ -18,7 +18,7 @@ function Header() {
         <a href="#beneficios">Beneficios</a>
 
         {(usuario?.rol === "ADMIN" || usuario?.rol === "ORGANIZADOR") && (
-          <a href="#admin">Admin</a>
+          <Link to="/mis-torneos">Mis torneos</Link>
         )}
       </nav>
 

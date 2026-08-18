@@ -21,13 +21,16 @@ public class JugadorService {
     private final EquipoRepository equipoRepository;
     private final GolRepository golRepository;
     private final TarjetaRepository tarjetaRepository;
+    private final TorneoAuthorizationService authorization;
 
     public JugadorService(JugadorRepository jugadorRepository, EquipoRepository equipoRepository,
-                          GolRepository golRepository, TarjetaRepository tarjetaRepository) {
+                          GolRepository golRepository, TarjetaRepository tarjetaRepository,
+                          TorneoAuthorizationService authorization) {
         this.jugadorRepository = jugadorRepository;
         this.equipoRepository = equipoRepository;
         this.golRepository = golRepository;
         this.tarjetaRepository = tarjetaRepository;
+        this.authorization = authorization;
     }
 
     public List<JugadorResponseDTO> listarJugadores() {
@@ -54,6 +57,7 @@ public class JugadorService {
     public JugadorResponseDTO crearJugador(JugadorRequestDTO requestDTO) {
         Equipo equipo = equipoRepository.findById(requestDTO.getIdEquipo())
                 .orElseThrow(() -> new ResourceNotFoundException("Equipo no encontrado con id: " + requestDTO.getIdEquipo()));
+        authorization.verificarGestion(equipo.getTorneo());
 
         validarDatosUnicos(requestDTO, null);
 
@@ -75,6 +79,7 @@ public class JugadorService {
     public JugadorResponseDTO actualizarJugador(Long id, JugadorRequestDTO requestDTO) {
         Jugador jugador = jugadorRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Jugador no encontrado con id: " + id));
+        authorization.verificarGestion(jugador.getEquipo().getTorneo());
 
         Equipo equipo = equipoRepository.findById(requestDTO.getIdEquipo())
                 .orElseThrow(() -> new ResourceNotFoundException("Equipo no encontrado con id: " + requestDTO.getIdEquipo()));
@@ -99,6 +104,7 @@ public class JugadorService {
         if (!jugadorRepository.existsById(id)) {
             throw new ResourceNotFoundException("Jugador no encontrado con id: " + id);
         }
+        authorization.verificarGestion(jugadorRepository.findById(id).orElseThrow().getEquipo().getTorneo());
 
         if (golRepository.existsByJugadorIdJugador(id) || tarjetaRepository.existsByJugadorIdJugador(id)) {
             throw new IllegalArgumentException("No se puede eliminar el jugador porque tiene goles o tarjetas asociados");

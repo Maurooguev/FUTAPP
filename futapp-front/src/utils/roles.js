@@ -12,3 +12,8 @@ export function puedeAdministrar(usuario) {
 export function esAdmin(usuario) {
   return usuario?.rol === ROLES.ADMIN;
 }
+
+export function puedeAdministrarTorneo(usuario, torneo) {
+  return usuario?.rol === ROLES.ADMIN ||
+    (usuario?.rol === ROLES.ORGANIZADOR && torneo?.idPropietario === usuario?.idUsuario);
+}

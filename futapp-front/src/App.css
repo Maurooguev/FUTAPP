@@ -1341,3 +1341,7 @@ button {
 .admin-actions + .torneo-content .torneo-stats-grid {
   margin-top: 0;
 }
+.my-tournaments-page { min-height: 70vh; padding: 64px 20px; background: #f8fafc; }
+.my-tournaments-shell { max-width: 1180px; margin: 0 auto; }
+.my-tournaments-shell h1 { margin: 8px 0; color: #0f172a; font-size: 42px; }
+.my-tournaments-shell > p { margin-bottom: 28px; color: #64748b; }

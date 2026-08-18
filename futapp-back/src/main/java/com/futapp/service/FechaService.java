@@ -19,12 +19,14 @@ public class FechaService {
     private final FechaRepository fechaRepository;
     private final TorneoRepository torneoRepository;
     private final PartidoRepository partidoRepository;
+    private final TorneoAuthorizationService authorization;
 
     public FechaService(FechaRepository fechaRepository, TorneoRepository torneoRepository,
-                        PartidoRepository partidoRepository) {
+                        PartidoRepository partidoRepository, TorneoAuthorizationService authorization) {
         this.fechaRepository = fechaRepository;
         this.torneoRepository = torneoRepository;
         this.partidoRepository = partidoRepository;
+        this.authorization = authorization;
     }
 
     public List<FechaResponseDTO> listarFechas() {
@@ -49,6 +51,7 @@ public class FechaService {
     }
 
     public FechaResponseDTO crearFecha(FechaRequestDTO requestDTO) {
+        authorization.verificarGestion(requestDTO.getIdTorneo());
         Torneo torneo = torneoRepository.findById(requestDTO.getIdTorneo())
                 .orElseThrow(() -> new ResourceNotFoundException("Torneo no encontrado con id: " + requestDTO.getIdTorneo()));
 
@@ -66,6 +69,7 @@ public class FechaService {
     public FechaResponseDTO actualizarFecha(Long id, FechaRequestDTO requestDTO) {
         Fecha fecha = fechaRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Fecha no encontrada con id: " + id));
+        authorization.verificarGestion(fecha.getTorneo());
 
         Torneo torneo = torneoRepository.findById(requestDTO.getIdTorneo())
                 .orElseThrow(() -> new ResourceNotFoundException("Torneo no encontrado con id: " + requestDTO.getIdTorneo()));
@@ -84,6 +88,7 @@ public class FechaService {
         if (!fechaRepository.existsById(id)) {
             throw new ResourceNotFoundException("Fecha no encontrada con id: " + id);
         }
+        authorization.verificarGestion(fechaRepository.findById(id).orElseThrow().getTorneo());
         if (partidoRepository.existsByFechaIdFecha(id)) {
             throw new IllegalArgumentException("No se puede eliminar la jornada porque tiene partidos asociados");
         }

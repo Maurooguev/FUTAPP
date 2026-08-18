@@ -24,7 +24,7 @@ function HeroHome({ busqueda, onBusquedaChange }) {
         <div className="home-search-box">
           <input
             type="text"
-            placeholder="Buscar por nombre, ubicación o estado..."
+            placeholder="Buscar por código, nombre, ubicación o estado..."
             value={busqueda}
             onChange={(e) => onBusquedaChange(e.target.value)}
           />

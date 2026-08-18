@@ -28,7 +28,7 @@ function Home() {
 
   const torneosFiltrados = useMemo(() => {
     return torneos.filter((torneo) => {
-      const texto = `${torneo.nombre} ${torneo.ubicacion} ${torneo.estado}`.toLowerCase();
+      const texto = `${torneo.nombre} ${torneo.codigoPublico ?? ""} ${torneo.ubicacion} ${torneo.estado}`.toLowerCase();
       return texto.includes(busqueda.toLowerCase());
     });
   }, [torneos, busqueda]);

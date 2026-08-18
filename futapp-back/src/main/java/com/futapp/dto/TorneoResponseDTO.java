@@ -9,12 +9,16 @@ public class TorneoResponseDTO {
     private String estado;
     private String formato;
     private Integer cantidadEquipos;
+    private String codigoPublico;
+    private Long idPropietario;
+    private String nombrePropietario;
 
     public TorneoResponseDTO() {
     }
 
     public TorneoResponseDTO(Long idTorneo, String nombre, String descripcion, String ubicacion,
-                             String estado, String formato, Integer cantidadEquipos) {
+                             String estado, String formato, Integer cantidadEquipos,
+                             String codigoPublico, Long idPropietario, String nombrePropietario) {
         this.idTorneo = idTorneo;
         this.nombre = nombre;
         this.descripcion = descripcion;
@@ -22,6 +26,9 @@ public class TorneoResponseDTO {
         this.estado = estado;
         this.formato = formato;
         this.cantidadEquipos = cantidadEquipos;
+        this.codigoPublico = codigoPublico;
+        this.idPropietario = idPropietario;
+        this.nombrePropietario = nombrePropietario;
     }
 
     public Long getIdTorneo() {
@@ -79,4 +86,10 @@ public class TorneoResponseDTO {
     public void setCantidadEquipos(Integer cantidadEquipos) {
         this.cantidadEquipos = cantidadEquipos;
     }
+    public String getCodigoPublico() { return codigoPublico; }
+    public void setCodigoPublico(String codigoPublico) { this.codigoPublico = codigoPublico; }
+    public Long getIdPropietario() { return idPropietario; }
+    public void setIdPropietario(Long idPropietario) { this.idPropietario = idPropietario; }
+    public String getNombrePropietario() { return nombrePropietario; }
+    public void setNombrePropietario(String nombrePropietario) { this.nombrePropietario = nombrePropietario; }
 }

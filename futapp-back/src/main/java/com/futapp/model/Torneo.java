@@ -20,6 +20,13 @@ public class Torneo {
     @Column(name = "cantidad_equipos")
     private Integer cantidadEquipos;
 
+    @Column(name = "codigo_publico", unique = true, length = 12)
+    private String codigoPublico;
+
+    @ManyToOne
+    @JoinColumn(name = "id_propietario")
+    private Usuario propietario;
+
     public Torneo() {
     }
 
@@ -78,4 +85,9 @@ public class Torneo {
     public void setCantidadEquipos(Integer cantidadEquipos) {
         this.cantidadEquipos = cantidadEquipos;
     }
+
+    public String getCodigoPublico() { return codigoPublico; }
+    public void setCodigoPublico(String codigoPublico) { this.codigoPublico = codigoPublico; }
+    public Usuario getPropietario() { return propietario; }
+    public void setPropietario(Usuario propietario) { this.propietario = propietario; }
 }

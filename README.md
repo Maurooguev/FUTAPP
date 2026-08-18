@@ -61,6 +61,12 @@ datos requiere una sesión con rol `ORGANIZADOR` o `ADMIN`.
 El DNI de los jugadores es opcional. Cuando se informa, debe ser único. El
 número de camiseta también debe ser único dentro de cada equipo.
 
+Cada torneo nuevo queda asociado al organizador que lo crea y recibe un codigo
+publico unico con formato `FUT-XXXXXX`. El buscador acepta ese codigo o el
+nombre. La seccion `Mis torneos` muestra las competencias administrables por la
+sesion actual; `ADMIN` puede gestionar todas. Los torneos historicos sin
+propietario permanecen publicos en modo consulta.
+
 ## Verificacion
 
 ```powershell

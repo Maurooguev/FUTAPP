@@ -21,13 +21,15 @@ public class TarjetaService {
     private final TarjetaRepository tarjetaRepository;
     private final PartidoRepository partidoRepository;
     private final JugadorRepository jugadorRepository;
+    private final TorneoAuthorizationService authorization;
 
     public TarjetaService(TarjetaRepository tarjetaRepository,
                           PartidoRepository partidoRepository,
-                          JugadorRepository jugadorRepository) {
+                          JugadorRepository jugadorRepository, TorneoAuthorizationService authorization) {
         this.tarjetaRepository = tarjetaRepository;
         this.partidoRepository = partidoRepository;
         this.jugadorRepository = jugadorRepository;
+        this.authorization = authorization;
     }
 
     public List<TarjetaResponseDTO> listarTarjetas() {
@@ -59,6 +61,7 @@ public class TarjetaService {
     }
 
     public TarjetaResponseDTO crearTarjeta(TarjetaRequestDTO requestDTO) {
+        authorization.verificarGestion(partidoRepository.findById(requestDTO.getIdPartido()).orElseThrow().getTorneo());
         Tarjeta tarjeta = new Tarjeta();
         cargarDatosTarjeta(tarjeta, requestDTO);
         return convertirAResponseDTO(tarjetaRepository.save(tarjeta));
@@ -67,6 +70,7 @@ public class TarjetaService {
     public TarjetaResponseDTO actualizarTarjeta(Long id, TarjetaRequestDTO requestDTO) {
         Tarjeta tarjeta = tarjetaRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Tarjeta no encontrada con id: " + id));
+        authorization.verificarGestion(tarjeta.getPartido().getTorneo());
 
         cargarDatosTarjeta(tarjeta, requestDTO);
         return convertirAResponseDTO(tarjetaRepository.save(tarjeta));
@@ -76,6 +80,7 @@ public class TarjetaService {
         if (!tarjetaRepository.existsById(id)) {
             throw new ResourceNotFoundException("Tarjeta no encontrada con id: " + id);
         }
+        authorization.verificarGestion(tarjetaRepository.findById(id).orElseThrow().getPartido().getTorneo());
         tarjetaRepository.deleteById(id);
     }
 
