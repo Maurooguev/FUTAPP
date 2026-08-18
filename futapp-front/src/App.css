@@ -8,12 +8,14 @@
 
 html {
   scroll-behavior: smooth;
+  overflow-x: hidden;
 }
 
 body {
   background: #edf0f2;
   font-family: 'Inter', sans-serif;
   color: #0f172a;
+  overflow-x: hidden;
 }
 
 a {
@@ -1356,25 +1358,25 @@ button {
   }
 
   .app-layout .header-logo {
-    font-size: 23px;
+    font-size: 18px;
   }
 
   .app-layout .header-logo-badge {
-    width: 36px;
-    height: 36px;
-    border-radius: 10px;
+    width: 30px;
+    height: 30px;
+    border-radius: 4px;
   }
 
   .app-layout .header-nav {
-    gap: 22px;
-    font-size: 14px;
+    gap: 18px;
+    font-size: 11px;
   }
 
   .app-layout .header-link-button,
   .app-layout .header-actions button {
-    padding: 9px 14px;
-    border-radius: 10px;
-    font-size: 13px;
+    padding: 7px 10px;
+    border-radius: 4px;
+    font-size: 10px;
   }
 
   .home .hero-v2 {
@@ -1561,4 +1563,70 @@ button {
     padding: 14px;
     border-radius: 14px;
   }
+}
+
+/* Sistema editorial deportivo compacto */
+.home .steps-grid,
+.home .cta-box,
+.home .empty-state,
+.my-tournaments-shell {
+  max-width: 920px;
+}
+
+.home .steps-grid { gap: 12px; }
+.home .step-card,
+.home .card {
+  padding: 15px;
+  border: 1px solid #dce2e6;
+  border-radius: 5px;
+  box-shadow: 0 2px 5px rgba(15, 23, 42, .07);
+}
+.home .step-number { width: 30px; height: 30px; margin-bottom: 10px; border-radius: 3px; background: #0877a7; font-size: 12px; }
+.home .step-card h3, .home .card h3 { margin-bottom: 6px; font-size: 15px; }
+.home .step-card p, .home .card p { font-size: 12px; line-height: 1.45; }
+.home .cta-section { padding: 0 24px 36px; }
+.home .cta-box { padding: 24px; border-radius: 5px; background: #075c83; box-shadow: none; }
+.home .cta-box h2 { margin-bottom: 7px; font-size: 23px; }
+.home .cta-box p { font-size: 13px; }
+.home .empty-state { padding: 24px; border-radius: 5px; box-shadow: none; border: 1px solid #dce2e6; }
+
+.my-tournaments-page { min-height: 70vh; padding: 34px 20px; background: #edf0f2; }
+.my-tournaments-shell h1 { margin: 5px 0; font-size: 27px; }
+.my-tournaments-shell > p { margin-bottom: 18px; font-size: 13px; }
+.my-tournaments-shell .cards-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+.auth-page { min-height: calc(100vh - 120px); padding: 36px 20px; background: #edf0f2; }
+.auth-card { max-width: 380px; padding: 22px; border-radius: 5px; box-shadow: 0 3px 10px rgba(15, 23, 42, .1); }
+.auth-card h1 { margin-bottom: 4px; font-size: 25px; }
+.auth-card > p { margin-bottom: 16px; font-size: 13px; }
+.auth-card form { gap: 9px; }
+.auth-card label { font-size: 12px; }
+.auth-card input, .auth-card select { padding: 9px 10px; border-radius: 4px; font-size: 13px; }
+.auth-btn { margin-top: 6px; padding: 9px; border-radius: 4px; font-size: 12px; }
+.auth-link { margin-top: 13px; font-size: 12px; }
+
+.torneo-page { background: #edf0f2; }
+.torneo-page .admin-actions { padding: 0; }
+.torneo-page .torneo-dobles { gap: 12px; }
+.partido-content { padding-bottom: 40px; }
+.incidencia-card { grid-template-columns: 42px 1fr; gap: 9px; padding: 9px 0; }
+.incidencia-card strong { font-size: 15px; }
+.incidencia-card h3 { font-size: 14px; }
+.incidencia-card p, .empty-text { font-size: 12px; }
+
+@media (max-width: 768px) {
+  .home .featured-grid,
+  .my-tournaments-shell .cards-grid { grid-template-columns: 1fr; }
+  .home .section { padding: 28px 16px; }
+  .home .steps-grid { grid-template-columns: 1fr; }
+  .home .cta-section { padding: 0 16px 28px; }
+  .home .cta-box { padding: 20px 16px; }
+  .auth-card { padding: 20px 16px; }
+  .home .home-hero { padding: 58px 14px 50px; }
+  .home .home-hero-content { width: min(340px, 100%); min-width: 0; }
+  .home .home-hero h1 { max-width: 340px; font-size: 27px; overflow-wrap: anywhere; }
+  .home .home-hero h1 br { display: none; }
+  .home .home-hero p { font-size: 14px; }
+  .home .home-search-box { width: min(340px, 100%); min-width: 0; }
+  .home .home-search-box input { min-width: 0; width: 100%; }
 }

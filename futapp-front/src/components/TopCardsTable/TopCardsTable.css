@@ -42,3 +42,7 @@
     font-size: 24px;
   }
 }
+.cards-table-card { padding: 13px; border-radius: 5px; box-shadow: 0 2px 5px rgba(15,23,42,.07); }
+.cards-table-header { margin-bottom: 8px; padding-bottom: 6px; }
+.cards-table-header h2 { font-size: 18px; }
+.cards-table th, .cards-table td { padding: 7px 5px; font-size: 10px; }

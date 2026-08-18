@@ -84,3 +84,13 @@
 }
 .result-selected-match { display: grid; grid-template-columns: 1fr auto 1fr; gap: 10px; align-items: center; border-radius: 12px; padding: 14px; background: #f1f5f9; text-align: center; }
 .result-selected-match span { color: #64748b; font-weight: 800; }
+.result-modal-backdrop { padding: 14px; }
+.result-modal { width: min(430px, 100%); padding: 20px; border-radius: 5px; box-shadow: 0 10px 35px rgba(15,23,42,.28); }
+.result-modal-close { top: 10px; right: 10px; width: 28px; height: 28px; border-radius: 3px; font-size: 18px; }
+.result-modal h2 { font-size: 21px; margin-bottom: 4px; }
+.result-modal p { margin-bottom: 15px; font-size: 12px; }
+.result-modal form { gap: 9px; }
+.result-modal label { font-size: 11px; }
+.result-modal select, .result-modal input { padding: 8px 9px; border-radius: 4px; font-size: 12px; }
+.result-save-btn { margin-top: 5px; padding: 8px; border-radius: 4px; font-size: 11px; }
+.result-selected-match { padding: 9px; border-radius: 4px; font-size: 11px; }

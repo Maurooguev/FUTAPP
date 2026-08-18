@@ -101,6 +101,13 @@
   font-size: 14px;
 }
 
+.header-logo { gap: 8px; font-size: 18px; }
+.header-logo-badge { width: 30px; height: 30px; font-size: 14px; }
+.header-nav { gap: 18px; font-size: 11px; }
+.header-actions { gap: 7px; }
+.user-pill { padding: 7px 10px; border-radius: 4px; font-size: 10px; }
+.header-actions button, .header-link-button { padding: 7px 10px; border-radius: 4px; font-size: 10px; }
+
 @media (max-width: 768px) {
   .main-header {
     padding: 16px 20px;
@@ -116,5 +123,10 @@
 
   .header-actions {
     margin-left: auto;
+    gap: 4px;
   }
+
+  .header-actions .user-pill { display: none; }
+  .header-actions button, .header-link-button { padding: 6px 7px; font-size: 9px; }
+  .header-logo { font-size: 16px; }
 }

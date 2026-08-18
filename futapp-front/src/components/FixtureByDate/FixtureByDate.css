@@ -140,3 +140,24 @@
 .fixture-quick-actions .result { background: #dcfce7; color: #166534; }
 .fixture-quick-actions .incidents { background: #fef3c7; color: #92400e; }
 .fixture-quick-actions .danger { background: #fee2e2; color: #b91c1c; }
+.fixture-block { margin-bottom: 22px; }
+.fixture-header { margin-bottom: 10px; }
+.fixture-header h2 { margin-bottom: 3px; font-size: 21px; }
+.fixture-header p { font-size: 12px; }
+.fixture-tabs { gap: 5px; padding-bottom: 7px; margin-bottom: 10px; }
+.fixture-tab { padding: 6px 9px; border-radius: 3px; font-size: 10px; }
+.fixture-tab.active { background: #0877a7; border-color: #0877a7; }
+.fixture-current { padding: 10px 12px; margin-bottom: 10px; border-radius: 5px; }
+.fixture-current h3 { font-size: 15px; }
+.fixture-current span { font-size: 10px; }
+.fixture-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.fixture-match-card { padding: 11px; border-radius: 5px; box-shadow: 0 2px 5px rgba(15,23,42,.07); }
+.fixture-match-card:hover { transform: translateY(-2px); }
+.fixture-match-status { padding: 4px 7px; margin-bottom: 8px; border-radius: 3px; font-size: 9px; }
+.fixture-score-line { gap: 7px; margin-bottom: 7px; font-size: 11px; }
+.fixture-score-line strong { font-size: 15px; }
+.fixture-match-card p { font-size: 10px; }
+.fixture-empty { padding: 16px; border-radius: 5px; font-size: 12px; }
+.fixture-admin-actions button, .fixture-quick-actions button { padding: 5px 6px; border-radius: 3px; font-size: 9px; }
+.fixture-quick-actions { gap: 5px; margin-top: 9px; }
+@media (max-width: 768px) { .fixture-grid { grid-template-columns: 1fr; } }

@@ -156,3 +156,16 @@
     flex-direction: column-reverse;
   }
 }
+.tournament-form-backdrop { padding: 14px; }
+.tournament-form-modal { width: min(560px, 100%); padding: 20px; border-radius: 5px; box-shadow: 0 10px 35px rgba(15,23,42,.28); }
+.tournament-form-modal h2 { margin: 6px 0 3px; font-size: 21px; }
+.tournament-form-modal > p { margin-bottom: 15px; font-size: 12px; }
+.tournament-form-chip { font-size: 9px; }
+.tournament-form-close { top: 10px; right: 10px; width: 28px; height: 28px; border-radius: 3px; font-size: 18px; }
+.tournament-form-modal form { gap: 11px; }
+.tournament-form-modal label { gap: 4px; font-size: 11px; }
+.tournament-form-modal input, .tournament-form-modal textarea, .tournament-form-modal select { padding: 8px 9px; border-radius: 4px; font-size: 12px; }
+.tournament-form-grid { gap: 10px; }
+.tournament-form-actions { gap: 7px; }
+.tournament-form-actions button { padding: 7px 10px; border-radius: 4px; font-size: 11px; }
+.tournament-form-error { padding: 8px 9px; border-radius: 4px; font-size: 11px; }
