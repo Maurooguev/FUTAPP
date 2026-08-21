@@ -42,7 +42,7 @@ function Header() {
 
         <div className="header-actions">
           {usuario ? (
-            <><span className="user-pill">{usuario.nombre} · {usuario.rol}</span><button className="header-btn-outline" onClick={logout}>Salir</button></>
+            <><Link to="/cuenta" className="user-pill">{usuario.nombre} · {usuario.rol}</Link><button className="header-btn-outline" onClick={logout}>Salir</button></>
           ) : (
             <><Link to="/login" className="header-link-button outline">Ingresar</Link><Link to="/register" className="header-link-button primary">Registrarse</Link></>
           )}

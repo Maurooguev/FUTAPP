@@ -23,8 +23,8 @@ public class SecurityConfig {
                                           JsonMapper jsonMapper) throws Exception {
         return http.csrf(csrf -> csrf.disable()).cors(cors -> {}).sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/auth/login", "/auth/register", "/status", "/hola").permitAll()
-                .requestMatchers("/auth/me", "/auth/logout", "/torneos/mios", "/equipos/mios").authenticated()
+                .requestMatchers("/auth/login", "/auth/register", "/auth/password/forgot", "/auth/password/reset", "/status", "/hola").permitAll()
+                .requestMatchers("/auth/me", "/auth/logout", "/auth/password", "/torneos/mios", "/equipos/mios").authenticated()
                 .requestMatchers("/reclamos/**", "/perfil-jugador/**").authenticated()
                 .requestMatchers(HttpMethod.POST, "/archivos/imagenes").authenticated()
                 .requestMatchers(HttpMethod.GET, "/equipos/*/permisos").authenticated()

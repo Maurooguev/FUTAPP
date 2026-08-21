@@ -1331,6 +1331,11 @@ button {
   color: #1d4ed8;
   font-weight: 800;
 }
+.auth-forgot-link { justify-self: end; color: #0877a7; font-size: 11px; font-weight: 700; }
+.auth-feedback,.auth-success { padding: 9px; background: #e8f7ef; color: #17603a; font-size: 11px; }
+.auth-dev-link { margin-top: 12px; padding: 11px; border: 1px dashed #89b8cc; background: #eef8fb; font-size: 11px; }
+.auth-dev-link span { color: #0877a7; font-size: 9px; font-weight: 900; text-transform: uppercase; }
+.auth-dev-link p { margin: 5px 0; }.auth-dev-link a { color: #0877a7; font-weight: 800; }
 
 .admin-actions {
   max-width: 1180px;

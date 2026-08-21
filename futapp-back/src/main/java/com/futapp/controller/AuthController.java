@@ -19,6 +19,18 @@ public class AuthController {
     @PostMapping("/login")
     public AuthResponseDTO login(@Valid @RequestBody LoginRequestDTO request) { return auth.login(request); }
 
+    @PostMapping("/password/forgot")
+    public PasswordResetResponseDTO forgotPassword(@Valid @RequestBody ForgotPasswordRequestDTO request) { return auth.forgotPassword(request); }
+
+    @PostMapping("/password/reset")
+    public PasswordResetResponseDTO resetPassword(@Valid @RequestBody ResetPasswordRequestDTO request) { return auth.resetPassword(request); }
+
+    @PutMapping("/password")
+    public PasswordResetResponseDTO changePassword(@AuthenticationPrincipal Usuario usuario,
+                                                    @Valid @RequestBody ChangePasswordRequestDTO request) {
+        return auth.changePassword(usuario, request);
+    }
+
     @GetMapping("/me")
     public UsuarioSesionDTO me(@AuthenticationPrincipal Usuario usuario) { return UsuarioSesionDTO.from(usuario); }
 

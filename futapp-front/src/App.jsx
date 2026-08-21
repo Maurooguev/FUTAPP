@@ -13,6 +13,9 @@ import Solicitudes from "./pages/Solicitudes";
 import MiPerfilJugador from "./pages/MiPerfilJugador";
 import MiPerfilRedirect from "./pages/MiPerfilRedirect";
 import MisEquipos from "./pages/MisEquipos";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
+import Cuenta from "./pages/Cuenta";
 
 function App() {
   return (
@@ -28,6 +31,9 @@ function App() {
         <Route path="/mi-perfil-jugador/editar" element={<MiPerfilJugador />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/cuenta" element={<Cuenta />} />
         <Route path="/mis-torneos" element={<MisTorneos />} />
         <Route path="/mis-equipos" element={<MisEquipos />} />
       </Route>

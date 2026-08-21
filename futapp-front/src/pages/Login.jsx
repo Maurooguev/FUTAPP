@@ -28,6 +28,7 @@ function Login() {
             type="email" required value={email} onChange={(e) => setEmail(e.target.value)}
           />
           <label>Contraseña</label><input type="password" required value={password} onChange={(e) => setPassword(e.target.value)} />
+          <Link className="auth-forgot-link" to="/forgot-password">Olvidé mi contraseña</Link>
           {error && <p className="tournament-form-error">{error}</p>}
 
           <button type="submit" className="auth-btn">
