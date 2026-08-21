@@ -1,13 +1,14 @@
 import { useState } from "react";
 import { API_URL, apiFetch, assetUrl } from "../../config/api";
 import "./ImageUploadField.css";
+import PlantelCropModal from "./PlantelCropModal";
 
 function ImageUploadField({ label, value, onUploaded, shape = "wide" }) {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
+  const [cropFile, setCropFile] = useState(null);
 
-  const upload = async (event) => {
-    const file = event.target.files?.[0];
+  const uploadFile = async (file) => {
     if (!file) return;
     setUploading(true);
     setError("");
@@ -22,16 +23,24 @@ function ImageUploadField({ label, value, onUploaded, shape = "wide" }) {
       setError(requestError.message);
     } finally {
       setUploading(false);
-      event.target.value = "";
     }
+  };
+
+  const selectFile = (event) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+    if (shape === "wide") setCropFile(file);
+    else uploadFile(file);
   };
 
   return <div className="image-upload-field">
     <span>{label}</span>
     <div className={`image-upload-preview ${shape}`}>{value ? <img src={assetUrl(value)} alt="Vista previa" /> : <small>Sin imagen</small>}</div>
-    <label className="image-upload-button">{uploading ? "Subiendo..." : value ? "Cambiar imagen" : "Elegir imagen"}<input type="file" accept="image/jpeg,image/png,image/webp" onChange={upload} disabled={uploading} /></label>
+    <label className="image-upload-button">{uploading ? "Subiendo..." : value ? "Cambiar imagen" : "Elegir imagen"}<input type="file" accept="image/jpeg,image/png,image/webp" onChange={selectFile} disabled={uploading} /></label>
     {value && <button type="button" className="image-upload-remove" onClick={() => onUploaded("")}>Quitar</button>}
     {error && <small className="image-upload-error">{error}</small>}
+    {cropFile && <PlantelCropModal file={cropFile} onCancel={() => setCropFile(null)} onConfirm={async (cropped) => { await uploadFile(cropped); setCropFile(null); }} />}
   </div>;
 }
 
