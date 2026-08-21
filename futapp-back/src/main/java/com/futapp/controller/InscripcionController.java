@@ -4,6 +4,7 @@ import com.futapp.dto.InscripcionEquipoResponseDTO;
 import com.futapp.dto.InscripcionJugadorResponseDTO;
 import com.futapp.dto.InscripcionEquipoRequestDTO;
 import com.futapp.dto.InscripcionJugadorRequestDTO;
+import com.futapp.dto.ActualizacionInscripcionJugadorDTO;
 import com.futapp.service.InscripcionService;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.PutMapping;
 
 import java.util.List;
 
@@ -49,5 +51,22 @@ public class InscripcionController {
             @PathVariable Long idInscripcion,
             @Valid @RequestBody InscripcionJugadorRequestDTO request) {
         return inscripciones.inscribirJugador(idInscripcion, request);
+    }
+
+    @PutMapping("/jugadores/{id}")
+    public InscripcionJugadorResponseDTO actualizarJugador(@PathVariable Long id,
+            @Valid @RequestBody ActualizacionInscripcionJugadorDTO request) {
+        return inscripciones.actualizarJugador(id, request);
+    }
+
+    @PutMapping("/jugadores/{id}/baja")
+    public InscripcionJugadorResponseDTO darDeBaja(@PathVariable Long id) {
+        return inscripciones.darDeBaja(id);
+    }
+
+    @PutMapping("/jugadores/{id}/reactivar")
+    public InscripcionJugadorResponseDTO reactivarJugador(@PathVariable Long id,
+            @Valid @RequestBody ActualizacionInscripcionJugadorDTO request) {
+        return inscripciones.reactivarJugador(id, request);
     }
 }

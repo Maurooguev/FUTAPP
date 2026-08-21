@@ -5,6 +5,7 @@ import "../TournamentFormModal/TournamentFormModal.css";
 import "./TeamManagement.css";
 import { Link } from "react-router-dom";
 import ExistingPlayerEnrollment from "./ExistingPlayerEnrollment";
+import RosterEnrollmentForm from "./RosterEnrollmentForm";
 
 function TeamRosterModal({ equipo, torneoId, canManage, onClose }) {
   const [players, setPlayers] = useState([]);
@@ -14,6 +15,10 @@ function TeamRosterModal({ equipo, torneoId, canManage, onClose }) {
   const [actionError, setActionError] = useState("");
   const [enrollmentId, setEnrollmentId] = useState(null);
   const [showExisting, setShowExisting] = useState(false);
+  const [editingEnrollment, setEditingEnrollment] = useState(null);
+  const [reactivating, setReactivating] = useState(false);
+  const [tournamentName, setTournamentName] = useState("");
+  const [reloadKey, setReloadKey] = useState(0);
 
   const closeForm = () => {
     setShowForm(false);
@@ -33,26 +38,22 @@ function TeamRosterModal({ equipo, torneoId, canManage, onClose }) {
         }
       }
     }
-    setPlayers((current) => {
-      const exists = current.some((player) => player.idJugador === savedPlayer.idJugador);
-      return exists
-        ? current.map((player) => player.idJugador === savedPlayer.idJugador ? savedPlayer : player)
-        : [...current, savedPlayer];
-    });
     closeForm();
+    setReloadKey((current) => current + 1);
   };
 
-  const deletePlayer = async (player) => {
-    const confirmed = window.confirm(`¿Eliminar a ${player.nombre} ${player.apellido} del plantel?`);
+  const deactivatePlayer = async (player) => {
+    const confirmed = window.confirm(`¿Dar de baja a ${player.nombre} ${player.apellido} solamente de este torneo? Su perfil y su historial se conservarán.`);
     if (!confirmed) return;
     setActionError("");
     try {
-      const response = await apiFetch(`${API_URL}/jugadores/${player.idJugador}`, { method: "DELETE" });
+      const response = await apiFetch(`${API_URL}/inscripciones/jugadores/${player.idInscripcionJugador}/baja`, { method: "PUT" });
       if (!response.ok) {
         const payload = await response.json().catch(() => null);
-        throw new Error(payload?.message || "No se pudo eliminar el jugador");
+        throw new Error(payload?.message || "No se pudo dar de baja al jugador");
       }
-      setPlayers((current) => current.filter((item) => item.idJugador !== player.idJugador));
+      const updated = await response.json();
+      setPlayers((current) => current.map((item) => item.idInscripcionJugador === updated.idInscripcionJugador ? { ...item, ...updated } : item));
     } catch (requestError) {
       setActionError(requestError.message);
     }
@@ -65,37 +66,36 @@ function TeamRosterModal({ equipo, torneoId, canManage, onClose }) {
         const enrollment = Array.isArray(history) ? history.find((item) => item.idTorneo === Number(torneoId)) : null;
         if (!enrollment) throw new Error("No se encontró la inscripción del equipo");
         setEnrollmentId(enrollment.idInscripcion);
+        setTournamentName(enrollment.nombreTorneo);
         const roster = await fetch(`${API_URL}/inscripciones/${enrollment.idInscripcion}/jugadores`).then((response) => response.json());
         const fullPlayers = await Promise.all((Array.isArray(roster) ? roster : []).map(async (item) => {
           const player = await fetch(`${API_URL}/jugadores/${item.idJugador}`).then((response) => response.json());
-          return { ...player, numeroCamiseta: item.numeroCamiseta, posicion: item.posicion, estado: item.estado };
+          return { ...player, ...item, nombre: player.nombre, apellido: player.apellido };
         }));
         setPlayers(fullPlayers);
       })
       .catch((requestError) => setActionError(requestError.message))
       .finally(() => setLoading(false));
-  }, [equipo.idEquipo, torneoId]);
+  }, [equipo.idEquipo, torneoId, reloadKey]);
 
   return (
     <div className="tournament-form-backdrop" onMouseDown={onClose}>
       <section className="tournament-form-modal roster-modal" role="dialog" aria-modal="true" onMouseDown={(e) => e.stopPropagation()}>
         <button type="button" className="tournament-form-close" aria-label="Cerrar" onClick={onClose}>×</button>
-        <span className="tournament-form-chip">Plantel</span>
+        <span className="tournament-form-chip">Plantel por torneo</span>
         <h2>{equipo.nombre}</h2>
-        <p>{players.length} jugadores registrados.</p>
+        <p><strong>{tournamentName || "Torneo"}</strong> · {players.filter((player) => player.estado === "ACTIVA").length} activos · {players.filter((player) => player.estado === "INACTIVA").length} bajas.</p>
         {canManage && !showForm && !showExisting && <div className="roster-add-actions"><button type="button" className="tournament-form-save" onClick={() => { setEditingPlayer(null); setShowForm(true); }}>+ Crear jugador</button><button type="button" className="tournament-form-cancel" onClick={() => setShowExisting(true)}>Agregar jugador existente</button></div>}
         {showForm && <PlayerForm equipoId={equipo.idEquipo} player={editingPlayer} onCancel={closeForm} onSaved={savePlayer} />}
-        {showExisting && enrollmentId && <ExistingPlayerEnrollment enrollmentId={enrollmentId} currentPlayers={players} onCancel={() => setShowExisting(false)} onSaved={(player) => { setPlayers((current) => [...current, player]); setShowExisting(false); }} />}
+        {showExisting && enrollmentId && <ExistingPlayerEnrollment enrollmentId={enrollmentId} currentPlayers={players} onCancel={() => setShowExisting(false)} onSaved={() => { setShowExisting(false); setReloadKey((current) => current + 1); }} />}
         {actionError && <p className="tournament-form-error">{actionError}</p>}
         <div className="roster-list">
           {loading ? <p>Cargando plantel...</p> : players.length === 0 ? <p className="roster-empty">Todavía no hay jugadores.</p> : players.map((player) => (
-            <article className="roster-player" key={player.idJugador}>
+            <article className={`roster-player ${player.estado === "INACTIVA" ? "inactive" : ""}`} key={player.idInscripcionJugador || player.idJugador}>
               <strong className="roster-number">{player.numeroCamiseta}</strong>
               <div><h3><Link to={`/jugador/${player.idJugador}`} onClick={onClose}>{player.nombre} {player.apellido}</Link></h3><p>{player.posicion}{player.apodo ? ` · ${player.apodo}` : ""}</p></div>
-              <div className="roster-player-actions">
-                <span className="roster-status">{player.estado}</span>
-                {canManage && <><button type="button" onClick={() => { setEditingPlayer(player); setShowForm(true); }}>Editar</button><button type="button" className="danger" onClick={() => deletePlayer(player)}>Eliminar</button></>}
-              </div>
+              <div className="roster-player-actions"><span className="roster-status">{player.estado}{player.fechaBaja ? ` · Baja ${player.fechaBaja}` : ""}</span>{canManage && player.estado === "ACTIVA" && <><button type="button" onClick={() => { setEditingEnrollment(player); setReactivating(false); }}>Dorsal/posición</button><button type="button" onClick={() => { setEditingPlayer(player); setShowForm(true); }}>Editar jugador</button><button type="button" className="danger" onClick={() => deactivatePlayer(player)}>Dar de baja</button></>}{canManage && player.estado === "INACTIVA" && <button type="button" className="reactivate" onClick={() => { setEditingEnrollment(player); setReactivating(true); }}>Reactivar</button>}</div>
+              {editingEnrollment?.idInscripcionJugador === player.idInscripcionJugador && <RosterEnrollmentForm player={player} reactivate={reactivating} onCancel={() => setEditingEnrollment(null)} onSaved={(updated) => { setPlayers((current) => current.map((item) => item.idInscripcionJugador === updated.idInscripcionJugador ? { ...item, ...updated } : item)); setEditingEnrollment(null); }} />}
             </article>
           ))}
         </div>

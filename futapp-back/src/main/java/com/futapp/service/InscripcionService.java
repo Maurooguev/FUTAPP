@@ -4,6 +4,7 @@ import com.futapp.dto.InscripcionEquipoResponseDTO;
 import com.futapp.dto.InscripcionJugadorResponseDTO;
 import com.futapp.dto.InscripcionEquipoRequestDTO;
 import com.futapp.dto.InscripcionJugadorRequestDTO;
+import com.futapp.dto.ActualizacionInscripcionJugadorDTO;
 import com.futapp.exception.ResourceNotFoundException;
 import com.futapp.model.InscripcionEquipo;
 import com.futapp.model.InscripcionJugador;
@@ -17,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.time.LocalDate;
 
 @Service
 @Transactional(readOnly = true)
@@ -96,7 +98,7 @@ public class InscripcionService {
         if (inscripcionesJugador.existsByInscripcionEquipoIdInscripcionAndJugadorIdJugador(idInscripcion, request.idJugador())) {
             throw new IllegalArgumentException("El jugador ya pertenece a este plantel");
         }
-        if (inscripcionesJugador.existsByInscripcionEquipoIdInscripcionAndNumeroCamiseta(idInscripcion, request.numeroCamiseta())) {
+        if (inscripcionesJugador.existsByInscripcionEquipoIdInscripcionAndNumeroCamisetaAndEstado(idInscripcion, request.numeroCamiseta(), "ACTIVA")) {
             throw new IllegalArgumentException("Ya existe un jugador con ese número en este plantel");
         }
         InscripcionJugador inscripcion = new InscripcionJugador();
@@ -106,6 +108,50 @@ public class InscripcionService {
         inscripcion.setPosicion(normalizar(request.posicion()) == null ? jugador.getPosicion() : request.posicion().trim());
         inscripcion.setEstado("ACTIVA");
         return jugadorDto(inscripcionesJugador.save(inscripcion));
+    }
+
+    @Transactional
+    public InscripcionJugadorResponseDTO actualizarJugador(Long id, ActualizacionInscripcionJugadorDTO request) {
+        InscripcionJugador inscripcion = obtenerInscripcionJugador(id);
+        equipoAuthorization.verificarGestion(inscripcion.getInscripcionEquipo().getEquipo());
+        validarDorsalDisponible(inscripcion, request.numeroCamiseta());
+        inscripcion.setNumeroCamiseta(request.numeroCamiseta());
+        inscripcion.setPosicion(normalizar(request.posicion()));
+        return jugadorDto(inscripcionesJugador.save(inscripcion));
+    }
+
+    @Transactional
+    public InscripcionJugadorResponseDTO darDeBaja(Long id) {
+        InscripcionJugador inscripcion = obtenerInscripcionJugador(id);
+        equipoAuthorization.verificarGestion(inscripcion.getInscripcionEquipo().getEquipo());
+        if ("INACTIVA".equals(inscripcion.getEstado())) throw new IllegalArgumentException("El jugador ya está dado de baja en este plantel");
+        inscripcion.setEstado("INACTIVA");
+        inscripcion.setFechaBaja(LocalDate.now());
+        return jugadorDto(inscripcionesJugador.save(inscripcion));
+    }
+
+    @Transactional
+    public InscripcionJugadorResponseDTO reactivarJugador(Long id, ActualizacionInscripcionJugadorDTO request) {
+        InscripcionJugador inscripcion = obtenerInscripcionJugador(id);
+        equipoAuthorization.verificarGestion(inscripcion.getInscripcionEquipo().getEquipo());
+        validarDorsalDisponible(inscripcion, request.numeroCamiseta());
+        inscripcion.setNumeroCamiseta(request.numeroCamiseta());
+        inscripcion.setPosicion(normalizar(request.posicion()));
+        inscripcion.setEstado("ACTIVA");
+        inscripcion.setFechaBaja(null);
+        return jugadorDto(inscripcionesJugador.save(inscripcion));
+    }
+
+    private InscripcionJugador obtenerInscripcionJugador(Long id) {
+        return inscripcionesJugador.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Inscripción de jugador no encontrada con id: " + id));
+    }
+
+    private void validarDorsalDisponible(InscripcionJugador inscripcion, Integer dorsal) {
+        if (inscripcionesJugador.existsByInscripcionEquipoIdInscripcionAndNumeroCamisetaAndEstadoAndIdInscripcionJugadorNot(
+                inscripcion.getInscripcionEquipo().getIdInscripcion(), dorsal, "ACTIVA", inscripcion.getIdInscripcionJugador())) {
+            throw new IllegalArgumentException("Ya existe un jugador activo con ese número en este plantel");
+        }
     }
 
     private String normalizar(String valor) {
