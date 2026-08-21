@@ -1,6 +1,7 @@
 # Backend
 futapp-back/target/
 futapp-back/data/*.db
+futapp-back/data/uploads/
 postgres-data/
 backups/
 

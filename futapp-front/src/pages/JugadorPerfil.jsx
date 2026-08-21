@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { API_URL, apiFetch } from "../config/api";
+import { API_URL, apiFetch, assetUrl } from "../config/api";
 import useAuth from "../context/useAuth";
 import "./Profiles.css";
 
@@ -82,7 +82,7 @@ function JugadorPerfil() {
 
   return <main className="profile-page player-profile">
     <section className="player-hero">
-      <div className="profile-avatar player-avatar">{jugador.foto ? <img src={jugador.foto} alt={`${jugador.nombre} ${jugador.apellido}`} /> : jugador.numeroCamiseta}</div>
+      <div className="profile-avatar player-avatar">{jugador.foto ? <img src={assetUrl(jugador.foto)} alt={`${jugador.nombre} ${jugador.apellido}`} /> : jugador.numeroCamiseta}</div>
       <div><span className="profile-code">{jugador.codigoPublico}</span><h1>{jugador.nombre} {jugador.apellido}</h1>{jugador.apodo && <p className="player-nickname">“{jugador.apodo}”</p>}<Link to={`/equipo/${equipo.idEquipo}`}>{equipo.nombre}</Link></div>
       <strong className="shirt-number">#{jugador.numeroCamiseta}</strong>
       {isOwnProfile ? <Link className="profile-edit-link" to="/mi-perfil-jugador/editar">Editar perfil</Link> : usuario?.rol === "JUGADOR" && <button className="profile-claim-button" onClick={claimPlayer}>Este jugador soy yo</button>}

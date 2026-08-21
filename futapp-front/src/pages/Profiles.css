@@ -39,5 +39,6 @@
 .personal-profile-form input, .personal-profile-form textarea { padding: 9px; border: 1px solid #ccd6dc; background: #fff; color: #0f172a; }
 .personal-profile-form button { background: #0877a7; color: #fff; }
 .personal-profile-form p, .personal-profile-form label:last-of-type { grid-column: 1 / -1; }
+.personal-profile-form > .image-upload-field { grid-column: 1 / -1; }
 .career-list { display: grid; gap: 7px; }.career-list article { display: grid; grid-template-columns: 1fr 1fr auto; gap: 12px; align-items: center; padding: 10px; background: #f7f9fa; font-size: 11px; }.career-list a { color: #0877a7; font-weight: 800; text-decoration: none; }.career-list span { color: #334155; }.career-list small { color: #64748b; }
 @media (max-width: 700px) { .club-cover { height: 190px; }.profile-identity { flex-wrap: wrap; padding: 0 10px; }.profile-owner-actions { width: 100%; flex-wrap: wrap; margin-left: 0; }.profile-layout { grid-template-columns: 1fr; }.player-mini-grid { grid-template-columns: repeat(3,1fr); }.player-hero { grid-template-columns: auto 1fr; padding: 18px; }.player-avatar { width: 78px; height: 78px; }.shirt-number { display: none; }.player-facts,.player-stats { grid-template-columns: repeat(2,1fr); }.profile-page h1 { font-size: 25px; }.career-list article { grid-template-columns: 1fr; gap: 3px; } }

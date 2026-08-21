@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { API_URL, apiFetch } from "../../config/api";
+import ImageUploadField from "../ImageUploadField/ImageUploadField";
 
 function PlayerForm({ equipoId, player, onSaved, onCancel }) {
   const isEditing = Boolean(player?.idJugador);
@@ -56,7 +57,7 @@ function PlayerForm({ equipoId, player, onSaved, onCancel }) {
         <label>Posición<select name="posicion" value={form.posicion} onChange={updateField}><option>Arquero</option><option>Defensor</option><option>Mediocampista</option><option>Delantero</option></select></label>
         <label>Pierna hábil<select name="piernaHabil" value={form.piernaHabil} onChange={updateField}><option value="">Sin informar</option><option>Derecha</option><option>Izquierda</option><option>Ambas</option></select></label>
       </div>
-      <label>Foto (URL opcional)<input name="foto" value={form.foto} onChange={updateField} /></label>
+      <ImageUploadField label="Foto del jugador" value={form.foto} shape="avatar" onUploaded={(foto) => setForm((current) => ({ ...current, foto }))} />
       {error && <p className="tournament-form-error">{error}</p>}
       <div className="tournament-form-actions"><button type="button" className="tournament-form-cancel" onClick={onCancel}>Cancelar</button><button type="submit" className="tournament-form-save" disabled={saving}>{saving ? "Guardando..." : isEditing ? "Guardar cambios" : "Agregar jugador"}</button></div>
     </form>

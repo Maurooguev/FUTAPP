@@ -1,0 +1,6 @@
+.image-upload-field { display: grid; grid-template-columns: 110px 1fr auto; gap: 8px; align-items: center; margin: 10px 0; padding: 10px; border: 1px solid #dbe3e8; border-radius: 5px; background: #f8fafc; }
+.image-upload-field > span { color: #334155; font-size: 11px; font-weight: 700; }
+.image-upload-preview { width: 100%; height: 72px; overflow: hidden; border-radius: 4px; background: #e2e8f0; }.image-upload-preview.avatar { width: 72px; border-radius: 50%; }.image-upload-preview img { width: 100%; height: 100%; object-fit: cover; }.image-upload-preview small { display: grid; height: 100%; place-items: center; color: #64748b; font-size: 9px; }
+.image-upload-button { padding: 8px 10px; border-radius: 4px; background: #0877a7; color: #fff; font-size: 10px; font-weight: 800; cursor: pointer; }.image-upload-button input { display: none; }
+.image-upload-remove { grid-column: 3; padding: 5px 8px; background: #fee2e2; color: #b91c1c; font-size: 9px; }.image-upload-error { grid-column: 1 / -1; color: #b91c1c; }
+@media (max-width: 600px) { .image-upload-field { grid-template-columns: 1fr; }.image-upload-preview.avatar { width: 72px; }.image-upload-remove { grid-column: auto; } }

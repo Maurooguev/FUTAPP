@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { API_URL, apiFetch } from "../config/api";
+import { API_URL, apiFetch, assetUrl } from "../config/api";
 import useAuth from "../context/useAuth";
 import "./Profiles.css";
 import TeamFormModal from "../components/TeamManagement/TeamFormModal";
@@ -68,10 +68,10 @@ function EquipoPerfil() {
 
   return <main className="profile-page">
     <section className="club-cover">
-      {equipo.fotoPlantel ? <img src={equipo.fotoPlantel} alt={`Plantel de ${equipo.nombre}`} /> : <div className="club-cover-placeholder">Foto del plantel</div>}
+      {equipo.fotoPlantel ? <img src={assetUrl(equipo.fotoPlantel)} alt={`Plantel de ${equipo.nombre}`} /> : <div className="club-cover-placeholder">Foto del plantel</div>}
     </section>
     <section className="profile-identity">
-      <div className="profile-avatar club-avatar">{equipo.escudo ? <img src={equipo.escudo} alt={`Escudo de ${equipo.nombre}`} /> : equipo.nombre.slice(0, 2).toUpperCase()}</div>
+      <div className="profile-avatar club-avatar">{equipo.escudo ? <img src={assetUrl(equipo.escudo)} alt={`Escudo de ${equipo.nombre}`} /> : equipo.nombre.slice(0, 2).toUpperCase()}</div>
       <div><span className="profile-code">{equipo.codigoPublico}</span><h1>{equipo.nombre}</h1><p>{equipo.barrio || "Barrio sin informar"}</p></div>
       <div className="profile-owner-actions">
         {hasManageAccess && <><span className="profile-owner-badge">Administrás este club</span><button onClick={() => setShowEdit(true)}>Editar perfil</button><button onClick={() => setShowRoster(true)}>Gestionar plantel</button></>}
@@ -83,7 +83,7 @@ function EquipoPerfil() {
       <section className="profile-panel"><h2>Sobre el club</h2><p>{equipo.descripcion || "El club todavía no agregó una descripción."}</p><dl><div><dt>Responsable</dt><dd>{equipo.responsable}</dd></div><div><dt>Contacto</dt><dd>{equipo.telefonoContacto}</dd></div>{equipo.emailContacto && <div><dt>Email</dt><dd>{equipo.emailContacto}</dd></div>}</dl></section>
       <section className="profile-panel"><h2>Historial de torneos</h2><div className="enrollment-list">{inscripciones.map((item) => <Link className="history-link" to={`/torneo/${item.idTorneo}`} key={item.idInscripcion}><strong>{item.nombreTorneo}</strong><small>{item.estado} · {item.cantidadJugadores} jugadores</small><span>Ver torneo →</span></Link>)}</div></section>
     </div>
-    <section className="profile-panel"><div className="profile-section-head"><div><span>Plantel</span><h2>{jugadores.length} jugadores</h2></div></div><div className="player-mini-grid">{jugadores.map((jugador) => <Link to={`/jugador/${jugador.idJugador}`} className="player-mini" key={jugador.idJugador}><div>{jugador.foto ? <img src={jugador.foto} alt="" /> : jugador.numeroCamiseta}</div><strong>{jugador.apodo || jugador.nombre}</strong><span>{jugador.posicion}</span></Link>)}</div></section>
+    <section className="profile-panel"><div className="profile-section-head"><div><span>Plantel</span><h2>{jugadores.length} jugadores</h2></div></div><div className="player-mini-grid">{jugadores.map((jugador) => <Link to={`/jugador/${jugador.idJugador}`} className="player-mini" key={jugador.idJugador}><div>{jugador.foto ? <img src={assetUrl(jugador.foto)} alt="" /> : jugador.numeroCamiseta}</div><strong>{jugador.apodo || jugador.nombre}</strong><span>{jugador.posicion}</span></Link>)}</div></section>
     <section className="profile-panel"><h2>Partidos</h2><div className="profile-match-list">{historial.length === 0 ? <p>Todavía no hay partidos.</p> : historial.slice().reverse().map((partido) => <Link to={`/partido/${partido.idPartido}`} key={partido.idPartido}><span>{partido.nombreEquipoLocal}</span><strong>{partido.estado === "JUGADO" || partido.estado === "FINALIZADO" ? `${partido.golesLocal} - ${partido.golesVisitante}` : "vs"}</strong><span>{partido.nombreEquipoVisitante}</span></Link>)}</div></section>
     {showEdit && <TeamFormModal torneoId={equipo.idTorneo} equipo={equipo} onClose={() => setShowEdit(false)} onSaved={setEquipo} />}
     {showRoster && <TeamRosterModal equipo={equipo} torneoId={equipo.idTorneo} canManage={hasManageAccess} onClose={() => setShowRoster(false)} />}

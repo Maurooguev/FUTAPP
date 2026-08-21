@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { API_URL, apiFetch } from "../../config/api";
 import "../TournamentFormModal/TournamentFormModal.css";
+import ImageUploadField from "../ImageUploadField/ImageUploadField";
 
 const EMPTY_TEAM = {
   nombre: "",
@@ -87,8 +88,8 @@ function TeamFormModal({ torneoId, equipo, onClose, onSaved }) {
             <label>Email de contacto<input type="email" name="emailContacto" value={form.emailContacto} onChange={updateField} maxLength="160" /></label>
             <label>Estado<select name="estado" value={form.estado} onChange={updateField}><option value="ACTIVO">Activo</option><option value="INACTIVO">Inactivo</option></select></label>
           </div>
-          <label>Escudo (URL opcional)<input name="escudo" value={form.escudo} onChange={updateField} maxLength="500" /></label>
-          <label>Foto del plantel (URL opcional)<input name="fotoPlantel" value={form.fotoPlantel} onChange={updateField} maxLength="500" /></label>
+          <ImageUploadField label="Escudo" value={form.escudo} shape="avatar" onUploaded={(escudo) => setForm((current) => ({ ...current, escudo }))} />
+          <ImageUploadField label="Foto del plantel" value={form.fotoPlantel} onUploaded={(fotoPlantel) => setForm((current) => ({ ...current, fotoPlantel }))} />
           <label>Descripción<textarea name="descripcion" value={form.descripcion} onChange={updateField} maxLength="1000" rows="4" /></label>
           {error && <p className="tournament-form-error">{error}</p>}
           <div className="tournament-form-actions">

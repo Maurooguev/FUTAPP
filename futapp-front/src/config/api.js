@@ -11,3 +11,8 @@ export function apiFetch(url, options = {}) {
   if (token) headers.set("Authorization", `Bearer ${token}`);
   return fetch(url, { ...options, headers });
 }
+
+export function assetUrl(url) {
+  if (!url) return "";
+  return url.startsWith("/uploads/") ? `${API_URL}${url}` : url;
+}
