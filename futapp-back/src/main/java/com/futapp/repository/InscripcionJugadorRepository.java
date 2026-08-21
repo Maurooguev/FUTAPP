@@ -9,6 +9,7 @@ public interface InscripcionJugadorRepository extends JpaRepository<InscripcionJ
     List<InscripcionJugador> findByInscripcionEquipoIdInscripcionOrderByNumeroCamiseta(Long idInscripcion);
     List<InscripcionJugador> findByJugadorIdJugadorOrderByFechaAltaDesc(Long idJugador);
     long countByInscripcionEquipoIdInscripcion(Long idInscripcion);
+    long countByInscripcionEquipoIdInscripcionAndEstado(Long idInscripcion, String estado);
     boolean existsByInscripcionEquipoIdInscripcionAndJugadorIdJugador(Long idInscripcion, Long idJugador);
     Optional<InscripcionJugador> findByInscripcionEquipoIdInscripcionAndJugadorIdJugador(
             Long idInscripcion, Long idJugador);

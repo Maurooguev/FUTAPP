@@ -35,11 +35,17 @@ function EquipoPerfil() {
     fetchJson(`${API_URL}/equipos/${id}`, "No se encontró el equipo")
       .then(async (team) => {
         setEquipo(team);
-        return Promise.all([
-          fetchJson(`${API_URL}/jugadores/equipo/${id}`, "No se pudo cargar el plantel"),
+        const [matches, enrollments] = await Promise.all([
           fetchJson(`${API_URL}/partidos/torneo/${team.idTorneo}`, "No se pudieron cargar los partidos"),
           fetchJson(`${API_URL}/inscripciones/equipos/${id}`, "No se pudo cargar el historial de torneos"),
         ]);
+        const currentEnrollment = enrollments.find((item) => item.idTorneo === team.idTorneo)
+          ?? enrollments.find((item) => item.estado === "ACTIVA")
+          ?? enrollments[0];
+        const roster = currentEnrollment
+          ? await fetchJson(`${API_URL}/inscripciones/${currentEnrollment.idInscripcion}/jugadores`, "No se pudo cargar el plantel")
+          : [];
+        return [roster.filter((player) => player.estado === "ACTIVA"), matches, enrollments];
       })
       .then(([players, matches, enrollments]) => {
         setJugadores(Array.isArray(players) ? players : []);

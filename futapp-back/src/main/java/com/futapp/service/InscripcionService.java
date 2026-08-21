@@ -164,7 +164,7 @@ public class InscripcionService {
                 item.getEquipo().getCodigoPublico(), item.getTorneo().getIdTorneo(),
                 item.getTorneo().getNombre(), item.getTorneo().getCodigoPublico(), item.getCategoria(),
                 item.getEstado(), item.getFechaAlta(), item.getFechaBaja(),
-                inscripcionesJugador.countByInscripcionEquipoIdInscripcion(item.getIdInscripcion())
+                inscripcionesJugador.countByInscripcionEquipoIdInscripcionAndEstado(item.getIdInscripcion(), "ACTIVA")
         );
     }
 
