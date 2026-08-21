@@ -16,6 +16,7 @@ import MisEquipos from "./pages/MisEquipos";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import Cuenta from "./pages/Cuenta";
+import Notificaciones from "./pages/Notificaciones";
 
 function App() {
   return (
@@ -34,6 +35,7 @@ function App() {
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/cuenta" element={<Cuenta />} />
+        <Route path="/notificaciones" element={<Notificaciones />} />
         <Route path="/mis-torneos" element={<MisTorneos />} />
         <Route path="/mis-equipos" element={<MisEquipos />} />
       </Route>

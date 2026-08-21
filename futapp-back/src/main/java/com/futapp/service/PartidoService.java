@@ -31,6 +31,7 @@ public class PartidoService {
     private final GolRepository golRepository;
     private final TarjetaRepository tarjetaRepository;
     private final TorneoAuthorizationService authorization;
+    private final NotificacionService notificaciones;
 
     public PartidoService(PartidoRepository partidoRepository,
                           TorneoRepository torneoRepository,
@@ -38,7 +39,8 @@ public class PartidoService {
                           EquipoRepository equipoRepository,
                           GolRepository golRepository,
                           TarjetaRepository tarjetaRepository,
-                          TorneoAuthorizationService authorization) {
+                          TorneoAuthorizationService authorization,
+                          NotificacionService notificaciones) {
         this.partidoRepository = partidoRepository;
         this.torneoRepository = torneoRepository;
         this.fechaRepository = fechaRepository;
@@ -46,6 +48,7 @@ public class PartidoService {
         this.golRepository = golRepository;
         this.tarjetaRepository = tarjetaRepository;
         this.authorization = authorization;
+        this.notificaciones = notificaciones;
     }
 
     public List<PartidoResponseDTO> listarPartidos() {
@@ -80,7 +83,9 @@ public class PartidoService {
         authorization.verificarGestion(requestDTO.getIdTorneo());
         Partido partido = new Partido();
         cargarDatosPartido(partido, requestDTO);
-        return convertirAResponseDTO(partidoRepository.save(partido));
+        partido = partidoRepository.save(partido);
+        notificaciones.avisarPartido(partido, "FINALIZADO".equalsIgnoreCase(partido.getEstado()));
+        return convertirAResponseDTO(partido);
     }
 
     @Transactional
@@ -164,7 +169,9 @@ public class PartidoService {
         authorization.verificarGestion(partido.getTorneo());
 
         cargarDatosPartido(partido, requestDTO);
-        return convertirAResponseDTO(partidoRepository.save(partido));
+        partido = partidoRepository.save(partido);
+        notificaciones.avisarPartido(partido, "FINALIZADO".equalsIgnoreCase(partido.getEstado()));
+        return convertirAResponseDTO(partido);
     }
 
     public void eliminarPartido(Long id) {
@@ -293,7 +300,9 @@ public class PartidoService {
         partido.setGolesVisitante(dto.getGolesVisitante());
         partido.setEstado("FINALIZADO");
 
-        return convertirAResponseDTO(partidoRepository.save(partido));
+        partido = partidoRepository.save(partido);
+        notificaciones.avisarPartido(partido, true);
+        return convertirAResponseDTO(partido);
     }
 
     

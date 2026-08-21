@@ -55,8 +55,10 @@
 
 .header-actions {
   display: flex;
+  align-items: center;
   gap: 12px;
 }
+.notification-bell { position: relative; display: grid; width: 29px; height: 29px; place-items: center; border: 1px solid rgba(255,255,255,.2); border-radius: 50%; font-size: 13px; }.notification-bell span { position: absolute; top: -5px; right: -7px; display: grid; min-width: 16px; height: 16px; padding: 0 3px; place-items: center; border: 2px solid #075c83; border-radius: 9px; background: #ef4444; color: #fff; font-size: 7px; font-weight: 900; }
 
 .header-actions button {
   border: none;

@@ -8,6 +8,8 @@ import java.util.Optional;
 public interface InscripcionJugadorRepository extends JpaRepository<InscripcionJugador, Long> {
     List<InscripcionJugador> findByInscripcionEquipoIdInscripcionOrderByNumeroCamiseta(Long idInscripcion);
     List<InscripcionJugador> findByJugadorIdJugadorOrderByFechaAltaDesc(Long idJugador);
+    List<InscripcionJugador> findByInscripcionEquipoEquipoIdEquipoAndInscripcionEquipoTorneoIdTorneoAndEstado(
+            Long idEquipo, Long idTorneo, String estado);
     long countByInscripcionEquipoIdInscripcion(Long idInscripcion);
     long countByInscripcionEquipoIdInscripcionAndEstado(Long idInscripcion, String estado);
     boolean existsByInscripcionEquipoIdInscripcionAndJugadorIdJugador(Long idInscripcion, Long idJugador);

@@ -7,6 +7,7 @@ import "./Header.css";
 function Header() {
   const { usuario, logout } = useAuth();
   const [pendingRequests, setPendingRequests] = useState(0);
+  const [unreadNotifications, setUnreadNotifications] = useState(0);
   const canReview = usuario?.rol === "ADMIN" || usuario?.rol === "ORGANIZADOR" || usuario?.rol === "DIRECTOR_EQUIPO";
   const loadPendingRequests = useCallback(() => {
     if (!canReview) return Promise.resolve();
@@ -18,6 +19,18 @@ function Header() {
     window.addEventListener("requests-updated", loadPendingRequests);
     return () => window.removeEventListener("requests-updated", loadPendingRequests);
   }, [loadPendingRequests]);
+
+  const loadNotifications = useCallback(() => {
+    if (!usuario) return Promise.resolve();
+    return apiFetch(`${API_URL}/notificaciones/no-leidas/count`).then((response) => response.ok ? response.json() : { cantidad: 0 }).then((data) => setUnreadNotifications(data.cantidad || 0)).catch(() => setUnreadNotifications(0));
+  }, [usuario]);
+
+  useEffect(() => {
+    loadNotifications();
+    const interval = window.setInterval(loadNotifications, 30000);
+    window.addEventListener("notifications-updated", loadNotifications);
+    return () => { window.clearInterval(interval); window.removeEventListener("notifications-updated", loadNotifications); };
+  }, [loadNotifications]);
 
   return (
     <header className="main-header">
@@ -42,7 +55,7 @@ function Header() {
 
         <div className="header-actions">
           {usuario ? (
-            <><Link to="/cuenta" className="user-pill">{usuario.nombre} · {usuario.rol}</Link><button className="header-btn-outline" onClick={logout}>Salir</button></>
+            <><Link to="/notificaciones" className="notification-bell" aria-label="Notificaciones" title="Notificaciones">🔔{unreadNotifications > 0 && <span>{unreadNotifications > 99 ? "99+" : unreadNotifications}</span>}</Link><Link to="/cuenta" className="user-pill">{usuario.nombre} · {usuario.rol}</Link><button className="header-btn-outline" onClick={logout}>Salir</button></>
           ) : (
             <><Link to="/login" className="header-link-button outline">Ingresar</Link><Link to="/register" className="header-link-button primary">Registrarse</Link></>
           )}

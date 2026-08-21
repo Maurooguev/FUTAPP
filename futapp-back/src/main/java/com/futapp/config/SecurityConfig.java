@@ -26,6 +26,7 @@ public class SecurityConfig {
                 .requestMatchers("/auth/login", "/auth/register", "/auth/password/forgot", "/auth/password/reset", "/status", "/hola").permitAll()
                 .requestMatchers("/auth/me", "/auth/logout", "/auth/password", "/torneos/mios", "/equipos/mios").authenticated()
                 .requestMatchers("/reclamos/**", "/perfil-jugador/**").authenticated()
+                .requestMatchers("/notificaciones/**").authenticated()
                 .requestMatchers(HttpMethod.POST, "/archivos/imagenes").authenticated()
                 .requestMatchers(HttpMethod.GET, "/equipos/*/permisos").authenticated()
                 .requestMatchers(HttpMethod.PUT, "/equipos/*", "/jugadores/*").authenticated()
