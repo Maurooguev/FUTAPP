@@ -39,12 +39,15 @@ public class ReclamoService {
     }
 
     @Transactional(readOnly=true) public List<ReclamoResponseDTO> pendientes() { Usuario user=actual(); return reclamos.findByEstadoOrderByFechaSolicitudAsc("PENDIENTE").stream().filter(r -> puedeRevisar(user,r)).map(this::dto).toList(); }
+    @Transactional(readOnly=true) public List<ReclamoResponseDTO> revisables() { Usuario user=actual(); return reclamos.findAllByOrderByFechaSolicitudDesc().stream().filter(r -> puedeRevisar(user,r)).map(this::dto).toList(); }
+    @Transactional(readOnly=true) public long cantidadPendientes() { return pendientes().size(); }
     @Transactional(readOnly=true) public List<ReclamoResponseDTO> mios() { return reclamos.findBySolicitanteIdUsuarioOrderByFechaSolicitudDesc(actual().getIdUsuario()).stream().map(this::dto).toList(); }
 
     public ReclamoResponseDTO resolver(Long id, boolean aprobar, String motivo) {
         Usuario user=actual(); SolicitudReclamo item=reclamos.findById(id).orElseThrow(() -> new ResourceNotFoundException("Solicitud no encontrada"));
         if (!"PENDIENTE".equals(item.getEstado())) throw new IllegalArgumentException("La solicitud ya fue resuelta");
         if (!puedeRevisar(user,item)) throw new AccessDeniedException("No tenés permiso para resolver esta solicitud");
+        if (!aprobar && normalizar(motivo) == null) throw new IllegalArgumentException("Indicá el motivo del rechazo");
         if (aprobar && "EQUIPO".equals(item.getTipo())) { EquipoAdministrador link=new EquipoAdministrador(); link.setEquipo(item.getEquipo()); link.setUsuario(item.getSolicitante()); link.setAprobadoPor(user); administradores.save(link); }
         if (aprobar && "JUGADOR".equals(item.getTipo())) { item.getJugador().setUsuario(item.getSolicitante()); jugadores.save(item.getJugador()); }
         item.setEstado(aprobar ? "APROBADA" : "RECHAZADA"); item.setRevisor(user); item.setMotivoResolucion(normalizar(motivo)); item.setFechaResolucion(LocalDateTime.now()); return dto(reclamos.save(item));
@@ -55,5 +58,15 @@ public class ReclamoService {
     private Usuario actual(){Object p=SecurityContextHolder.getContext().getAuthentication().getPrincipal();if(p instanceof Usuario u)return u;throw new AccessDeniedException("Debés iniciar sesión");}
     private void exigirRol(Usuario u,String rol){if(!rol.equals(u.getRol())&&!"ADMIN".equals(u.getRol()))throw new AccessDeniedException("Tu cuenta no puede realizar este reclamo");}
     private String normalizar(String v){return v==null||v.isBlank()?null:v.trim();}
-    private ReclamoResponseDTO dto(SolicitudReclamo r){return new ReclamoResponseDTO(r.getIdSolicitud(),r.getTipo(),r.getEstado(),r.getSolicitante().getIdUsuario(),r.getSolicitante().getNombre(),r.getEquipo()==null?null:r.getEquipo().getIdEquipo(),r.getEquipo()==null?null:r.getEquipo().getNombre(),r.getJugador()==null?null:r.getJugador().getIdJugador(),r.getJugador()==null?null:r.getJugador().getNombre()+" "+r.getJugador().getApellido(),r.getTorneo().getIdTorneo(),r.getTorneo().getNombre(),r.getMensaje(),r.getMotivoResolucion(),r.getFechaSolicitud(),r.getFechaResolucion());}
+    private ReclamoResponseDTO dto(SolicitudReclamo r){
+        Equipo equipo = r.getEquipo() != null ? r.getEquipo() : r.getJugador().getEquipo();
+        String foto = r.getJugador() == null ? equipo.getEscudo() : r.getJugador().getFoto();
+        return new ReclamoResponseDTO(r.getIdSolicitud(),r.getTipo(),r.getEstado(),
+                r.getSolicitante().getIdUsuario(),r.getSolicitante().getNombre(),r.getSolicitante().getEmail(),
+                r.getSolicitante().getRol(),foto,equipo.getIdEquipo(),equipo.getNombre(),equipo.getEscudo(),
+                r.getJugador()==null?null:r.getJugador().getIdJugador(),
+                r.getJugador()==null?null:r.getJugador().getNombre()+" "+r.getJugador().getApellido(),
+                r.getTorneo().getIdTorneo(),r.getTorneo().getNombre(),r.getMensaje(),r.getMotivoResolucion(),
+                r.getRevisor()==null?null:r.getRevisor().getNombre(),r.getFechaSolicitud(),r.getFechaResolucion());
+    }
 }

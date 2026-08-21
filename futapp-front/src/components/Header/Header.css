@@ -50,6 +50,8 @@
 .header-nav a:hover {
   color: white;
 }
+.requests-nav-link { display: inline-flex; align-items: center; gap: 5px; }
+.requests-nav-link span { display: grid; min-width: 17px; height: 17px; padding: 0 4px; place-items: center; border-radius: 9px; background: #ef4444; color: #fff; font-size: 8px; font-weight: 900; }
 
 .header-actions {
   display: flex;

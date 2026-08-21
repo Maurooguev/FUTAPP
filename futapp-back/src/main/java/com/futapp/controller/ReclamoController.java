@@ -6,6 +6,8 @@ public class ReclamoController {
  @PostMapping("/equipos/{id}") public ReclamoResponseDTO equipo(@PathVariable Long id,@RequestBody ReclamoRequestDTO r){return service.reclamarEquipo(id,r);}
  @PostMapping("/jugadores/{id}") public ReclamoResponseDTO jugador(@PathVariable Long id,@RequestBody ReclamoRequestDTO r){return service.reclamarJugador(id,r);}
  @GetMapping("/pendientes") public List<ReclamoResponseDTO> pendientes(){return service.pendientes();}
+ @GetMapping("/revisables") public List<ReclamoResponseDTO> revisables(){return service.revisables();}
+ @GetMapping("/pendientes/count") public java.util.Map<String,Long> cantidadPendientes(){return java.util.Map.of("cantidad",service.cantidadPendientes());}
  @GetMapping("/mios") public List<ReclamoResponseDTO> mios(){return service.mios();}
  @PutMapping("/{id}/aprobar") public ReclamoResponseDTO aprobar(@PathVariable Long id,@RequestBody(required=false) java.util.Map<String,String> body){return service.resolver(id,true,body==null?null:body.get("motivo"));}
  @PutMapping("/{id}/rechazar") public ReclamoResponseDTO rechazar(@PathVariable Long id,@RequestBody(required=false) java.util.Map<String,String> body){return service.resolver(id,false,body==null?null:body.get("motivo"));}
