@@ -1,6 +1,7 @@
 package com.futapp.service;
 
 import com.futapp.model.Equipo;
+import com.futapp.model.InscripcionEquipo;
 import com.futapp.model.Usuario;
 import com.futapp.repository.EquipoAdministradorRepository;
 import com.futapp.repository.InscripcionEquipoRepository;
@@ -25,10 +26,20 @@ public class EquipoAuthorizationService {
         if ("ADMIN".equals(usuario.getRol())) return true;
         if (administradores.existsByEquipoIdEquipoAndUsuarioIdUsuarioAndEstado(
                 equipo.getIdEquipo(), usuario.getIdUsuario(), "ACTIVO")) return true;
-        if (!"ORGANIZADOR".equals(usuario.getRol())
-                || administradores.existsByEquipoIdEquipoAndEstado(equipo.getIdEquipo(), "ACTIVO")) return false;
+        if (administradores.existsByEquipoIdEquipoAndEstado(equipo.getIdEquipo(), "ACTIVO")) return false;
         return inscripciones.existsByEquipoIdEquipoAndTorneoPropietarioIdUsuarioAndEstado(
                 equipo.getIdEquipo(), usuario.getIdUsuario(), "ACTIVA");
+    }
+
+    public void verificarGestionPlantel(InscripcionEquipo inscripcion) {
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (!(principal instanceof Usuario usuario)) throw new AccessDeniedException("Debés iniciar sesión");
+        if ("ADMIN".equals(usuario.getRol())
+                || (inscripcion.getTorneo().getPropietario() != null
+                    && inscripcion.getTorneo().getPropietario().getIdUsuario().equals(usuario.getIdUsuario()))
+                || administradores.existsByEquipoIdEquipoAndUsuarioIdUsuarioAndEstado(
+                        inscripcion.getEquipo().getIdEquipo(), usuario.getIdUsuario(), "ACTIVO")) return;
+        throw new AccessDeniedException("No tenés permiso para gestionar este plantel");
     }
 
     public void verificarGestion(Equipo equipo) {

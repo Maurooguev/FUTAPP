@@ -92,7 +92,7 @@ public class InscripcionService {
                                                            InscripcionJugadorRequestDTO request) {
         var inscripcionEquipo = inscripcionesEquipo.findById(idInscripcion)
                 .orElseThrow(() -> new ResourceNotFoundException("Inscripción no encontrada con id: " + idInscripcion));
-        equipoAuthorization.verificarGestion(inscripcionEquipo.getEquipo());
+        equipoAuthorization.verificarGestionPlantel(inscripcionEquipo);
         var jugador = jugadores.findById(request.idJugador())
                 .orElseThrow(() -> new ResourceNotFoundException("Jugador no encontrado con id: " + request.idJugador()));
         if (inscripcionesJugador.existsByInscripcionEquipoIdInscripcionAndJugadorIdJugador(idInscripcion, request.idJugador())) {
@@ -113,7 +113,7 @@ public class InscripcionService {
     @Transactional
     public InscripcionJugadorResponseDTO actualizarJugador(Long id, ActualizacionInscripcionJugadorDTO request) {
         InscripcionJugador inscripcion = obtenerInscripcionJugador(id);
-        equipoAuthorization.verificarGestion(inscripcion.getInscripcionEquipo().getEquipo());
+        equipoAuthorization.verificarGestionPlantel(inscripcion.getInscripcionEquipo());
         validarDorsalDisponible(inscripcion, request.numeroCamiseta());
         inscripcion.setNumeroCamiseta(request.numeroCamiseta());
         inscripcion.setPosicion(normalizar(request.posicion()));
@@ -123,7 +123,7 @@ public class InscripcionService {
     @Transactional
     public InscripcionJugadorResponseDTO darDeBaja(Long id) {
         InscripcionJugador inscripcion = obtenerInscripcionJugador(id);
-        equipoAuthorization.verificarGestion(inscripcion.getInscripcionEquipo().getEquipo());
+        equipoAuthorization.verificarGestionPlantel(inscripcion.getInscripcionEquipo());
         if ("INACTIVA".equals(inscripcion.getEstado())) throw new IllegalArgumentException("El jugador ya está dado de baja en este plantel");
         inscripcion.setEstado("INACTIVA");
         inscripcion.setFechaBaja(LocalDate.now());
@@ -133,7 +133,7 @@ public class InscripcionService {
     @Transactional
     public InscripcionJugadorResponseDTO reactivarJugador(Long id, ActualizacionInscripcionJugadorDTO request) {
         InscripcionJugador inscripcion = obtenerInscripcionJugador(id);
-        equipoAuthorization.verificarGestion(inscripcion.getInscripcionEquipo().getEquipo());
+        equipoAuthorization.verificarGestionPlantel(inscripcion.getInscripcionEquipo());
         validarDorsalDisponible(inscripcion, request.numeroCamiseta());
         inscripcion.setNumeroCamiseta(request.numeroCamiseta());
         inscripcion.setPosicion(normalizar(request.posicion()));
