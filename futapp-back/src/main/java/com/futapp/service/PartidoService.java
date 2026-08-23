@@ -122,7 +122,10 @@ public class PartidoService {
                 .max(Integer::compareTo)
                 .orElse(0) + 1;
 
-        for (int ronda = 0; ronda < cantidadFechas; ronda++) {
+        int totalFechas = cantidadFechas * (Boolean.TRUE.equals(torneo.getIdaVuelta()) ? 2 : 1);
+        for (int ronda = 0; ronda < totalFechas; ronda++) {
+            int rondaBase = ronda % cantidadFechas;
+            boolean vuelta = ronda >= cantidadFechas;
             Fecha fecha;
             if (ronda < fechasExistentes.size()) {
                 fecha = fechasExistentes.get(ronda);
@@ -142,7 +145,8 @@ public class PartidoService {
                     continue;
                 }
 
-                boolean invertirLocalia = (ronda + indice) % 2 != 0;
+                boolean invertirLocalia = (rondaBase + indice) % 2 != 0;
+                if (vuelta) invertirLocalia = !invertirLocalia;
                 Partido partido = new Partido();
                 partido.setTorneo(torneo);
                 partido.setFecha(fecha);

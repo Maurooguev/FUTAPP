@@ -12,13 +12,20 @@ public class TorneoResponseDTO {
     private String codigoPublico;
     private Long idPropietario;
     private String nombrePropietario;
+    private Boolean idaVuelta;
+    private Integer puntosVictoria;
+    private Integer puntosEmpate;
+    private Integer puntosDerrota;
+    private String criterioDesempate;
 
     public TorneoResponseDTO() {
     }
 
     public TorneoResponseDTO(Long idTorneo, String nombre, String descripcion, String ubicacion,
                              String estado, String formato, Integer cantidadEquipos,
-                             String codigoPublico, Long idPropietario, String nombrePropietario) {
+                             String codigoPublico, Long idPropietario, String nombrePropietario,
+                             Boolean idaVuelta, Integer puntosVictoria, Integer puntosEmpate,
+                             Integer puntosDerrota, String criterioDesempate) {
         this.idTorneo = idTorneo;
         this.nombre = nombre;
         this.descripcion = descripcion;
@@ -29,6 +36,8 @@ public class TorneoResponseDTO {
         this.codigoPublico = codigoPublico;
         this.idPropietario = idPropietario;
         this.nombrePropietario = nombrePropietario;
+        this.idaVuelta = idaVuelta; this.puntosVictoria = puntosVictoria; this.puntosEmpate = puntosEmpate;
+        this.puntosDerrota = puntosDerrota; this.criterioDesempate = criterioDesempate;
     }
 
     public Long getIdTorneo() {
@@ -92,4 +101,9 @@ public class TorneoResponseDTO {
     public void setIdPropietario(Long idPropietario) { this.idPropietario = idPropietario; }
     public String getNombrePropietario() { return nombrePropietario; }
     public void setNombrePropietario(String nombrePropietario) { this.nombrePropietario = nombrePropietario; }
+    public Boolean getIdaVuelta() { return idaVuelta; } public void setIdaVuelta(Boolean value) { this.idaVuelta = value; }
+    public Integer getPuntosVictoria() { return puntosVictoria; } public void setPuntosVictoria(Integer value) { this.puntosVictoria = value; }
+    public Integer getPuntosEmpate() { return puntosEmpate; } public void setPuntosEmpate(Integer value) { this.puntosEmpate = value; }
+    public Integer getPuntosDerrota() { return puntosDerrota; } public void setPuntosDerrota(Integer value) { this.puntosDerrota = value; }
+    public String getCriterioDesempate() { return criterioDesempate; } public void setCriterioDesempate(String value) { this.criterioDesempate = value; }
 }

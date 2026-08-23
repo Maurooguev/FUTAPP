@@ -30,6 +30,11 @@ public class TorneoRequestDTO {
     @Min(value = 2, message = "El torneo debe tener al menos 2 equipos")
     @Max(value = 100, message = "El torneo no puede superar los 100 equipos")
     private Integer cantidadEquipos;
+    private Boolean idaVuelta = false;
+    @Min(0) @Max(10) private Integer puntosVictoria = 3;
+    @Min(0) @Max(10) private Integer puntosEmpate = 1;
+    @Min(0) @Max(10) private Integer puntosDerrota = 0;
+    private String criterioDesempate = "DIFERENCIA_GOLES";
 
     public TorneoRequestDTO() {
     }
@@ -81,4 +86,9 @@ public class TorneoRequestDTO {
     public void setCantidadEquipos(Integer cantidadEquipos) {
         this.cantidadEquipos = cantidadEquipos;
     }
+    public Boolean getIdaVuelta() { return idaVuelta; } public void setIdaVuelta(Boolean value) { this.idaVuelta = value; }
+    public Integer getPuntosVictoria() { return puntosVictoria; } public void setPuntosVictoria(Integer value) { this.puntosVictoria = value; }
+    public Integer getPuntosEmpate() { return puntosEmpate; } public void setPuntosEmpate(Integer value) { this.puntosEmpate = value; }
+    public Integer getPuntosDerrota() { return puntosDerrota; } public void setPuntosDerrota(Integer value) { this.puntosDerrota = value; }
+    public String getCriterioDesempate() { return criterioDesempate; } public void setCriterioDesempate(String value) { this.criterioDesempate = value; }
 }

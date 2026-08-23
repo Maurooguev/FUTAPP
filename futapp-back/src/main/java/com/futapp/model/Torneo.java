@@ -16,6 +16,11 @@ public class Torneo {
     private String ubicacion;
     private String estado;
     private String formato;
+    @Column(name = "ida_vuelta", nullable = false) private Boolean idaVuelta = false;
+    @Column(name = "puntos_victoria", nullable = false) private Integer puntosVictoria = 3;
+    @Column(name = "puntos_empate", nullable = false) private Integer puntosEmpate = 1;
+    @Column(name = "puntos_derrota", nullable = false) private Integer puntosDerrota = 0;
+    @Column(name = "criterio_desempate", nullable = false) private String criterioDesempate = "DIFERENCIA_GOLES";
 
     @Column(name = "cantidad_equipos")
     private Integer cantidadEquipos;
@@ -77,6 +82,11 @@ public class Torneo {
     public void setFormato(String formato) {
         this.formato = formato;
     }
+    public Boolean getIdaVuelta() { return idaVuelta; } public void setIdaVuelta(Boolean idaVuelta) { this.idaVuelta = idaVuelta; }
+    public Integer getPuntosVictoria() { return puntosVictoria; } public void setPuntosVictoria(Integer value) { this.puntosVictoria = value; }
+    public Integer getPuntosEmpate() { return puntosEmpate; } public void setPuntosEmpate(Integer value) { this.puntosEmpate = value; }
+    public Integer getPuntosDerrota() { return puntosDerrota; } public void setPuntosDerrota(Integer value) { this.puntosDerrota = value; }
+    public String getCriterioDesempate() { return criterioDesempate; } public void setCriterioDesempate(String value) { this.criterioDesempate = value; }
 
     public Integer getCantidadEquipos() {
         return cantidadEquipos;

@@ -2,183 +2,55 @@ import { useEffect, useState } from "react";
 import { API_URL, apiFetch } from "../../config/api";
 import "./TournamentFormModal.css";
 
-const EMPTY_FORM = {
-  nombre: "",
-  descripcion: "",
-  ubicacion: "",
-  estado: "ACTIVO",
-  formato: "Liga",
-  cantidadEquipos: 2,
-};
+const EMPTY_FORM = { nombre: "", descripcion: "", ubicacion: "", estado: "BORRADOR", formato: "Liga", cantidadEquipos: 8, idaVuelta: false, puntosVictoria: 3, puntosEmpate: 1, puntosDerrota: 0, criterioDesempate: "DIFERENCIA_GOLES" };
+const STEPS = ["Datos", "Formato", "Reglas"];
 
 function TournamentFormModal({ torneo, onClose, onSaved }) {
   const [form, setForm] = useState(EMPTY_FORM);
+  const [step, setStep] = useState(1);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const isEditing = Boolean(torneo?.idTorneo);
-
+  const teamCount = Math.max(2, Number(form.cantidadEquipos) || 2);
+  const estimatedRounds = (teamCount % 2 === 0 ? teamCount - 1 : teamCount) * (form.idaVuelta ? 2 : 1);
   useEffect(() => {
-    if (torneo) {
-      setForm({
-        nombre: torneo.nombre ?? "",
-        descripcion: torneo.descripcion ?? "",
-        ubicacion: torneo.ubicacion ?? "",
-        estado: torneo.estado ?? "ACTIVO",
-        formato: torneo.formato ?? "Liga",
-        cantidadEquipos: torneo.cantidadEquipos ?? 2,
-      });
-    } else {
-      setForm(EMPTY_FORM);
-    }
+    setForm(torneo ? { ...EMPTY_FORM, ...torneo, idaVuelta: Boolean(torneo.idaVuelta) } : EMPTY_FORM);
+    setStep(1);
   }, [torneo]);
-
-  const updateField = (event) => {
-    const { name, value } = event.target;
-    setForm((current) => ({ ...current, [name]: value }));
+  const updateField = ({ target: { name, value, type, checked } }) => setForm((current) => ({ ...current, [name]: type === "checkbox" ? checked : value }));
+  const next = () => {
+    setError("");
+    if (step === 1 && (!form.nombre.trim() || !form.ubicacion.trim() || !form.descripcion.trim())) return setError("Completá el nombre, la ubicación y la descripción.");
+    if (step === 2 && Number(form.cantidadEquipos) < 2) return setError("El torneo necesita al menos 2 equipos.");
+    setStep((current) => Math.min(3, current + 1));
   };
-
   const handleSubmit = async (event) => {
     event.preventDefault();
-    setSaving(true);
-    setError("");
-
-    const url = isEditing
-      ? `${API_URL}/torneos/${torneo.idTorneo}`
-      : `${API_URL}/torneos`;
-
+    if (step < 3) return next();
+    setSaving(true); setError("");
     try {
-      const response = await apiFetch(url, {
-        method: isEditing ? "PUT" : "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...form,
-          cantidadEquipos: Number(form.cantidadEquipos),
-        }),
+      const response = await apiFetch(isEditing ? `${API_URL}/torneos/${torneo.idTorneo}` : `${API_URL}/torneos`, {
+        method: isEditing ? "PUT" : "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...form, cantidadEquipos: Number(form.cantidadEquipos), puntosVictoria: Number(form.puntosVictoria), puntosEmpate: Number(form.puntosEmpate), puntosDerrota: Number(form.puntosDerrota) }),
       });
-
-      if (!response.ok) {
-        const payload = await response.json().catch(() => null);
-        throw new Error(payload?.message || "No se pudo guardar el torneo");
-      }
-
-      const savedTournament = await response.json();
-      onSaved(savedTournament);
-      onClose();
-    } catch (requestError) {
-      setError(requestError.message);
-    } finally {
-      setSaving(false);
-    }
+      const saved = await response.json().catch(() => null);
+      if (!response.ok) throw new Error(saved?.message || "No se pudo guardar el torneo");
+      onSaved(saved); onClose();
+    } catch (requestError) { setError(requestError.message); }
+    finally { setSaving(false); }
   };
-
-  return (
-    <div className="tournament-form-backdrop" onMouseDown={onClose}>
-      <section
-        className="tournament-form-modal"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="tournament-form-title"
-        onMouseDown={(event) => event.stopPropagation()}
-      >
-        <button
-          type="button"
-          className="tournament-form-close"
-          aria-label="Cerrar"
-          onClick={onClose}
-        >
-          ×
-        </button>
-
-        <span className="tournament-form-chip">
-          {isEditing ? "Administración" : "Nuevo torneo"}
-        </span>
-        <h2 id="tournament-form-title">
-          {isEditing ? "Editar torneo" : "Crear torneo"}
-        </h2>
-        <p>Completá los datos generales de la competencia.</p>
-
-        <form onSubmit={handleSubmit}>
-          <label>
-            Nombre
-            <input
-              name="nombre"
-              value={form.nombre}
-              onChange={updateField}
-              maxLength="120"
-              required
-            />
-          </label>
-
-          <label>
-            Descripción
-            <textarea
-              name="descripcion"
-              value={form.descripcion}
-              onChange={updateField}
-              maxLength="500"
-              rows="3"
-              required
-            />
-          </label>
-
-          <div className="tournament-form-grid">
-            <label>
-              Ubicación
-              <input
-                name="ubicacion"
-                value={form.ubicacion}
-                onChange={updateField}
-                maxLength="120"
-                required
-              />
-            </label>
-
-            <label>
-              Cantidad de equipos
-              <input
-                type="number"
-                name="cantidadEquipos"
-                value={form.cantidadEquipos}
-                onChange={updateField}
-                min="2"
-                max="100"
-                required
-              />
-            </label>
-
-            <label>
-              Formato
-              <select name="formato" value={form.formato} onChange={updateField}>
-                <option value="Liga">Liga</option>
-                <option value="Eliminación directa">Eliminación directa</option>
-                <option value="Grupos y eliminación">Grupos y eliminación</option>
-              </select>
-            </label>
-
-            <label>
-              Estado
-              <select name="estado" value={form.estado} onChange={updateField}>
-                <option value="ACTIVO">Activo</option>
-                <option value="BORRADOR">Borrador</option>
-                <option value="FINALIZADO">Finalizado</option>
-              </select>
-            </label>
-          </div>
-
-          {error && <p className="tournament-form-error">{error}</p>}
-
-          <div className="tournament-form-actions">
-            <button type="button" className="tournament-form-cancel" onClick={onClose}>
-              Cancelar
-            </button>
-            <button type="submit" className="tournament-form-save" disabled={saving}>
-              {saving ? "Guardando..." : isEditing ? "Guardar cambios" : "Crear torneo"}
-            </button>
-          </div>
-        </form>
-      </section>
-    </div>
-  );
+  return <div className="tournament-form-backdrop" onMouseDown={onClose}><section className="tournament-form-modal tournament-wizard" role="dialog" aria-modal="true" onMouseDown={(event) => event.stopPropagation()}>
+    <button type="button" className="tournament-form-close" aria-label="Cerrar" onClick={onClose}>×</button>
+    <span className="tournament-form-chip">{isEditing ? "Configuración del torneo" : "Nuevo torneo"}</span>
+    <h2>{isEditing ? "Editar torneo" : "Creá tu torneo"}</h2>
+    <div className="wizard-progress">{STEPS.map((label, index) => <button type="button" key={label} className={step === index + 1 ? "active" : step > index + 1 ? "done" : ""} onClick={() => index + 1 < step && setStep(index + 1)}><span>{step > index + 1 ? "✓" : index + 1}</span>{label}</button>)}</div>
+    <form onSubmit={handleSubmit}>
+      {step === 1 && <div className="wizard-step"><div><h3>Información básica</h3><p>Lo que verán los equipos cuando encuentren tu torneo.</p></div><label>Nombre del torneo<input autoFocus name="nombre" value={form.nombre} onChange={updateField} maxLength="120" placeholder="Ej. Liga Apertura 2026" required /></label><div className="tournament-form-grid"><label>Ciudad o barrio<input name="ubicacion" value={form.ubicacion} onChange={updateField} maxLength="120" placeholder="Ej. Merlo" required /></label>{isEditing && <label>Estado<select name="estado" value={form.estado} onChange={updateField}><option value="BORRADOR">Borrador</option><option value="ACTIVO">Activo</option><option value="FINALIZADO">Finalizado</option></select></label>}</div><label>Descripción<textarea name="descripcion" value={form.descripcion} onChange={updateField} maxLength="500" rows="3" placeholder="Contá brevemente de qué se trata la competencia" required /></label></div>}
+      {step === 2 && <div className="wizard-step"><div><h3>¿Cómo se va a jugar?</h3><p>Elegí el formato. Podrás ajustar el fixture antes de publicarlo.</p></div><div className="format-options"><button type="button" className="format-card selected"><span>🏆</span><strong>Liga</strong><small>Todos contra todos</small><em>Disponible</em></button><button type="button" className="format-card" disabled><span>⚡</span><strong>Eliminación directa</strong><small>Llaves y rondas</small><em>Próximamente</em></button><button type="button" className="format-card" disabled><span>🌐</span><strong>Grupos + eliminación</strong><small>Fase de grupos y llaves</small><em>Próximamente</em></button></div><div className="tournament-form-grid"><label>Cantidad de equipos<input type="number" name="cantidadEquipos" value={form.cantidadEquipos} onChange={updateField} min="2" max="100" required /></label><label className="wizard-toggle"><input type="checkbox" name="idaVuelta" checked={form.idaVuelta} onChange={updateField} /><span><strong>Partidos de ida y vuelta</strong><small>Cada equipo juega dos veces contra cada rival.</small></span></label></div><div className="fixture-estimate"><strong>{estimatedRounds} jornadas estimadas</strong><span>El fixture se genera después de cargar los equipos.</span></div></div>}
+      {step === 3 && <div className="wizard-step"><div><h3>Reglas de la tabla</h3><p>Usamos la configuración más común. Cambiala solo si tu torneo lo necesita.</p></div><div className="points-grid"><label>Victoria<input type="number" min="0" max="10" name="puntosVictoria" value={form.puntosVictoria} onChange={updateField} /></label><label>Empate<input type="number" min="0" max="10" name="puntosEmpate" value={form.puntosEmpate} onChange={updateField} /></label><label>Derrota<input type="number" min="0" max="10" name="puntosDerrota" value={form.puntosDerrota} onChange={updateField} /></label></div><label>Primer criterio de desempate<select name="criterioDesempate" value={form.criterioDesempate} onChange={updateField}><option value="DIFERENCIA_GOLES">Diferencia de goles</option><option value="GOLES_FAVOR">Goles a favor</option></select></label><div className="wizard-summary"><div><span>Torneo</span><strong>{form.nombre || "Sin nombre"}</strong></div><div><span>Formato</span><strong>Liga · {form.idaVuelta ? "ida y vuelta" : "una rueda"}</strong></div><div><span>Equipos</span><strong>{form.cantidadEquipos}</strong></div><div><span>Puntos</span><strong>{form.puntosVictoria} / {form.puntosEmpate} / {form.puntosDerrota}</strong></div></div>{!isEditing && <p className="wizard-draft-note">Se creará como borrador. Podrás cargar los equipos y revisar el fixture antes de activarlo.</p>}</div>}
+      {error && <p className="tournament-form-error">{error}</p>}
+      <div className="tournament-form-actions"><button type="button" className="tournament-form-cancel" onClick={step === 1 ? onClose : () => { setError(""); setStep((current) => current - 1); }}>{step === 1 ? "Cancelar" : "Atrás"}</button><button type="submit" className="tournament-form-save" disabled={saving}>{saving ? "Guardando…" : step < 3 ? "Continuar" : isEditing ? "Guardar cambios" : "Crear torneo"}</button></div>
+    </form>
+  </section></div>;
 }
-
 export default TournamentFormModal;

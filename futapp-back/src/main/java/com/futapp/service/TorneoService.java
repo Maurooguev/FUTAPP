@@ -54,6 +54,7 @@ public class TorneoService {
         torneo.setEstado(requestDTO.getEstado());
         torneo.setFormato(requestDTO.getFormato());
         torneo.setCantidadEquipos(requestDTO.getCantidadEquipos());
+        cargarReglas(torneo, requestDTO);
         torneo.setCodigoPublico(generarCodigo());
         torneo.setPropietario(propietario);
 
@@ -72,6 +73,7 @@ public class TorneoService {
         torneo.setEstado(requestDTO.getEstado());
         torneo.setFormato(requestDTO.getFormato());
         torneo.setCantidadEquipos(requestDTO.getCantidadEquipos());
+        cargarReglas(torneo, requestDTO);
 
         Torneo torneoActualizado = torneoRepository.save(torneo);
         return convertirAResponseDTO(torneoActualizado);
@@ -99,8 +101,25 @@ public class TorneoService {
                 torneo.getCantidadEquipos(),
                 torneo.getCodigoPublico(),
                 propietario != null ? propietario.getIdUsuario() : null,
-                propietario != null ? propietario.getNombre() : null
+                propietario != null ? propietario.getNombre() : null,
+                torneo.getIdaVuelta(), torneo.getPuntosVictoria(), torneo.getPuntosEmpate(),
+                torneo.getPuntosDerrota(), torneo.getCriterioDesempate()
         );
+    }
+
+    private void cargarReglas(Torneo torneo, TorneoRequestDTO request) {
+        String formato = request.getFormato().trim().toUpperCase();
+        if (!java.util.Set.of("LIGA", "ELIMINACIÓN DIRECTA", "GRUPOS Y ELIMINACIÓN").contains(formato)) {
+            throw new IllegalArgumentException("El formato seleccionado no es válido");
+        }
+        torneo.setFormato(formato.equals("LIGA") ? "Liga" : formato.equals("ELIMINACIÓN DIRECTA") ? "Eliminación directa" : "Grupos y eliminación");
+        torneo.setIdaVuelta(Boolean.TRUE.equals(request.getIdaVuelta()) && formato.equals("LIGA"));
+        torneo.setPuntosVictoria(request.getPuntosVictoria() == null ? 3 : request.getPuntosVictoria());
+        torneo.setPuntosEmpate(request.getPuntosEmpate() == null ? 1 : request.getPuntosEmpate());
+        torneo.setPuntosDerrota(request.getPuntosDerrota() == null ? 0 : request.getPuntosDerrota());
+        String criterio = request.getCriterioDesempate() == null ? "DIFERENCIA_GOLES" : request.getCriterioDesempate().trim().toUpperCase();
+        if (!java.util.Set.of("DIFERENCIA_GOLES", "GOLES_FAVOR").contains(criterio)) throw new IllegalArgumentException("El criterio de desempate no es válido");
+        torneo.setCriterioDesempate(criterio);
     }
 
     private String generarCodigo() {
