@@ -39,6 +39,10 @@ public class Equipo {
     private String estado;
 
     @ManyToOne
+    @JoinColumn(name = "id_creador")
+    private Usuario creador;
+
+    @ManyToOne
     @JoinColumn(name = "id_torneo", nullable = false)
     private Torneo torneo;
 
@@ -124,6 +128,8 @@ public class Equipo {
     public void setEstado(String estado) {
         this.estado = estado;
     }
+    public Usuario getCreador() { return creador; }
+    public void setCreador(Usuario creador) { this.creador = creador; }
 
     public Torneo getTorneo() {
         return torneo;

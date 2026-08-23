@@ -34,6 +34,8 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/equipos/*/permisos").authenticated()
                 .requestMatchers(HttpMethod.PUT, "/equipos/*", "/jugadores/*").authenticated()
                 .requestMatchers(HttpMethod.POST, "/jugadores", "/inscripciones/*/jugadores").authenticated()
+                .requestMatchers(HttpMethod.POST, "/equipos", "/inscripciones/equipos").authenticated()
+                .requestMatchers(HttpMethod.GET, "/equipos/creados").authenticated()
                 .requestMatchers(HttpMethod.PUT, "/inscripciones/jugadores/**").authenticated()
                 .requestMatchers(HttpMethod.DELETE, "/jugadores/*").authenticated()
                 .requestMatchers(HttpMethod.GET, "/**").permitAll()

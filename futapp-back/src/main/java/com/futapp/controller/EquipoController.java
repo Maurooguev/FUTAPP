@@ -29,6 +29,16 @@ public class EquipoController {
         return equipoService.listarMisEquipos();
     }
 
+    @GetMapping("/creados")
+    public List<EquipoResponseDTO> listarEquiposCreados() {
+        return equipoService.listarEquiposCreados();
+    }
+
+    @GetMapping("/codigo/{codigo}")
+    public EquipoResponseDTO buscarPorCodigo(@PathVariable String codigo) {
+        return equipoService.buscarPorCodigo(codigo);
+    }
+
     @GetMapping("/{id}")
     public EquipoResponseDTO obtenerEquipo(@PathVariable Long id) {
         return equipoService.obtenerEquipoPorId(id);

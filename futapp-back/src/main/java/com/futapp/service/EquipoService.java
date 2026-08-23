@@ -75,6 +75,17 @@ public class EquipoService {
                 .stream().map(item -> convertirAResponseDTO(item.getEquipo())).toList();
     }
 
+    public List<EquipoResponseDTO> listarEquiposCreados() {
+        Usuario usuario = usuarioActual();
+        return equipoRepository.findByCreadorIdUsuarioOrderByNombre(usuario.getIdUsuario())
+                .stream().map(this::convertirAResponseDTO).toList();
+    }
+
+    public EquipoResponseDTO buscarPorCodigo(String codigo) {
+        return convertirAResponseDTO(equipoRepository.findByCodigoPublicoIgnoreCase(codigo.trim())
+                .orElseThrow(() -> new ResourceNotFoundException("No encontramos un equipo con ese código")));
+    }
+
     public boolean puedeGestionar(Long id) {
         Equipo equipo = equipoRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Equipo no encontrado con id: " + id));
@@ -105,6 +116,7 @@ public class EquipoService {
         equipo.setTelefonoContacto(requestDTO.getTelefonoContacto());
         equipo.setEstado(requestDTO.getEstado());
         equipo.setTorneo(torneo);
+        equipo.setCreador(usuarioActual());
 
         Equipo equipoGuardado = equipoRepository.save(equipo);
         crearInscripcionSiFalta(equipoGuardado, torneo);

@@ -1,33 +1,57 @@
-import { useEffect, useState } from "react";
-import { API_URL, apiFetch } from "../../config/api";
+import { useEffect, useMemo, useState } from "react";
+import { API_URL, apiFetch, assetUrl } from "../../config/api";
 import "../TournamentFormModal/TournamentFormModal.css";
 
 function ExistingTeamEnrollmentModal({ torneoId, currentTeams, onClose, onSaved }) {
+  const [mode, setMode] = useState("MINE");
   const [teams, setTeams] = useState([]);
-  const [teamId, setTeamId] = useState("");
+  const [selected, setSelected] = useState(null);
+  const [code, setCode] = useState("");
   const [category, setCategory] = useState("");
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
+  const currentIds = useMemo(() => new Set(currentTeams.map((team) => team.idEquipo)), [currentTeams]);
 
   useEffect(() => {
-    fetch(`${API_URL}/equipos`).then((res) => res.json()).then((items) => {
-      const currentIds = new Set(currentTeams.map((team) => team.idEquipo));
-      setTeams(Array.isArray(items) ? items.filter((team) => !currentIds.has(team.idEquipo)) : []);
-    }).catch(() => setError("No se pudieron cargar los clubes"));
-  }, [currentTeams]);
+    apiFetch(`${API_URL}/equipos/creados`).then(async (response) => {
+      const data = await response.json().catch(() => []);
+      if (!response.ok) throw new Error(data?.message || "No se pudieron cargar tus equipos");
+      setTeams(data.filter((team) => !currentIds.has(team.idEquipo)));
+    }).catch((requestError) => setError(requestError.message));
+  }, [currentIds]);
 
-  const submit = async (event) => {
-    event.preventDefault(); setSaving(true); setError("");
-    try {
-      const response = await apiFetch(`${API_URL}/inscripciones/equipos`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ idEquipo: Number(teamId), idTorneo: Number(torneoId), categoria: category }) });
-      const payload = await response.json().catch(() => null);
-      if (!response.ok) throw new Error(payload?.message || "No se pudo inscribir el club");
-      const teamResponse = await fetch(`${API_URL}/equipos/${teamId}`);
-      onSaved(await teamResponse.json()); onClose();
-    } catch (requestError) { setError(requestError.message); } finally { setSaving(false); }
+  const searchByCode = async () => {
+    setError(""); setSelected(null);
+    if (!code.trim()) return setError("Ingresá el código del equipo.");
+    const response = await fetch(`${API_URL}/equipos/codigo/${encodeURIComponent(code.trim())}`);
+    const data = await response.json().catch(() => null);
+    if (!response.ok) return setError(data?.message || "No encontramos ese equipo.");
+    if (currentIds.has(data.idEquipo)) return setError("Ese equipo ya está inscripto en este torneo.");
+    setSelected(data);
   };
 
-  return <div className="tournament-form-backdrop" onMouseDown={onClose}><section className="tournament-form-modal" onMouseDown={(e) => e.stopPropagation()}><button type="button" className="tournament-form-close" onClick={onClose}>×</button><span className="tournament-form-chip">Inscripción</span><h2>Agregar club existente</h2><p>El club conservará su perfil y tendrá un plantel propio para este torneo.</p><form onSubmit={submit}><label>Club<select value={teamId} onChange={(e) => setTeamId(e.target.value)} required><option value="">Seleccionar club</option>{teams.map((team) => <option key={team.idEquipo} value={team.idEquipo}>{team.nombre} · {team.barrio}</option>)}</select></label><label>Categoría (opcional)<input value={category} onChange={(e) => setCategory(e.target.value)} placeholder="Primera, Senior, Sub 18..." /></label>{teams.length === 0 && <p className="tournament-form-error">No hay otros clubes disponibles.</p>}{error && <p className="tournament-form-error">{error}</p>}<div className="tournament-form-actions"><button type="button" className="tournament-form-cancel" onClick={onClose}>Cancelar</button><button className="tournament-form-save" disabled={saving || !teamId}>{saving ? "Inscribiendo..." : "Inscribir club"}</button></div></form></section></div>;
-}
+  const submit = async (event) => {
+    event.preventDefault();
+    if (!selected) return setError("Seleccioná un equipo para continuar.");
+    setSaving(true); setError("");
+    try {
+      const response = await apiFetch(`${API_URL}/inscripciones/equipos`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ idEquipo: selected.idEquipo, idTorneo: Number(torneoId), categoria: category }) });
+      const payload = await response.json().catch(() => null);
+      if (!response.ok) throw new Error(payload?.message || "No se pudo inscribir el equipo");
+      onSaved(selected); onClose();
+    } catch (requestError) { setError(requestError.message); }
+    finally { setSaving(false); }
+  };
 
+  return <div className="tournament-form-backdrop" onMouseDown={onClose}><section className="tournament-form-modal existing-team-modal" onMouseDown={(event) => event.stopPropagation()}><button type="button" className="tournament-form-close" onClick={onClose}>×</button><span className="tournament-form-chip">Inscripción</span><h2>Agregar equipo existente</h2><p>Reutilizá un equipo que ya creaste o ingresá el código de otro club.</p>
+    <div className="existing-team-tabs"><button type="button" className={mode === "MINE" ? "active" : ""} onClick={() => { setMode("MINE"); setSelected(null); setError(""); }}>Mis equipos creados</button><button type="button" className={mode === "CODE" ? "active" : ""} onClick={() => { setMode("CODE"); setSelected(null); setError(""); }}>Agregar por código</button></div>
+    <form onSubmit={submit}>
+      {mode === "MINE" && <div className="existing-team-list">{teams.length === 0 ? <div className="team-empty"><strong>No tenés otros equipos creados</strong><p>Podés buscarlos por código o crear uno nuevo.</p></div> : teams.map((team) => <button type="button" key={team.idEquipo} className={selected?.idEquipo === team.idEquipo ? "selected" : ""} onClick={() => setSelected(team)}><span className="existing-team-logo">{team.escudo ? <img src={assetUrl(team.escudo)} alt="" /> : team.nombre.slice(0, 2).toUpperCase()}</span><span><strong>{team.nombre}</strong><small>{team.barrio || "Sin barrio"} · {team.codigoPublico}</small></span><em>{selected?.idEquipo === team.idEquipo ? "Seleccionado" : "Elegir"}</em></button>)}</div>}
+      {mode === "CODE" && <><label>Código público del equipo<div className="team-code-search"><input value={code} onChange={(event) => setCode(event.target.value.toUpperCase())} placeholder="EQ-XXXXXXX" /><button type="button" onClick={searchByCode}>Buscar</button></div></label>{selected && <div className="team-code-result"><span className="existing-team-logo">{selected.escudo ? <img src={assetUrl(selected.escudo)} alt="" /> : selected.nombre.slice(0, 2).toUpperCase()}</span><div><strong>{selected.nombre}</strong><small>{selected.barrio || "Sin barrio"} · {selected.codigoPublico}</small></div><span>✓ Encontrado</span></div>}</>}
+      {selected && <label>Categoría (opcional)<input value={category} onChange={(event) => setCategory(event.target.value)} placeholder="Primera, Senior, Sub 18..." /></label>}
+      {error && <p className="tournament-form-error">{error}</p>}
+      <div className="tournament-form-actions"><button type="button" className="tournament-form-cancel" onClick={onClose}>Cancelar</button><button className="tournament-form-save" disabled={saving || !selected}>{saving ? "Inscribiendo…" : "Inscribir equipo"}</button></div>
+    </form>
+  </section></div>;
+}
 export default ExistingTeamEnrollmentModal;
