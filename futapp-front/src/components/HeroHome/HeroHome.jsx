@@ -1,6 +1,6 @@
 import "./HeroHome.css";
 
-function HeroHome({ busqueda, onBusquedaChange, onSearch, onCreate, onExplore }) {
+function HeroHome({ busqueda, onBusquedaChange, onSearch, onCreate, onExplore, primaryLabel = "Crear torneo" }) {
   return (
     <section className="home-hero" id="inicio">
       <div className="home-hero-overlay" />
@@ -32,7 +32,7 @@ function HeroHome({ busqueda, onBusquedaChange, onSearch, onCreate, onExplore })
         </form>
 
         <div className="home-hero-buttons">
-          <button type="button" className="home-btn-primary" onClick={onCreate}>Crear torneo</button>
+          <button type="button" className="home-btn-primary" onClick={onCreate}>{primaryLabel}</button>
           <button type="button" className="home-btn-secondary" onClick={onExplore}>Explorar torneos</button>
         </div>
       </div>

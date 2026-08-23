@@ -53,9 +53,20 @@ function Home() {
   };
 
   const crearTorneo = () => {
-    if (canManage) setShowTournamentForm(true);
-    else navigate("/register");
+    if (!usuario) return navigate("/register");
+    if (canManage) return setShowTournamentForm(true);
+    if (usuario.rol === "DIRECTOR_EQUIPO") return navigate("/mis-equipos");
+    if (usuario.rol === "JUGADOR") return navigate("/mi-perfil-jugador");
+    navigate("/");
   };
+
+  const primaryLabel = !usuario
+    ? "Crear cuenta para organizar"
+    : canManage
+      ? "Crear torneo"
+      : usuario.rol === "DIRECTOR_EQUIPO"
+        ? "Gestionar mis equipos"
+        : "Ver mi perfil";
 
   return (
     <div className="home">
@@ -66,6 +77,7 @@ function Home() {
         onSearch={irATorneos}
         onCreate={crearTorneo}
         onExplore={irATorneos}
+        primaryLabel={primaryLabel}
       />
 
       <section className="stats-section">
@@ -195,7 +207,7 @@ function Home() {
           <p>Empezá a centralizar resultados, estadísticas y equipos en una sola plataforma.</p>
 
           <div className="home-hero-buttons">
-            <button type="button" className="home-btn-primary" onClick={() => navigate(usuario ? "/mis-torneos" : "/register")}>{usuario ? "Mis torneos" : "Registrarme"}</button>
+            <button type="button" className="home-btn-primary" onClick={crearTorneo}>{primaryLabel}</button>
             <button type="button" className="home-btn-secondary" onClick={irATorneos}>Ver torneos</button>
           </div>
         </div>
