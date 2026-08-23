@@ -13,6 +13,7 @@ import com.futapp.repository.FechaRepository;
 import com.futapp.repository.PartidoRepository;
 import com.futapp.repository.TorneoRepository;
 import com.futapp.repository.GolRepository;
+import com.futapp.repository.InscripcionEquipoRepository;
 import com.futapp.repository.TarjetaRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,6 +33,7 @@ public class PartidoService {
     private final TarjetaRepository tarjetaRepository;
     private final TorneoAuthorizationService authorization;
     private final NotificacionService notificaciones;
+    private final InscripcionEquipoRepository inscripcionesEquipo;
 
     public PartidoService(PartidoRepository partidoRepository,
                           TorneoRepository torneoRepository,
@@ -40,7 +42,8 @@ public class PartidoService {
                           GolRepository golRepository,
                           TarjetaRepository tarjetaRepository,
                           TorneoAuthorizationService authorization,
-                          NotificacionService notificaciones) {
+                          NotificacionService notificaciones,
+                          InscripcionEquipoRepository inscripcionesEquipo) {
         this.partidoRepository = partidoRepository;
         this.torneoRepository = torneoRepository;
         this.fechaRepository = fechaRepository;
@@ -49,6 +52,7 @@ public class PartidoService {
         this.tarjetaRepository = tarjetaRepository;
         this.authorization = authorization;
         this.notificaciones = notificaciones;
+        this.inscripcionesEquipo = inscripcionesEquipo;
     }
 
     public List<PartidoResponseDTO> listarPartidos() {
@@ -102,7 +106,8 @@ public class PartidoService {
             throw new IllegalArgumentException("El fixture automático solo se puede generar si el torneo todavía no tiene partidos");
         }
 
-        List<Equipo> equipos = new ArrayList<>(equipoRepository.findByTorneoIdTorneo(idTorneo));
+        List<Equipo> equipos = inscripcionesEquipo.findByTorneoIdTorneoAndEstado(idTorneo, "ACTIVA")
+                .stream().map(inscripcion -> inscripcion.getEquipo()).collect(Collectors.toCollection(ArrayList::new));
         equipos.sort(Comparator.comparing(Equipo::getIdEquipo));
         if (equipos.size() < 2) {
             throw new IllegalArgumentException("Se necesitan al menos 2 equipos para generar el fixture");
@@ -226,11 +231,11 @@ public class PartidoService {
             throw new IllegalArgumentException("El equipo local y el visitante no pueden ser el mismo");
         }
 
-        if (!equipoLocal.getTorneo().getIdTorneo().equals(torneo.getIdTorneo())) {
+        if (!inscripcionesEquipo.existsByEquipoIdEquipoAndTorneoIdTorneo(equipoLocal.getIdEquipo(), torneo.getIdTorneo())) {
             throw new IllegalArgumentException("El equipo local no pertenece al torneo indicado");
         }
 
-        if (!equipoVisitante.getTorneo().getIdTorneo().equals(torneo.getIdTorneo())) {
+        if (!inscripcionesEquipo.existsByEquipoIdEquipoAndTorneoIdTorneo(equipoVisitante.getIdEquipo(), torneo.getIdTorneo())) {
             throw new IllegalArgumentException("El equipo visitante no pertenece al torneo indicado");
         }
 

@@ -3,7 +3,7 @@ package com.futapp.service;
 import com.futapp.dto.TablaPosicionDTO;
 import com.futapp.model.Equipo;
 import com.futapp.model.Partido;
-import com.futapp.repository.EquipoRepository;
+import com.futapp.repository.InscripcionEquipoRepository;
 import com.futapp.repository.PartidoRepository;
 import com.futapp.repository.TorneoRepository;
 import org.springframework.stereotype.Service;
@@ -17,18 +17,19 @@ import java.util.Map;
 @Service
 public class TablaPosicionService {
 
-    private final EquipoRepository equipoRepository;
+    private final InscripcionEquipoRepository inscripcionesEquipo;
     private final PartidoRepository partidoRepository;
     private final TorneoRepository torneoRepository;
 
-    public TablaPosicionService(EquipoRepository equipoRepository, PartidoRepository partidoRepository, TorneoRepository torneoRepository) {
-        this.equipoRepository = equipoRepository;
+    public TablaPosicionService(InscripcionEquipoRepository inscripcionesEquipo, PartidoRepository partidoRepository, TorneoRepository torneoRepository) {
+        this.inscripcionesEquipo = inscripcionesEquipo;
         this.partidoRepository = partidoRepository;
         this.torneoRepository = torneoRepository;
     }
 
     public List<TablaPosicionDTO> obtenerTablaPorTorneo(Long idTorneo) {
-        List<Equipo> equipos = equipoRepository.findByTorneoIdTorneo(idTorneo);
+        List<Equipo> equipos = inscripcionesEquipo.findByTorneoIdTorneoAndEstado(idTorneo, "ACTIVA")
+                .stream().map(inscripcion -> inscripcion.getEquipo()).toList();
         List<Partido> partidos = partidoRepository.findByTorneoIdTorneo(idTorneo);
         var torneo = torneoRepository.findById(idTorneo).orElseThrow();
 

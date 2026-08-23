@@ -8,6 +8,7 @@ import java.util.Optional;
 public interface InscripcionEquipoRepository extends JpaRepository<InscripcionEquipo, Long> {
     List<InscripcionEquipo> findByEquipoIdEquipoOrderByFechaAltaDesc(Long idEquipo);
     List<InscripcionEquipo> findByTorneoIdTorneo(Long idTorneo);
+    List<InscripcionEquipo> findByTorneoIdTorneoAndEstado(Long idTorneo, String estado);
     Optional<InscripcionEquipo> findByEquipoIdEquipoAndTorneoIdTorneo(Long idEquipo, Long idTorneo);
     boolean existsByEquipoIdEquipoAndTorneoIdTorneo(Long idEquipo, Long idTorneo);
     boolean existsByEquipoIdEquipoAndTorneoPropietarioIdUsuarioAndEstado(Long idEquipo, Long idUsuario, String estado);
