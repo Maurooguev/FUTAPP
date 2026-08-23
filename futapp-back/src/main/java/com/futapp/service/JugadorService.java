@@ -150,6 +150,11 @@ public class JugadorService {
         );
     }
 
+    public JugadorResponseDTO buscarPorCodigo(String codigo) {
+        return convertirAResponseDTO(jugadorRepository.findByCodigoPublicoIgnoreCase(codigo.trim())
+                .orElseThrow(() -> new ResourceNotFoundException("No encontramos un jugador con ese código")));
+    }
+
     private String normalizarOpcional(String valor) {
         return valor == null || valor.isBlank() ? null : valor.trim();
     }

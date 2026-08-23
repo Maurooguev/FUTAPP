@@ -28,6 +28,11 @@ public class JugadorController {
         return jugadorService.obtenerJugadorPorId(id);
     }
 
+    @GetMapping("/codigo/{codigo}")
+    public JugadorResponseDTO buscarPorCodigo(@PathVariable String codigo) {
+        return jugadorService.buscarPorCodigo(codigo);
+    }
+
     @GetMapping("/equipo/{idEquipo}")
     public List<JugadorResponseDTO> listarJugadoresPorEquipo(@PathVariable Long idEquipo) {
         return jugadorService.listarJugadoresPorEquipo(idEquipo);

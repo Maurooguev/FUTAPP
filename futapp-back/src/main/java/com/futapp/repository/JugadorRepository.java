@@ -20,4 +20,5 @@ public interface JugadorRepository extends JpaRepository<Jugador, Long> {
 
     boolean existsByDniAndIdJugadorNot(String dni, Long idJugador);
     Optional<Jugador> findByUsuarioIdUsuario(Long idUsuario);
+    Optional<Jugador> findByCodigoPublicoIgnoreCase(String codigoPublico);
 }

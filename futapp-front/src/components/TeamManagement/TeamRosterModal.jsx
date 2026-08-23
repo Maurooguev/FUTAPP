@@ -87,7 +87,7 @@ function TeamRosterModal({ equipo, torneoId, canManage, onClose }) {
         <p><strong>{tournamentName || "Torneo"}</strong> · {players.filter((player) => player.estado === "ACTIVA").length} activos · {players.filter((player) => player.estado === "INACTIVA").length} bajas.</p>
         {canManage && !showForm && !showExisting && <div className="roster-add-actions"><button type="button" className="tournament-form-save" onClick={() => { setEditingPlayer(null); setShowForm(true); }}>+ Crear jugador</button><button type="button" className="tournament-form-cancel" onClick={() => setShowExisting(true)}>Agregar jugador existente</button></div>}
         {showForm && <PlayerForm equipoId={equipo.idEquipo} player={editingPlayer} onCancel={closeForm} onSaved={savePlayer} />}
-        {showExisting && enrollmentId && <ExistingPlayerEnrollment enrollmentId={enrollmentId} currentPlayers={players} onCancel={() => setShowExisting(false)} onSaved={() => { setShowExisting(false); setReloadKey((current) => current + 1); }} />}
+        {showExisting && enrollmentId && <ExistingPlayerEnrollment equipoId={equipo.idEquipo} enrollmentId={enrollmentId} currentPlayers={players} onCancel={() => setShowExisting(false)} onSaved={() => { setShowExisting(false); setReloadKey((current) => current + 1); }} />}
         {actionError && <p className="tournament-form-error">{actionError}</p>}
         <div className="roster-list">
           {loading ? <p>Cargando plantel...</p> : players.length === 0 ? <p className="roster-empty">Todavía no hay jugadores.</p> : players.map((player) => (
