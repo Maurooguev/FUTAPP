@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.DeleteMapping;
 
 import java.util.List;
 
@@ -44,6 +45,11 @@ public class InscripcionController {
     @PostMapping("/equipos")
     public InscripcionEquipoResponseDTO inscribirEquipo(@Valid @RequestBody InscripcionEquipoRequestDTO request) {
         return inscripciones.inscribirEquipo(request);
+    }
+
+    @DeleteMapping("/equipos/torneo/{idTorneo}/equipo/{idEquipo}")
+    public void quitarEquipoDelTorneo(@PathVariable Long idTorneo, @PathVariable Long idEquipo) {
+        inscripciones.quitarEquipoDelTorneo(idTorneo, idEquipo);
     }
 
     @PostMapping("/{idInscripcion}/jugadores")

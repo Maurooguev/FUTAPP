@@ -22,4 +22,5 @@ public interface InscripcionJugadorRepository extends JpaRepository<InscripcionJ
             Long idInscripcion, Integer numeroCamiseta, String estado);
     void deleteByJugadorIdJugador(Long idJugador);
     void deleteByInscripcionEquipoEquipoIdEquipo(Long idEquipo);
+    void deleteByInscripcionEquipoIdInscripcion(Long idInscripcion);
 }

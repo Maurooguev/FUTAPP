@@ -16,4 +16,7 @@ public interface PartidoRepository extends JpaRepository<Partido, Long> {
     boolean existsByFechaIdFecha(Long idFecha);
 
     boolean existsByEquipoLocalIdEquipoOrEquipoVisitanteIdEquipo(Long idEquipoLocal, Long idEquipoVisitante);
+
+    boolean existsByTorneoIdTorneoAndEquipoLocalIdEquipoOrTorneoIdTorneoAndEquipoVisitanteIdEquipo(
+            Long idTorneoLocal, Long idEquipoLocal, Long idTorneoVisitante, Long idEquipoVisitante);
 }

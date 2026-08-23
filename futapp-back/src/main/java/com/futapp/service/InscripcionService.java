@@ -13,6 +13,7 @@ import com.futapp.repository.EquipoRepository;
 import com.futapp.repository.InscripcionEquipoRepository;
 import com.futapp.repository.InscripcionJugadorRepository;
 import com.futapp.repository.JugadorRepository;
+import com.futapp.repository.PartidoRepository;
 import com.futapp.repository.TorneoRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,12 +31,14 @@ public class InscripcionService {
     private final TorneoRepository torneos;
     private final TorneoAuthorizationService authorization;
     private final EquipoAuthorizationService equipoAuthorization;
+    private final PartidoRepository partidos;
 
     public InscripcionService(InscripcionEquipoRepository inscripcionesEquipo,
                               InscripcionJugadorRepository inscripcionesJugador,
                               EquipoRepository equipos, JugadorRepository jugadores,
                               TorneoRepository torneos, TorneoAuthorizationService authorization,
-                              EquipoAuthorizationService equipoAuthorization) {
+                              EquipoAuthorizationService equipoAuthorization,
+                              PartidoRepository partidos) {
         this.inscripcionesEquipo = inscripcionesEquipo;
         this.inscripcionesJugador = inscripcionesJugador;
         this.equipos = equipos;
@@ -43,6 +46,7 @@ public class InscripcionService {
         this.torneos = torneos;
         this.authorization = authorization;
         this.equipoAuthorization = equipoAuthorization;
+        this.partidos = partidos;
     }
 
     public List<InscripcionEquipoResponseDTO> historialEquipo(Long idEquipo) {
@@ -85,6 +89,20 @@ public class InscripcionService {
         inscripcion.setCategoria(normalizar(request.categoria()));
         inscripcion.setEstado("ACTIVA");
         return equipoDto(inscripcionesEquipo.save(inscripcion));
+    }
+
+    @Transactional
+    public void quitarEquipoDelTorneo(Long idTorneo, Long idEquipo) {
+        authorization.verificarGestion(idTorneo);
+        InscripcionEquipo inscripcion = inscripcionesEquipo
+                .findByEquipoIdEquipoAndTorneoIdTorneo(idEquipo, idTorneo)
+                .orElseThrow(() -> new ResourceNotFoundException("El equipo no está inscripto en este torneo"));
+        if (partidos.existsByTorneoIdTorneoAndEquipoLocalIdEquipoOrTorneoIdTorneoAndEquipoVisitanteIdEquipo(
+                idTorneo, idEquipo, idTorneo, idEquipo)) {
+            throw new IllegalArgumentException("No se puede quitar el equipo porque ya tiene partidos en este torneo");
+        }
+        inscripcionesJugador.deleteByInscripcionEquipoIdInscripcion(inscripcion.getIdInscripcion());
+        inscripcionesEquipo.delete(inscripcion);
     }
 
     @Transactional
