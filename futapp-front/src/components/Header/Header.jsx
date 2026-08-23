@@ -45,7 +45,7 @@ function Header() {
           <a href="#destacados">Destacados</a>
           <a href="#beneficios">Beneficios</a>
 
-          {(usuario?.rol === "ADMIN" || usuario?.rol === "ORGANIZADOR") && (
+          {usuario && (
             <Link to="/mis-torneos">Mis torneos</Link>
           )}
           {(usuario?.rol === "ADMIN" || usuario?.rol === "DIRECTOR_EQUIPO") && <Link to="/mis-equipos">Mis equipos</Link>}

@@ -7,7 +7,7 @@ export const ROLES = {
 };
 
 export function puedeAdministrar(usuario) {
-  return usuario?.rol === ROLES.ADMIN || usuario?.rol === ROLES.ORGANIZADOR;
+  return Boolean(usuario);
 }
 
 export function esAdmin(usuario) {
@@ -16,5 +16,5 @@ export function esAdmin(usuario) {
 
 export function puedeAdministrarTorneo(usuario, torneo) {
   return usuario?.rol === ROLES.ADMIN ||
-    (usuario?.rol === ROLES.ORGANIZADOR && torneo?.idPropietario === usuario?.idUsuario);
+    torneo?.idPropietario === usuario?.idUsuario;
 }

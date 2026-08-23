@@ -6,7 +6,6 @@ import TournamentCard from "../components/TournamentCard/TournamentCard";
 import TournamentFormModal from "../components/TournamentFormModal/TournamentFormModal";
 import { API_URL } from "../config/api";
 import useAuth from "../context/useAuth";
-import { puedeAdministrar } from "../utils/roles";
 
 function Home() {
   const [torneos, setTorneos] = useState([]);
@@ -14,7 +13,6 @@ function Home() {
   const [showTournamentForm, setShowTournamentForm] = useState(false);
   const navigate = useNavigate();
   const { usuario } = useAuth();
-  const canManage = puedeAdministrar(usuario);
 
   useEffect(() => {
     fetch(`${API_URL}/torneos`)
@@ -54,19 +52,10 @@ function Home() {
 
   const crearTorneo = () => {
     if (!usuario) return navigate("/register");
-    if (canManage) return setShowTournamentForm(true);
-    if (usuario.rol === "DIRECTOR_EQUIPO") return navigate("/mis-equipos");
-    if (usuario.rol === "JUGADOR") return navigate("/mi-perfil-jugador");
-    navigate("/");
+    setShowTournamentForm(true);
   };
 
-  const primaryLabel = !usuario
-    ? "Crear cuenta para organizar"
-    : canManage
-      ? "Crear torneo"
-      : usuario.rol === "DIRECTOR_EQUIPO"
-        ? "Gestionar mis equipos"
-        : "Ver mi perfil";
+  const primaryLabel = "Crear torneo";
 
   return (
     <div className="home">
