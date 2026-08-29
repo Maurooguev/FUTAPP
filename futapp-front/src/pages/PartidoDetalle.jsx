@@ -57,7 +57,7 @@ function PartidoDetalle() {
           </div>
 
           <p className="partido-info">
-            {partido.fechaHora} · {partido.estado}
+            {partido.fechaHora} · {partido.estado}{partido.cancha ? ` · ${partido.cancha}` : ""}
           </p>
         </div>
       </section>

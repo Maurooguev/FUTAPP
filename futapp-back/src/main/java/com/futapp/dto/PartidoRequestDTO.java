@@ -22,6 +22,9 @@ public class PartidoRequestDTO {
     @Size(max = 500, message = "Las observaciones no pueden superar los 500 caracteres")
     private String observaciones;
 
+    @Size(max = 150, message = "La cancha no puede superar los 150 caracteres")
+    private String cancha;
+
     @NotNull(message = "El torneo es obligatorio")
     private Long idTorneo;
 
@@ -76,6 +79,9 @@ public class PartidoRequestDTO {
     public void setObservaciones(String observaciones) {
         this.observaciones = observaciones;
     }
+
+    public String getCancha() { return cancha; }
+    public void setCancha(String cancha) { this.cancha = cancha; }
 
     public Long getIdTorneo() {
         return idTorneo;

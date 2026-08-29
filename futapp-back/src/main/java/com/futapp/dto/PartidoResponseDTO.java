@@ -8,6 +8,7 @@ public class PartidoResponseDTO {
     private Integer golesLocal;
     private Integer golesVisitante;
     private String observaciones;
+    private String cancha;
 
     private Long idTorneo;
     private String nombreTorneo;
@@ -25,7 +26,7 @@ public class PartidoResponseDTO {
     }
 
     public PartidoResponseDTO(Long idPartido, String fechaHora, String estado,
-                              Integer golesLocal, Integer golesVisitante, String observaciones,
+                              Integer golesLocal, Integer golesVisitante, String observaciones, String cancha,
                               Long idTorneo, String nombreTorneo,
                               Long idFecha, Integer numeroFecha,
                               Long idEquipoLocal, String nombreEquipoLocal,
@@ -36,6 +37,7 @@ public class PartidoResponseDTO {
         this.golesLocal = golesLocal;
         this.golesVisitante = golesVisitante;
         this.observaciones = observaciones;
+        this.cancha = cancha;
         this.idTorneo = idTorneo;
         this.nombreTorneo = nombreTorneo;
         this.idFecha = idFecha;
@@ -93,6 +95,9 @@ public class PartidoResponseDTO {
     public void setObservaciones(String observaciones) {
         this.observaciones = observaciones;
     }
+
+    public String getCancha() { return cancha; }
+    public void setCancha(String cancha) { this.cancha = cancha; }
 
     public Long getIdTorneo() {
         return idTorneo;

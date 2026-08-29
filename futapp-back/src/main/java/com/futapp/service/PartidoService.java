@@ -170,6 +170,7 @@ public class PartidoService {
                 partido.setGolesLocal(0);
                 partido.setGolesVisitante(0);
                 partido.setObservaciones("Horario a confirmar");
+                partido.setCancha(normalizarOpcional(request.cancha()));
                 partidosGenerados.add(partidoRepository.save(partido));
                 indiceHorario++;
             }
@@ -223,6 +224,7 @@ public class PartidoService {
         partido.setGolesLocal(requestDTO.getGolesLocal());
         partido.setGolesVisitante(requestDTO.getGolesVisitante());
         partido.setObservaciones(requestDTO.getObservaciones());
+        partido.setCancha(normalizarOpcional(requestDTO.getCancha()));
         partido.setTorneo(torneo);
         partido.setFecha(fecha);
         partido.setEquipoLocal(equipoLocal);
@@ -289,6 +291,7 @@ public class PartidoService {
                 partido.getGolesLocal(),
                 partido.getGolesVisitante(),
                 partido.getObservaciones(),
+                partido.getCancha(),
                 partido.getTorneo().getIdTorneo(),
                 partido.getTorneo().getNombre(),
                 partido.getFecha().getIdFecha(),
@@ -298,6 +301,10 @@ public class PartidoService {
                 partido.getEquipoVisitante().getIdEquipo(),
                 partido.getEquipoVisitante().getNombre()
         );
+    }
+
+    private String normalizarOpcional(String valor) {
+        return valor == null || valor.isBlank() ? null : valor.trim();
     }
 
     public PartidoResponseDTO cargarResultado(Long id, ResultadoPartidoDTO dto) {

@@ -24,6 +24,9 @@ public class Partido {
 
     private String observaciones;
 
+    @Column(length = 150)
+    private String cancha;
+
     @ManyToOne
     @JoinColumn(name = "id_torneo", nullable = false)
     private Torneo torneo;
@@ -90,6 +93,9 @@ public class Partido {
     public void setObservaciones(String observaciones) {
         this.observaciones = observaciones;
     }
+
+    public String getCancha() { return cancha; }
+    public void setCancha(String cancha) { this.cancha = cancha; }
 
     public Torneo getTorneo() {
         return torneo;

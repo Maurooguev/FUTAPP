@@ -1,0 +1,1 @@
+ALTER TABLE partido ADD COLUMN cancha VARCHAR(150);

@@ -20,6 +20,7 @@ function MatchFormModal({ torneoId, fechas, equipos, partido, onClose, onSaved }
     fechaHora: partido?.fechaHora?.replace(" ", "T") ?? "",
     estado: partido?.estado ?? "PROGRAMADO",
     observaciones: partido?.observaciones ?? "",
+    cancha: partido?.cancha ?? "",
   });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -52,6 +53,7 @@ function MatchFormModal({ torneoId, fechas, equipos, partido, onClose, onSaved }
           golesLocal: 0,
           golesVisitante: 0,
           observaciones: form.observaciones,
+          cancha: form.cancha,
           idTorneo: Number(torneoId),
           idFecha: Number(form.idFecha),
           idEquipoLocal: Number(form.idEquipoLocal),
@@ -169,6 +171,7 @@ function MatchFormModal({ torneoId, fechas, equipos, partido, onClose, onSaved }
                   <option value="CANCELADO">Cancelado</option><option value="FINALIZADO">Finalizado</option>
                 </select>
               </label>
+              <label>Cancha o sede<input name="cancha" value={form.cancha} onChange={updateField} maxLength="150" placeholder="Ej. Cancha 1" /></label>
             </div>
 
             <label>

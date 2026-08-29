@@ -111,7 +111,7 @@ function FixtureByDate({ fechas, partidos, onSelectPartido, canManage, onEditDat
                 <Link to={`/equipo/${partido.idEquipoVisitante}`} onClick={(event) => event.stopPropagation()}>{partido.nombreEquipoVisitante}</Link>
               </div>
 
-              <p>{partido.fechaHora || partido.observaciones || "Horario a confirmar"}</p>
+              <p>{partido.fechaHora || "Horario a confirmar"}{partido.cancha ? ` · ${partido.cancha}` : ""}</p>
               {canManage && <div className="fixture-quick-actions" onClick={(event) => event.stopPropagation()}>
                 <button className="result" onClick={() => onLoadResult(partido)}>{partido.estado?.toUpperCase() === "FINALIZADO" ? "Editar resultado" : "Cargar resultado"}</button>
                 <button className="incidents" onClick={() => onSelectPartido(partido)}>Goles y tarjetas</button>

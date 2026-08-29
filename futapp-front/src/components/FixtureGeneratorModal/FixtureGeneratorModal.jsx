@@ -10,7 +10,7 @@ const nextSaturday = () => {
 };
 
 function FixtureGeneratorModal({ torneo, equipos, fechas, onClose, onGenerated }) {
-  const [form, setForm] = useState({ fechaInicio: nextSaturday(), horaInicio: "15:00", diasEntreJornadas: 7, minutosEntrePartidos: 90 });
+  const [form, setForm] = useState({ fechaInicio: nextSaturday(), horaInicio: "15:00", diasEntreJornadas: 7, minutosEntrePartidos: 90, cancha: "" });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const summary = useMemo(() => {
@@ -40,6 +40,7 @@ function FixtureGeneratorModal({ torneo, equipos, fechas, onClose, onGenerated }
       <label>Primer horario<input type="time" value={form.horaInicio} onChange={(e) => setForm({ ...form, horaInicio: e.target.value })} required /></label>
       <label>Días entre jornadas<input type="number" min="1" max="60" value={form.diasEntreJornadas} onChange={(e) => setForm({ ...form, diasEntreJornadas: e.target.value })} required /></label>
       <label>Minutos entre partidos<input type="number" min="0" max="720" step="5" value={form.minutosEntrePartidos} onChange={(e) => setForm({ ...form, minutosEntrePartidos: e.target.value })} required /></label>
+      <label>Cancha o sede<input type="text" maxLength="150" value={form.cancha} onChange={(e) => setForm({ ...form, cancha: e.target.value })} placeholder="Ej. Polideportivo Municipal" /></label>
     </div>
     <div className="wizard-summary"><div><span>Equipos</span><strong>{equipos.length}</strong></div><div><span>Modalidad</span><strong>{torneo.idaVuelta ? "Ida y vuelta" : "Una rueda"}</strong></div><div><span>Jornadas</span><strong>{summary.rounds}</strong></div><div><span>Partidos</span><strong>{summary.matches}</strong></div></div>
     {fechas.length > 0 && <p className="wizard-draft-note">Las primeras {Math.min(fechas.length, summary.rounds)} jornadas existentes se reutilizarán.</p>}
