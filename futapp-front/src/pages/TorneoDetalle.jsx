@@ -18,6 +18,7 @@ import MatchFormModal from "../components/MatchFormModal/MatchFormModal";
 import TeamManagement from "../components/TeamManagement/TeamManagement";
 import DateFormModal from "../components/DateFormModal/DateFormModal";
 import FixtureGeneratorModal from "../components/FixtureGeneratorModal/FixtureGeneratorModal";
+import TournamentReadiness from "../components/TournamentReadiness/TournamentReadiness";
 
 function TorneoDetalle() {
   const { id } = useParams();
@@ -218,6 +219,7 @@ const recargarDatosTorneo = () => {
 
       <main className="torneo-content">
         <div className="torneo-shell">
+          {puedeEditar && <TournamentReadiness torneoId={id} equipos={equipos} partidos={partidos} onGenerateFixture={abrirGeneradorFixture} />}
           <div className="torneo-stats-grid" id="resumen">
             <StatsCard label="Torneo" value={torneo.nombre} />
             <StatsCard label="Partidos jugados" value={partidosJugados} />
