@@ -5,6 +5,8 @@
 .my-teams-heading h1 { margin: 4px 0; color: #0f172a; font-size: 30px; }
 .my-teams-heading p { margin: 0; font-size: 12px; }
 .my-teams-heading > a, .my-teams-empty a { padding: 9px 12px; border-radius: 4px; background: #0877a7; color: #fff; font-size: 11px; font-weight: 800; text-decoration: none; }
+.my-teams-heading-actions { display: flex; gap: 7px; }.my-teams-heading-actions a,.my-teams-heading-actions button { padding: 9px 12px; border-radius: 4px; background: #0877a7; color: #fff; font-size: 10px; font-weight: 800; text-decoration: none; }.my-teams-heading-actions button { background: #0f172a; }
+.team-merge-summary { display: grid; gap: 3px; padding: 11px; border: 1px solid #86c5da; border-radius: 4px; background: #eef9fc; }.team-merge-summary strong { color: #0877a7; font-size: 9px; text-transform: uppercase; }.team-merge-summary span { color: #0f172a; font-size: 12px; font-weight: 800; }.team-merge-summary small { color: #64748b; font-size: 9px; }
 .my-teams-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
 .my-team-card { overflow: hidden; border: 1px solid #dbe3e8; border-radius: 7px; background: #fff; }
 .my-team-cover { display: grid; height: 125px; place-items: center; overflow: hidden; background: #dbe5eb; color: #64748b; font-size: 11px; text-decoration: none; }
@@ -16,4 +18,4 @@
 .my-team-body small { color: #0877a7; font-size: 9px; font-weight: 900; }.my-team-body p { margin: 0; color: #64748b; font-size: 10px; }
 .my-team-actions { display: flex; justify-content: flex-end; gap: 7px; padding: 0 14px 14px; }.my-team-actions a { padding: 7px 10px; border: 1px solid #ccd6dc; border-radius: 4px; color: #334155; font-size: 10px; font-weight: 800; text-decoration: none; }.my-team-actions .primary { border-color: #0877a7; background: #0877a7; color: #fff; }
 .my-teams-empty { padding: 30px; border: 1px dashed #94a3b8; border-radius: 7px; background: #fff; text-align: center; }.my-teams-empty h2 { color: #0f172a; }.my-teams-empty p { margin-bottom: 20px; font-size: 12px; }
-@media (max-width: 700px) { .my-teams-heading { align-items: stretch; flex-direction: column; }.my-teams-heading > a { align-self: flex-start; }.my-teams-grid { grid-template-columns: 1fr; } }
+@media (max-width: 700px) { .my-teams-heading { align-items: stretch; flex-direction: column; }.my-teams-heading > a { align-self: flex-start; }.my-teams-heading-actions { align-items: stretch; flex-direction: column; }.my-teams-grid { grid-template-columns: 1fr; } }

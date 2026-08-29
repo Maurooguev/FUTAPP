@@ -14,6 +14,7 @@ public interface GolRepository extends JpaRepository<Gol, Long> {
     List<Gol> findByPartidoIdPartido(Long idPartido);
 
     List<Gol> findByJugadorIdJugador(Long idJugador);
+    List<Gol> findByEquipoIdEquipo(Long idEquipo);
 
     boolean existsByPartidoIdPartido(Long idPartido);
 

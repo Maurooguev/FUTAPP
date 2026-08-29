@@ -10,4 +10,5 @@ public interface SolicitudReclamoRepository extends JpaRepository<SolicitudRecla
     List<SolicitudReclamo> findAllByOrderByFechaSolicitudDesc();
     boolean existsBySolicitanteIdUsuarioAndEquipoIdEquipoAndEstado(Long idUsuario, Long idEquipo, String estado);
     boolean existsBySolicitanteIdUsuarioAndJugadorIdJugadorAndEstado(Long idUsuario, Long idJugador, String estado);
+    List<SolicitudReclamo> findByEquipoIdEquipo(Long idEquipo);
 }

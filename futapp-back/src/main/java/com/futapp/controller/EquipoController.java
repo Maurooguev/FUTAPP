@@ -3,6 +3,7 @@ package com.futapp.controller;
 import com.futapp.dto.EquipoRequestDTO;
 import com.futapp.dto.EquipoResponseDTO;
 import com.futapp.service.EquipoService;
+import com.futapp.service.FusionEquipoService;
 import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 
@@ -14,9 +15,11 @@ import java.util.Map;
 public class EquipoController {
 
     private final EquipoService equipoService;
+    private final FusionEquipoService fusionEquipoService;
 
-    public EquipoController(EquipoService equipoService) {
+    public EquipoController(EquipoService equipoService, FusionEquipoService fusionEquipoService) {
         this.equipoService = equipoService;
+        this.fusionEquipoService = fusionEquipoService;
     }
 
     @GetMapping
@@ -68,5 +71,10 @@ public class EquipoController {
     public String eliminarEquipo(@PathVariable Long id) {
         equipoService.eliminarEquipo(id);
         return "Equipo eliminado correctamente";
+    }
+
+    @PostMapping("/{idOficial}/fusionar/{idDuplicado}")
+    public void fusionarEquipos(@PathVariable Long idOficial, @PathVariable Long idDuplicado) {
+        fusionEquipoService.fusionar(idOficial, idDuplicado);
     }
 }

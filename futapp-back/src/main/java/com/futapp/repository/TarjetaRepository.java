@@ -12,6 +12,7 @@ public interface TarjetaRepository extends JpaRepository<Tarjeta, Long> {
     List<Tarjeta> findByPartidoIdPartido(Long idPartido);
 
     List<Tarjeta> findByJugadorIdJugador(Long idJugador);
+    List<Tarjeta> findByEquipoIdEquipo(Long idEquipo);
 
     boolean existsByPartidoIdPartido(Long idPartido);
 
