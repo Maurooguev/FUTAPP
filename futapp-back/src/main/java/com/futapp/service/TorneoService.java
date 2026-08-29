@@ -6,7 +6,11 @@ import com.futapp.exception.ResourceNotFoundException;
 import com.futapp.model.Torneo;
 import com.futapp.model.Usuario;
 import com.futapp.repository.TorneoRepository;
+import com.futapp.repository.PartidoRepository;
+import com.futapp.repository.InscripcionEquipoRepository;
+import com.futapp.repository.InscripcionJugadorRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -17,10 +21,18 @@ public class TorneoService {
 
     private final TorneoRepository torneoRepository;
     private final TorneoAuthorizationService authorization;
+    private final PartidoRepository partidos;
+    private final InscripcionEquipoRepository inscripcionesEquipo;
+    private final InscripcionJugadorRepository inscripcionesJugador;
 
-    public TorneoService(TorneoRepository torneoRepository, TorneoAuthorizationService authorization) {
+    public TorneoService(TorneoRepository torneoRepository, TorneoAuthorizationService authorization,
+                         PartidoRepository partidos, InscripcionEquipoRepository inscripcionesEquipo,
+                         InscripcionJugadorRepository inscripcionesJugador) {
         this.torneoRepository = torneoRepository;
         this.authorization = authorization;
+        this.partidos = partidos;
+        this.inscripcionesEquipo = inscripcionesEquipo;
+        this.inscripcionesJugador = inscripcionesJugador;
     }
 
     public List<TorneoResponseDTO> listarTorneos() {
@@ -51,7 +63,7 @@ public class TorneoService {
         torneo.setNombre(requestDTO.getNombre());
         torneo.setDescripcion(requestDTO.getDescripcion());
         torneo.setUbicacion(requestDTO.getUbicacion());
-        torneo.setEstado(requestDTO.getEstado());
+        torneo.setEstado("BORRADOR");
         torneo.setFormato(requestDTO.getFormato());
         torneo.setCantidadEquipos(requestDTO.getCantidadEquipos());
         cargarReglas(torneo, requestDTO);
@@ -70,7 +82,6 @@ public class TorneoService {
         torneo.setNombre(requestDTO.getNombre());
         torneo.setDescripcion(requestDTO.getDescripcion());
         torneo.setUbicacion(requestDTO.getUbicacion());
-        torneo.setEstado(requestDTO.getEstado());
         torneo.setFormato(requestDTO.getFormato());
         torneo.setCantidadEquipos(requestDTO.getCantidadEquipos());
         cargarReglas(torneo, requestDTO);
@@ -87,6 +98,40 @@ public class TorneoService {
         authorization.verificarGestion(id);
 
         torneoRepository.deleteById(id);
+    }
+
+    @Transactional
+    public TorneoResponseDTO iniciarTorneo(Long id) {
+        Torneo torneo = torneoRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Torneo no encontrado con id: " + id));
+        authorization.verificarGestion(torneo);
+        if ("FINALIZADO".equalsIgnoreCase(torneo.getEstado())) {
+            throw new IllegalArgumentException("Un torneo finalizado no puede volver a iniciarse");
+        }
+        var inscripciones = inscripcionesEquipo.findByTorneoIdTorneoAndEstado(id, "ACTIVA");
+        if (inscripciones.size() < 2) throw new IllegalArgumentException("Se necesitan al menos 2 equipos para iniciar el torneo");
+        var sinJugadores = inscripciones.stream()
+                .filter(item -> inscripcionesJugador.countByInscripcionEquipoIdInscripcionAndEstado(item.getIdInscripcion(), "ACTIVA") == 0)
+                .map(item -> item.getEquipo().getNombre()).toList();
+        if (!sinJugadores.isEmpty()) {
+            throw new IllegalArgumentException("Estos equipos todavía no tienen jugadores: " + String.join(", ", sinJugadores));
+        }
+        if (partidos.findByTorneoIdTorneo(id).isEmpty()) throw new IllegalArgumentException("Generá el fixture antes de iniciar el torneo");
+        torneo.setEstado("ACTIVO");
+        return convertirAResponseDTO(torneoRepository.save(torneo));
+    }
+
+    @Transactional
+    public TorneoResponseDTO finalizarTorneo(Long id) {
+        Torneo torneo = torneoRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Torneo no encontrado con id: " + id));
+        authorization.verificarGestion(torneo);
+        var partidosTorneo = partidos.findByTorneoIdTorneo(id);
+        if (partidosTorneo.isEmpty()) throw new IllegalArgumentException("El torneo todavía no tiene partidos");
+        long pendientes = partidosTorneo.stream().filter(partido -> !"FINALIZADO".equalsIgnoreCase(partido.getEstado())).count();
+        if (pendientes > 0) throw new IllegalArgumentException("Todavía quedan " + pendientes + " partidos sin finalizar");
+        torneo.setEstado("FINALIZADO");
+        return convertirAResponseDTO(torneoRepository.save(torneo));
     }
 
     private TorneoResponseDTO convertirAResponseDTO(Torneo torneo) {

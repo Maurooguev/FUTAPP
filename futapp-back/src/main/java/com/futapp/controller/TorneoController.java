@@ -48,6 +48,12 @@ public class TorneoController {
         return torneoService.actualizarTorneo(id, requestDTO);
     }
 
+    @PutMapping("/{id}/iniciar")
+    public TorneoResponseDTO iniciarTorneo(@PathVariable Long id) { return torneoService.iniciarTorneo(id); }
+
+    @PutMapping("/{id}/finalizar")
+    public TorneoResponseDTO finalizarTorneo(@PathVariable Long id) { return torneoService.finalizarTorneo(id); }
+
     @DeleteMapping("/{id}")
     public String eliminarTorneo(@PathVariable Long id) {
         torneoService.eliminarTorneo(id);

@@ -53,6 +53,18 @@ function TorneoDetalle() {
       onSuccess();
     } catch (requestError) { setAdminError(requestError.message); }
   };
+
+  const cambiarEstadoTorneo = async (accion) => {
+    const destino = accion === "iniciar" ? "iniciar el torneo" : "finalizar definitivamente el torneo";
+    if (!window.confirm(`¿Querés ${destino}?`)) return;
+    setAdminError("");
+    try {
+      const response = await apiFetch(`${API_URL}/torneos/${id}/${accion}`, { method: "PUT" });
+      const payload = await response.json().catch(() => null);
+      if (!response.ok) throw new Error(payload?.message || `No se pudo ${accion} el torneo`);
+      setTorneo(payload);
+    } catch (requestError) { setAdminError(requestError.message); }
+  };
   
   useEffect(() => {
     fetch(`${API_URL}/torneos/${id}`)
@@ -205,6 +217,8 @@ const recargarDatosTorneo = () => {
       {puedeEditar && (
         <div className="admin-actions">
           <button onClick={() => setMostrarEdicion(true)}>Editar torneo</button>
+          {torneo.estado?.toUpperCase() === "BORRADOR" && <button onClick={() => cambiarEstadoTorneo("iniciar")}>Iniciar torneo</button>}
+          {torneo.estado?.toUpperCase() === "ACTIVO" && <button onClick={() => cambiarEstadoTorneo("finalizar")}>Finalizar torneo</button>}
           <button onClick={() => { setPartidoResultado(null); setMostrarResultado(true); }}>Cargar resultado</button>
           <button onClick={() => setMostrarFecha(true)}>Agregar jornada</button>
           <button onClick={() => setMostrarPartido(true)}>Agregar partido</button>
