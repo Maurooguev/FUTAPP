@@ -195,3 +195,4 @@
 .match-mvp-selector strong,.match-mvp-selector small { display: block; }.match-mvp-selector strong { color: #0f172a; font-size: 10px; }.match-mvp-selector small { margin-top: 2px; color: #64748b; font-size: 8px; }
 .match-mvp-selector select,.match-mvp-selector button { padding: 7px 8px; border-radius: 3px; font-size: 9px; }.match-mvp-selector select { border: 1px solid #dbe3e8; background: #fff; }.match-mvp-selector button { background: #0877a7; color: #fff; }.match-mvp-selector .tournament-form-error { grid-column: 1 / -1; }
 @media (max-width: 650px) { .match-mvp-selector { grid-template-columns: 1fr; } }
+.match-full-link { display: block; margin: 0 16px 16px; padding: 8px; border-radius: 3px; background: #fff; color: #0877a7 !important; font-size: 10px; font-weight: 800; text-align: center; }

@@ -119,6 +119,7 @@ function MatchModal({ partido, onClose, canManage, onChanged }) {
         {!isScheduled && <div className="match-mvp-block">{currentMatch?.idMvp && <p>⭐ MVP: <Link to={`/jugador/${currentMatch.idMvp}`} onClick={onClose}>{currentMatch.nombreMvp}</Link></p>}{canManage && <MatchMvpSelector partido={currentMatch || partido} onSaved={(updated) => { setCurrentMatch(updated); onChanged?.(); }} />}</div>}
         {canManage && isScheduled && <p className="match-result-hint">Primero cargá el resultado del partido para habilitar goles y tarjetas.</p>}
         {error && <p className="tournament-form-error">{error}</p>}
+        <Link className="match-full-link" to={`/partido/${partido.idPartido}`} onClick={onClose}>Ver página completa del partido →</Link>
       </div>
     </div>
   );

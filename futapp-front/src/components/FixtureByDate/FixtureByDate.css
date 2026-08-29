@@ -160,6 +160,7 @@
 .fixture-score-line { gap: 7px; margin-bottom: 7px; font-size: 11px; }
 .fixture-score-line strong { font-size: 15px; }
 .fixture-match-card p { font-size: 10px; }
+.fixture-mvp { display: block; margin-top: 7px; color: #92400e; font-size: 9px; font-weight: 800; text-align: center; text-decoration: none; }
 .fixture-empty { padding: 16px; border-radius: 5px; font-size: 12px; }
 .fixture-admin-actions button, .fixture-quick-actions button { padding: 5px 6px; border-radius: 3px; font-size: 9px; }
 .fixture-quick-actions { gap: 5px; margin-top: 9px; }

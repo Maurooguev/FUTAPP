@@ -1203,6 +1203,8 @@ button {
   font-size: 20px;
 }
 .partido-mvp { grid-column: 1 / -1; border-left: 4px solid #f59e0b; }
+.partido-quick-summary { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; overflow: hidden; border: 1px solid #dbe3e8; border-radius: 5px; background: #dbe3e8; }
+.partido-quick-summary div { padding: 11px; background: #fff; text-align: center; }.partido-quick-summary strong,.partido-quick-summary span { display: block; }.partido-quick-summary strong { color: #0f172a; font-size: 16px; }.partido-quick-summary span { margin-top: 2px; color: #64748b; font-size: 9px; text-transform: uppercase; }
 
 .incidencia-card {
   display: grid;
@@ -1249,6 +1251,7 @@ button {
   .partido-grid {
     grid-template-columns: 1fr;
   }
+  .partido-quick-summary { grid-template-columns: 1fr 1fr; }
 
   .team-box strong {
     font-size: 48px;

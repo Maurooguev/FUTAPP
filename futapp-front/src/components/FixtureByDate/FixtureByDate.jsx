@@ -112,6 +112,7 @@ function FixtureByDate({ fechas, partidos, onSelectPartido, canManage, onEditDat
               </div>
 
               <p>{partido.fechaHora || "Horario a confirmar"}{partido.cancha ? ` · ${partido.cancha}` : ""}</p>
+              {partido.idMvp && <Link className="fixture-mvp" to={`/jugador/${partido.idMvp}`} onClick={(event) => event.stopPropagation()}>⭐ MVP: {partido.nombreMvp}</Link>}
               {canManage && <div className="fixture-quick-actions" onClick={(event) => event.stopPropagation()}>
                 <button className="result" onClick={() => onLoadResult(partido)}>{partido.estado?.toUpperCase() === "FINALIZADO" ? "Editar resultado" : "Cargar resultado"}</button>
                 <button className="incidents" onClick={() => onSelectPartido(partido)}>Goles y tarjetas</button>

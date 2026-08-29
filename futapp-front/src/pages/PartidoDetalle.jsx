@@ -29,6 +29,9 @@ function PartidoDetalle() {
     return <p style={{ padding: "20px" }}>Cargando partido...</p>;
   }
 
+  const amarillas = tarjetas.filter((tarjeta) => tarjeta.tipoTarjeta?.toUpperCase() === "AMARILLA").length;
+  const rojas = tarjetas.filter((tarjeta) => tarjeta.tipoTarjeta?.toUpperCase() === "ROJA").length;
+
   return (
     <div className="partido-page">
 
@@ -64,6 +67,7 @@ function PartidoDetalle() {
 
       <main className="partido-content">
         <div className="partido-shell partido-grid">
+          <section className="partido-quick-summary"><div><strong>{goles.length}</strong><span>Goles detallados</span></div><div><strong>{amarillas}</strong><span>Amarillas</span></div><div><strong>{rojas}</strong><span>Rojas</span></div><div><strong>{partido.nombreMvp || "—"}</strong><span>MVP</span></div></section>
           {partido.idMvp && <section className="partido-panel partido-mvp"><h2>⭐ MVP del partido</h2><Link className="profile-entity-link" to={`/jugador/${partido.idMvp}`}><strong>{partido.nombreMvp}</strong></Link></section>}
           <section className="partido-panel">
             <h2>Goles</h2>
