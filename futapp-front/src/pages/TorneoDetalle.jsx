@@ -19,6 +19,7 @@ import TeamManagement from "../components/TeamManagement/TeamManagement";
 import DateFormModal from "../components/DateFormModal/DateFormModal";
 import FixtureGeneratorModal from "../components/FixtureGeneratorModal/FixtureGeneratorModal";
 import TournamentReadiness from "../components/TournamentReadiness/TournamentReadiness";
+import TournamentExports from "../components/TournamentExports/TournamentExports";
 
 function TorneoDetalle() {
   const { id } = useParams();
@@ -244,6 +245,7 @@ const recargarDatosTorneo = () => {
       {puedeEditar && (
         <div className="admin-actions">
           <button onClick={() => setMostrarEdicion(true)}>Editar torneo</button>
+          <TournamentExports torneo={torneo} tabla={tabla} fechas={fechas} partidos={partidos} goleadores={goleadores} />
           {torneo.estado?.toUpperCase() === "BORRADOR" && <button onClick={() => cambiarEstadoTorneo("iniciar")}>Iniciar torneo</button>}
           {torneo.estado?.toUpperCase() === "ACTIVO" && <button onClick={() => cambiarEstadoTorneo("finalizar")}>Finalizar torneo</button>}
           <button onClick={() => { setPartidoResultado(null); setMostrarResultado(true); }}>Cargar resultado</button>
