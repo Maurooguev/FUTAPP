@@ -17,6 +17,7 @@ import TournamentFormModal from "../components/TournamentFormModal/TournamentFor
 import MatchFormModal from "../components/MatchFormModal/MatchFormModal";
 import TeamManagement from "../components/TeamManagement/TeamManagement";
 import DateFormModal from "../components/DateFormModal/DateFormModal";
+import FixtureGeneratorModal from "../components/FixtureGeneratorModal/FixtureGeneratorModal";
 
 function TorneoDetalle() {
   const { id } = useParams();
@@ -40,6 +41,7 @@ function TorneoDetalle() {
   const [fechaEnEdicion, setFechaEnEdicion] = useState(null);
   const [adminError, setAdminError] = useState("");
   const [generandoFixture, setGenerandoFixture] = useState(false);
+  const [mostrarGeneradorFixture, setMostrarGeneradorFixture] = useState(false);
 
   const eliminarRecurso = async (url, message, onSuccess) => {
     if (!window.confirm(message)) return;
@@ -182,7 +184,7 @@ const recargarDatosTorneo = () => {
     .then((data) => setTarjetas(data));
 };
 
-  const generarFixture = async () => {
+  const abrirGeneradorFixture = () => {
     if (equipos.length < 2) {
       setAdminError("Agregá al menos 2 equipos antes de generar el fixture.");
       return;
@@ -191,22 +193,8 @@ const recargarDatosTorneo = () => {
       setAdminError("Para generar el fixture automático, el torneo no debe tener partidos cargados.");
       return;
     }
-    const detalleFechas = fechas.length > 0 ? " Se usarán primero las jornadas vacías que ya creaste." : "";
-    if (!window.confirm(`Se crearán automáticamente todos los cruces entre los ${equipos.length} equipos.${detalleFechas} ¿Continuar?`)) return;
     setAdminError("");
-    setGenerandoFixture(true);
-    try {
-      const response = await apiFetch(`${API_URL}/partidos/torneo/${id}/generar-fixture`, { method: "POST" });
-      const payload = await response.json().catch(() => null);
-      if (!response.ok) throw new Error(payload?.message || "No se pudo generar el fixture");
-      const fechasResponse = await fetch(`${API_URL}/fechas/torneo/${id}`);
-      setFechas(await fechasResponse.json());
-      setPartidos(payload);
-    } catch (requestError) {
-      setAdminError(requestError.message);
-    } finally {
-      setGenerandoFixture(false);
-    }
+    setMostrarGeneradorFixture(true);
   };
 
   return (
@@ -220,7 +208,7 @@ const recargarDatosTorneo = () => {
           <button onClick={() => setMostrarFecha(true)}>Agregar jornada</button>
           <button onClick={() => setMostrarPartido(true)}>Agregar partido</button>
           {torneo.formato?.toUpperCase() === "LIGA" && (
-            <button onClick={generarFixture} disabled={generandoFixture}>
+            <button onClick={abrirGeneradorFixture} disabled={generandoFixture}>
               {generandoFixture ? "Generando..." : "Generar fixture automático"}
             </button>
           )}
@@ -335,6 +323,7 @@ const recargarDatosTorneo = () => {
               onSaved={(savedDate) => setFechas((current) => current.some((item) => item.idFecha === savedDate.idFecha) ? current.map((item) => item.idFecha === savedDate.idFecha ? savedDate : item) : [...current, savedDate])}
             />
           )}
+          {mostrarGeneradorFixture && <FixtureGeneratorModal torneo={torneo} equipos={equipos} fechas={fechas} onClose={() => setMostrarGeneradorFixture(false)} onGenerated={async (generatedMatches) => { setGenerandoFixture(false); setPartidos(generatedMatches); const response = await fetch(`${API_URL}/fechas/torneo/${id}`); setFechas(await response.json()); }} />}
         </div>
       </main>
     </div>

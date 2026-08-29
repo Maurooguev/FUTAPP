@@ -3,6 +3,7 @@ package com.futapp.service;
 import com.futapp.dto.PartidoRequestDTO;
 import com.futapp.dto.PartidoResponseDTO;
 import com.futapp.dto.ResultadoPartidoDTO;
+import com.futapp.dto.FixtureRequestDTO;
 import com.futapp.exception.ResourceNotFoundException;
 import com.futapp.model.Equipo;
 import com.futapp.model.Fecha;
@@ -21,6 +22,8 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 @Service
 public class PartidoService {
@@ -93,7 +96,7 @@ public class PartidoService {
     }
 
     @Transactional
-    public List<PartidoResponseDTO> generarFixture(Long idTorneo) {
+    public List<PartidoResponseDTO> generarFixture(Long idTorneo, FixtureRequestDTO request) {
         authorization.verificarGestion(idTorneo);
         Torneo torneo = torneoRepository.findById(idTorneo)
                 .orElseThrow(() -> new ResourceNotFoundException("Torneo no encontrado con id: " + idTorneo));
@@ -128,6 +131,7 @@ public class PartidoService {
                 .orElse(0) + 1;
 
         int totalFechas = cantidadFechas * (Boolean.TRUE.equals(torneo.getIdaVuelta()) ? 2 : 1);
+        DateTimeFormatter formatoFechaHora = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
         for (int ronda = 0; ronda < totalFechas; ronda++) {
             int rondaBase = ronda % cantidadFechas;
             boolean vuelta = ronda >= cantidadFechas;
@@ -143,6 +147,7 @@ public class PartidoService {
                 fecha = fechaRepository.save(fecha);
             }
 
+            int indiceHorario = 0;
             for (int indice = 0; indice < rotacion.size() / 2; indice++) {
                 Equipo primero = rotacion.get(indice);
                 Equipo segundo = rotacion.get(rotacion.size() - 1 - indice);
@@ -157,12 +162,16 @@ public class PartidoService {
                 partido.setFecha(fecha);
                 partido.setEquipoLocal(invertirLocalia ? segundo : primero);
                 partido.setEquipoVisitante(invertirLocalia ? primero : segundo);
-                partido.setFechaHora("");
+                LocalDateTime fechaHora = LocalDateTime.of(
+                        request.fechaInicio().plusDays((long) ronda * request.diasEntreJornadas()),
+                        request.horaInicio()).plusMinutes((long) indiceHorario * request.minutosEntrePartidos());
+                partido.setFechaHora(fechaHora.format(formatoFechaHora));
                 partido.setEstado("PROGRAMADO");
                 partido.setGolesLocal(0);
                 partido.setGolesVisitante(0);
                 partido.setObservaciones("Horario a confirmar");
                 partidosGenerados.add(partidoRepository.save(partido));
+                indiceHorario++;
             }
 
             Equipo ultimo = rotacion.remove(rotacion.size() - 1);

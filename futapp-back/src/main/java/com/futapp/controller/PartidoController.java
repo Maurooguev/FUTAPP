@@ -5,6 +5,7 @@ import com.futapp.dto.PartidoResponseDTO;
 import com.futapp.service.PartidoService;
 import org.springframework.web.bind.annotation.*;
 import com.futapp.dto.ResultadoPartidoDTO;
+import com.futapp.dto.FixtureRequestDTO;
 import jakarta.validation.Valid;
 
 import java.util.List;
@@ -45,8 +46,9 @@ public class PartidoController {
     }
 
     @PostMapping("/torneo/{idTorneo}/generar-fixture")
-    public List<PartidoResponseDTO> generarFixture(@PathVariable Long idTorneo) {
-        return partidoService.generarFixture(idTorneo);
+    public List<PartidoResponseDTO> generarFixture(@PathVariable Long idTorneo,
+                                                   @Valid @RequestBody FixtureRequestDTO request) {
+        return partidoService.generarFixture(idTorneo, request);
     }
 
     @PutMapping("/{id}")
