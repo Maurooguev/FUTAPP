@@ -3,12 +3,14 @@ import "./MatchModal.css";
 import { API_URL, apiFetch } from "../../config/api";
 import MatchIncidentForm from "./MatchIncidentForm";
 import { Link } from "react-router-dom";
+import MatchMvpSelector from "./MatchMvpSelector";
 
 function MatchModal({ partido, onClose, canManage, onChanged }) {
   const [goles, setGoles] = useState([]);
   const [tarjetas, setTarjetas] = useState([]);
   const [formType, setFormType] = useState(null);
   const [error, setError] = useState("");
+  const [currentMatch, setCurrentMatch] = useState(partido);
 
   const deleteIncident = async (type, id) => {
     if (!window.confirm("¿Eliminar esta incidencia?")) return;
@@ -114,6 +116,7 @@ function MatchModal({ partido, onClose, canManage, onChanged }) {
             )}
           </section>
         </div>
+        {!isScheduled && <div className="match-mvp-block">{currentMatch?.idMvp && <p>⭐ MVP: <Link to={`/jugador/${currentMatch.idMvp}`} onClick={onClose}>{currentMatch.nombreMvp}</Link></p>}{canManage && <MatchMvpSelector partido={currentMatch || partido} onSaved={(updated) => { setCurrentMatch(updated); onChanged?.(); }} />}</div>}
         {canManage && isScheduled && <p className="match-result-hint">Primero cargá el resultado del partido para habilitar goles y tarjetas.</p>}
         {error && <p className="tournament-form-error">{error}</p>}
       </div>

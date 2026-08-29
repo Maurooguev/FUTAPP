@@ -1202,6 +1202,7 @@ button {
   margin-bottom: 12px;
   font-size: 20px;
 }
+.partido-mvp { grid-column: 1 / -1; border-left: 4px solid #f59e0b; }
 
 .incidencia-card {
   display: grid;

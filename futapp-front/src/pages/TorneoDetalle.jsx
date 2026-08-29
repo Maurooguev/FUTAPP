@@ -294,6 +294,7 @@ const recargarDatosTorneo = () => {
           />
 
           <MatchModal
+            key={partidoSeleccionado?.idPartido ?? "closed-match"}
             partido={partidoSeleccionado}
             onClose={() => setPartidoSeleccionado(null)}
             canManage={puedeEditar}

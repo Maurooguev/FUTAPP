@@ -4,6 +4,7 @@ import com.futapp.dto.PartidoRequestDTO;
 import com.futapp.dto.PartidoResponseDTO;
 import com.futapp.dto.ResultadoPartidoDTO;
 import com.futapp.dto.FixtureRequestDTO;
+import com.futapp.dto.MvpPartidoRequestDTO;
 import com.futapp.exception.ResourceNotFoundException;
 import com.futapp.model.Equipo;
 import com.futapp.model.Fecha;
@@ -15,6 +16,8 @@ import com.futapp.repository.PartidoRepository;
 import com.futapp.repository.TorneoRepository;
 import com.futapp.repository.GolRepository;
 import com.futapp.repository.InscripcionEquipoRepository;
+import com.futapp.repository.InscripcionJugadorRepository;
+import com.futapp.repository.JugadorRepository;
 import com.futapp.repository.TarjetaRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,6 +40,8 @@ public class PartidoService {
     private final TorneoAuthorizationService authorization;
     private final NotificacionService notificaciones;
     private final InscripcionEquipoRepository inscripcionesEquipo;
+    private final InscripcionJugadorRepository inscripcionesJugador;
+    private final JugadorRepository jugadores;
 
     public PartidoService(PartidoRepository partidoRepository,
                           TorneoRepository torneoRepository,
@@ -46,7 +51,9 @@ public class PartidoService {
                           TarjetaRepository tarjetaRepository,
                           TorneoAuthorizationService authorization,
                           NotificacionService notificaciones,
-                          InscripcionEquipoRepository inscripcionesEquipo) {
+                          InscripcionEquipoRepository inscripcionesEquipo,
+                          InscripcionJugadorRepository inscripcionesJugador,
+                          JugadorRepository jugadores) {
         this.partidoRepository = partidoRepository;
         this.torneoRepository = torneoRepository;
         this.fechaRepository = fechaRepository;
@@ -56,6 +63,8 @@ public class PartidoService {
         this.authorization = authorization;
         this.notificaciones = notificaciones;
         this.inscripcionesEquipo = inscripcionesEquipo;
+        this.inscripcionesJugador = inscripcionesJugador;
+        this.jugadores = jugadores;
     }
 
     public List<PartidoResponseDTO> listarPartidos() {
@@ -292,6 +301,9 @@ public class PartidoService {
                 partido.getGolesVisitante(),
                 partido.getObservaciones(),
                 partido.getCancha(),
+                partido.getMvp() != null ? partido.getMvp().getIdJugador() : null,
+                partido.getMvp() != null ? nombreJugador(partido.getMvp()) : null,
+                partido.getMvp() != null ? partido.getMvp().getFoto() : null,
                 partido.getTorneo().getIdTorneo(),
                 partido.getTorneo().getNombre(),
                 partido.getFecha().getIdFecha(),
@@ -305,6 +317,33 @@ public class PartidoService {
 
     private String normalizarOpcional(String valor) {
         return valor == null || valor.isBlank() ? null : valor.trim();
+    }
+
+    private String nombreJugador(com.futapp.model.Jugador jugador) {
+        String apellido = jugador.getApellido() == null ? "" : " " + jugador.getApellido();
+        return (jugador.getNombre() + apellido).trim();
+    }
+
+    @Transactional
+    public PartidoResponseDTO elegirMvp(Long idPartido, MvpPartidoRequestDTO request) {
+        Partido partido = partidoRepository.findById(idPartido)
+                .orElseThrow(() -> new ResourceNotFoundException("Partido no encontrado con id: " + idPartido));
+        authorization.verificarGestion(partido.getTorneo());
+        if (!"FINALIZADO".equalsIgnoreCase(partido.getEstado())) {
+            throw new IllegalArgumentException("Primero cargá el resultado para elegir el MVP");
+        }
+        if (request.idJugador() == null) {
+            partido.setMvp(null);
+            return convertirAResponseDTO(partidoRepository.save(partido));
+        }
+        var idsEquipo = java.util.List.of(partido.getEquipoLocal().getIdEquipo(), partido.getEquipoVisitante().getIdEquipo());
+        if (!inscripcionesJugador.existsByJugadorIdJugadorAndInscripcionEquipoTorneoIdTorneoAndInscripcionEquipoEquipoIdEquipoInAndEstado(
+                request.idJugador(), partido.getTorneo().getIdTorneo(), idsEquipo, "ACTIVA")) {
+            throw new IllegalArgumentException("El MVP debe pertenecer al plantel de uno de los equipos del partido");
+        }
+        partido.setMvp(jugadores.findById(request.idJugador())
+                .orElseThrow(() -> new ResourceNotFoundException("Jugador no encontrado")));
+        return convertirAResponseDTO(partidoRepository.save(partido));
     }
 
     public PartidoResponseDTO cargarResultado(Long id, ResultadoPartidoDTO dto) {

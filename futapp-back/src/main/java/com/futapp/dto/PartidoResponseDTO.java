@@ -9,6 +9,9 @@ public class PartidoResponseDTO {
     private Integer golesVisitante;
     private String observaciones;
     private String cancha;
+    private Long idMvp;
+    private String nombreMvp;
+    private String fotoMvp;
 
     private Long idTorneo;
     private String nombreTorneo;
@@ -27,6 +30,7 @@ public class PartidoResponseDTO {
 
     public PartidoResponseDTO(Long idPartido, String fechaHora, String estado,
                               Integer golesLocal, Integer golesVisitante, String observaciones, String cancha,
+                              Long idMvp, String nombreMvp, String fotoMvp,
                               Long idTorneo, String nombreTorneo,
                               Long idFecha, Integer numeroFecha,
                               Long idEquipoLocal, String nombreEquipoLocal,
@@ -38,6 +42,9 @@ public class PartidoResponseDTO {
         this.golesVisitante = golesVisitante;
         this.observaciones = observaciones;
         this.cancha = cancha;
+        this.idMvp = idMvp;
+        this.nombreMvp = nombreMvp;
+        this.fotoMvp = fotoMvp;
         this.idTorneo = idTorneo;
         this.nombreTorneo = nombreTorneo;
         this.idFecha = idFecha;
@@ -98,6 +105,12 @@ public class PartidoResponseDTO {
 
     public String getCancha() { return cancha; }
     public void setCancha(String cancha) { this.cancha = cancha; }
+    public Long getIdMvp() { return idMvp; }
+    public void setIdMvp(Long idMvp) { this.idMvp = idMvp; }
+    public String getNombreMvp() { return nombreMvp; }
+    public void setNombreMvp(String nombreMvp) { this.nombreMvp = nombreMvp; }
+    public String getFotoMvp() { return fotoMvp; }
+    public void setFotoMvp(String fotoMvp) { this.fotoMvp = fotoMvp; }
 
     public Long getIdTorneo() {
         return idTorneo;

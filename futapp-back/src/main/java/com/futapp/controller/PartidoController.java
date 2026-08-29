@@ -6,6 +6,7 @@ import com.futapp.service.PartidoService;
 import org.springframework.web.bind.annotation.*;
 import com.futapp.dto.ResultadoPartidoDTO;
 import com.futapp.dto.FixtureRequestDTO;
+import com.futapp.dto.MvpPartidoRequestDTO;
 import jakarta.validation.Valid;
 
 import java.util.List;
@@ -63,6 +64,11 @@ public class PartidoController {
             @RequestBody ResultadoPartidoDTO dto) {
 
         return partidoService.cargarResultado(id, dto);
+    }
+
+    @PutMapping("/{id}/mvp")
+    public PartidoResponseDTO elegirMvp(@PathVariable Long id, @RequestBody MvpPartidoRequestDTO request) {
+        return partidoService.elegirMvp(id, request);
     }
 
     @DeleteMapping("/{id}")

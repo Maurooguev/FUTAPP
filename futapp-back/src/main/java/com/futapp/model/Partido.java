@@ -28,6 +28,10 @@ public class Partido {
     private String cancha;
 
     @ManyToOne
+    @JoinColumn(name = "id_mvp")
+    private Jugador mvp;
+
+    @ManyToOne
     @JoinColumn(name = "id_torneo", nullable = false)
     private Torneo torneo;
 
@@ -96,6 +100,8 @@ public class Partido {
 
     public String getCancha() { return cancha; }
     public void setCancha(String cancha) { this.cancha = cancha; }
+    public Jugador getMvp() { return mvp; }
+    public void setMvp(Jugador mvp) { this.mvp = mvp; }
 
     public Torneo getTorneo() {
         return torneo;

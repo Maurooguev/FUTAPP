@@ -64,6 +64,7 @@ function PartidoDetalle() {
 
       <main className="partido-content">
         <div className="partido-shell partido-grid">
+          {partido.idMvp && <section className="partido-panel partido-mvp"><h2>⭐ MVP del partido</h2><Link className="profile-entity-link" to={`/jugador/${partido.idMvp}`}><strong>{partido.nombreMvp}</strong></Link></section>}
           <section className="partido-panel">
             <h2>Goles</h2>
 
