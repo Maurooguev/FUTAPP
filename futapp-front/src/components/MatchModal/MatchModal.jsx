@@ -39,7 +39,7 @@ function MatchModal({ partido, onClose, canManage, onChanged }) {
   }, [partido]);
 
   if (!partido) return null;
-  const isScheduled = partido.estado?.toUpperCase() === "PROGRAMADO";
+  const isFinalized = partido.estado?.toUpperCase() === "FINALIZADO";
 
   return (
     <div className="match-modal-backdrop" onClick={onClose}>
@@ -73,7 +73,7 @@ function MatchModal({ partido, onClose, canManage, onChanged }) {
         <div className="match-modal-grid">
           <section>
             <h3>Goles</h3>
-            {canManage && !isScheduled && !formType && <button className="match-add-event" onClick={() => setFormType("goal")}>+ Agregar gol</button>}
+            {canManage && isFinalized && !formType && <button className="match-add-event" onClick={() => setFormType("goal")}>+ Agregar gol</button>}
             {formType === "goal" && <MatchIncidentForm partido={partido} type="goal" onCancel={() => setFormType(null)} onSaved={(goal) => { setGoles((current) => [...current, goal]); onChanged?.(); }} />}
 
             {goles.length === 0 ? (
@@ -94,7 +94,7 @@ function MatchModal({ partido, onClose, canManage, onChanged }) {
 
           <section>
             <h3>Tarjetas</h3>
-            {canManage && !isScheduled && !formType && <button className="match-add-event" onClick={() => setFormType("card")}>+ Agregar tarjeta</button>}
+            {canManage && isFinalized && !formType && <button className="match-add-event" onClick={() => setFormType("card")}>+ Agregar tarjeta</button>}
             {formType === "card" && <MatchIncidentForm partido={partido} type="card" onCancel={() => setFormType(null)} onSaved={(card) => { setTarjetas((current) => [...current, card]); onChanged?.(); }} />}
 
             {tarjetas.length === 0 ? (
@@ -116,8 +116,8 @@ function MatchModal({ partido, onClose, canManage, onChanged }) {
             )}
           </section>
         </div>
-        {!isScheduled && <div className="match-mvp-block">{currentMatch?.idMvp && <p>⭐ MVP: <Link to={`/jugador/${currentMatch.idMvp}`} onClick={onClose}>{currentMatch.nombreMvp}</Link></p>}{canManage && <MatchMvpSelector partido={currentMatch || partido} onSaved={(updated) => { setCurrentMatch(updated); onChanged?.(); }} />}</div>}
-        {canManage && isScheduled && <p className="match-result-hint">Primero cargá el resultado del partido para habilitar goles y tarjetas.</p>}
+        {isFinalized && <div className="match-mvp-block">{currentMatch?.idMvp && <p>⭐ MVP: <Link to={`/jugador/${currentMatch.idMvp}`} onClick={onClose}>{currentMatch.nombreMvp}</Link></p>}{canManage && <MatchMvpSelector partido={currentMatch || partido} onSaved={(updated) => { setCurrentMatch(updated); onChanged?.(); }} />}</div>}
+        {canManage && !isFinalized && <p className="match-result-hint">{partido.estado?.toUpperCase() === "SUSPENDIDO" ? "Reprogramá el partido antes de cargar el resultado." : "Primero cargá el resultado del partido para habilitar goles, tarjetas y MVP."}</p>}
         {error && <p className="tournament-form-error">{error}</p>}
         <Link className="match-full-link" to={`/partido/${partido.idPartido}`} onClick={onClose}>Ver página completa del partido →</Link>
       </div>

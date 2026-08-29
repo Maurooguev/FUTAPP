@@ -143,6 +143,8 @@
 .fixture-quick-actions .result { background: #dcfce7; color: #166534; }
 .fixture-quick-actions .incidents { background: #fef3c7; color: #92400e; }
 .fixture-quick-actions .danger { background: #fee2e2; color: #b91c1c; }
+.fixture-quick-actions .suspend { background: #ffedd5; color: #c2410c; }
+.fixture-suspension-reason { margin-top: 5px; color: #c2410c !important; font-weight: 700; }
 .fixture-block { margin-bottom: 22px; }
 .fixture-header { margin-bottom: 10px; }
 .fixture-header h2 { margin-bottom: 3px; font-size: 21px; }

@@ -138,8 +138,8 @@ public class GolService {
             throw new IllegalArgumentException("El equipo indicado no participa en el partido");
         }
 
-        if ("PROGRAMADO".equalsIgnoreCase(partido.getEstado())) {
-            throw new IllegalArgumentException("No se pueden registrar goles en un partido programado");
+        if (!"FINALIZADO".equalsIgnoreCase(partido.getEstado())) {
+            throw new IllegalArgumentException("Solo se pueden registrar goles en un partido finalizado");
         }
     }
 

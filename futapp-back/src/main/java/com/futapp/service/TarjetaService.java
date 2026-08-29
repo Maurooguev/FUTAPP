@@ -135,8 +135,8 @@ public class TarjetaService {
             throw new IllegalArgumentException("El jugador seleccionado no pertenece a un equipo que participe en el partido");
         }
 
-        if ("PROGRAMADO".equalsIgnoreCase(partido.getEstado())) {
-            throw new IllegalArgumentException("No se pueden registrar tarjetas en un partido programado");
+        if (!"FINALIZADO".equalsIgnoreCase(partido.getEstado())) {
+            throw new IllegalArgumentException("Solo se pueden registrar tarjetas en un partido finalizado");
         }
     }
 

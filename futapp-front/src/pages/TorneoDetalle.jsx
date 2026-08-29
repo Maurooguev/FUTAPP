@@ -220,6 +220,23 @@ const recargarDatosTorneo = () => {
     } catch (requestError) { setAdminError(requestError.message); } finally { setGenerandoFixture(false); }
   };
 
+  const suspenderPartido = async (partido) => {
+    const motivo = window.prompt(`Motivo de la suspensión de ${partido.nombreEquipoLocal} vs ${partido.nombreEquipoVisitante}:`);
+    if (motivo === null) return;
+    if (!motivo.trim()) { setAdminError("Indicá el motivo de la suspensión."); return; }
+    setAdminError("");
+    try {
+      const response = await apiFetch(`${API_URL}/partidos/${partido.idPartido}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({
+        fechaHora: partido.fechaHora, estado: "SUSPENDIDO", golesLocal: partido.golesLocal ?? 0, golesVisitante: partido.golesVisitante ?? 0,
+        observaciones: motivo.trim(), cancha: partido.cancha, idTorneo: Number(id), idFecha: partido.idFecha,
+        idEquipoLocal: partido.idEquipoLocal, idEquipoVisitante: partido.idEquipoVisitante,
+      }) });
+      const payload = await response.json().catch(() => null);
+      if (!response.ok) throw new Error(payload?.message || "No se pudo suspender el partido");
+      setPartidos((current) => current.map((item) => item.idPartido === payload.idPartido ? payload : item));
+    } catch (requestError) { setAdminError(requestError.message); }
+  };
+
   return (
     <div className="torneo-page">
       <TournamentHero torneo={torneo} fechaActual={fechaActual} />
@@ -299,6 +316,7 @@ const recargarDatosTorneo = () => {
             }}
             onDeleteDate={(fecha) => eliminarRecurso(`${API_URL}/fechas/${fecha.idFecha}`, `¿Eliminar la fecha ${fecha.numeroFecha}?`, () => setFechas((current) => current.filter((item) => item.idFecha !== fecha.idFecha)))}
             onEditMatch={(partido) => { setPartidoEnEdicion(partido); setMostrarPartido(true); }}
+            onSuspendMatch={suspenderPartido}
             onDeleteMatch={(partido) => eliminarRecurso(`${API_URL}/partidos/${partido.idPartido}`, `¿Eliminar ${partido.nombreEquipoLocal} vs ${partido.nombreEquipoVisitante}?`, () => setPartidos((current) => current.filter((item) => item.idPartido !== partido.idPartido)))}
             onLoadResult={(partido) => { setPartidoResultado(partido); setMostrarResultado(true); }}
           />

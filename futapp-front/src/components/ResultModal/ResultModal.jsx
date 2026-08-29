@@ -3,7 +3,7 @@ import "./ResultModal.css";
 import { API_URL, apiFetch } from "../../config/api";
 
 function ResultModal({ partidos, partidoInicial, onClose, onResultadoGuardado }) {
-  const partidosDisponibles = partidos;
+  const partidosDisponibles = partidos.filter((partido) => ["PROGRAMADO", "FINALIZADO"].includes(partido.estado?.toUpperCase()));
 
   const [idPartido, setIdPartido] = useState(partidoInicial?.idPartido ?? "");
   const [golesLocal, setGolesLocal] = useState(partidoInicial?.golesLocal ?? 0);

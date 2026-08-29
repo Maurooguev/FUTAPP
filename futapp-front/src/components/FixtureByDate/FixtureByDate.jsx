@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import "./FixtureByDate.css";
 
-function FixtureByDate({ fechas, partidos, onSelectPartido, canManage, onEditDate, onCloseDate, onDeleteDate, onEditMatch, onDeleteMatch, onLoadResult }) {
+function FixtureByDate({ fechas, partidos, onSelectPartido, canManage, onEditDate, onCloseDate, onDeleteDate, onEditMatch, onSuspendMatch, onDeleteMatch, onLoadResult }) {
   const fechasOrdenadas = useMemo(() => {
     return [...fechas].sort((a, b) => a.numeroFecha - b.numeroFecha);
   }, [fechas]);
@@ -112,11 +112,13 @@ function FixtureByDate({ fechas, partidos, onSelectPartido, canManage, onEditDat
               </div>
 
               <p>{partido.fechaHora || "Horario a confirmar"}{partido.cancha ? ` · ${partido.cancha}` : ""}</p>
+              {partido.estado?.toUpperCase() === "SUSPENDIDO" && partido.observaciones && <p className="fixture-suspension-reason">Motivo: {partido.observaciones}</p>}
               {partido.idMvp && <Link className="fixture-mvp" to={`/jugador/${partido.idMvp}`} onClick={(event) => event.stopPropagation()}>⭐ MVP: {partido.nombreMvp}</Link>}
               {canManage && <div className="fixture-quick-actions" onClick={(event) => event.stopPropagation()}>
-                <button className="result" onClick={() => onLoadResult(partido)}>{partido.estado?.toUpperCase() === "FINALIZADO" ? "Editar resultado" : "Cargar resultado"}</button>
+                {partido.estado?.toUpperCase() !== "SUSPENDIDO" && <button className="result" onClick={() => onLoadResult(partido)}>{partido.estado?.toUpperCase() === "FINALIZADO" ? "Editar resultado" : "Cargar resultado"}</button>}
                 <button className="incidents" onClick={() => onSelectPartido(partido)}>Goles y tarjetas</button>
-                <button onClick={() => onEditMatch(partido)}>Editar</button>
+                {partido.estado?.toUpperCase() === "PROGRAMADO" && <button className="suspend" onClick={() => onSuspendMatch(partido)}>Suspender</button>}
+                <button onClick={() => onEditMatch(partido)}>{partido.estado?.toUpperCase() === "SUSPENDIDO" ? "Reprogramar" : "Editar"}</button>
                 <button className="danger" onClick={() => onDeleteMatch(partido)}>Eliminar</button>
               </div>}
             </div>

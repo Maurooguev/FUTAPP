@@ -367,6 +367,10 @@ public class PartidoService {
                 .orElseThrow(() -> new ResourceNotFoundException("Partido no encontrado con id: " + id));
         authorization.verificarGestion(partido.getTorneo());
 
+        if ("SUSPENDIDO".equalsIgnoreCase(partido.getEstado()) || "CANCELADO".equalsIgnoreCase(partido.getEstado())) {
+            throw new IllegalArgumentException("Reprogramá el partido antes de cargar el resultado");
+        }
+
         if (dto.getGolesLocal() == null || dto.getGolesVisitante() == null) {
             throw new IllegalArgumentException("Debe informar ambos goles");
         }
