@@ -27,7 +27,8 @@ class FusionEquipoServiceTests {
     private final TarjetaRepository tarjetas = mock(TarjetaRepository.class);
     private final EquipoAdministradorRepository administradores = mock(EquipoAdministradorRepository.class);
     private final SolicitudReclamoRepository reclamos = mock(SolicitudReclamoRepository.class);
-    private final FusionEquipoService service = new FusionEquipoService(equipos, inscripciones, jugadores, partidos, goles, tarjetas, administradores, reclamos);
+    private final EquipoAliasRepository aliases = mock(EquipoAliasRepository.class);
+    private final FusionEquipoService service = new FusionEquipoService(equipos, inscripciones, jugadores, partidos, goles, tarjetas, administradores, reclamos, aliases);
 
     @AfterEach void limpiar() { SecurityContextHolder.clearContext(); }
 

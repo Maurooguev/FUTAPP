@@ -13,6 +13,7 @@ import com.futapp.repository.PartidoRepository;
 import com.futapp.repository.InscripcionEquipoRepository;
 import com.futapp.repository.InscripcionJugadorRepository;
 import com.futapp.repository.EquipoAdministradorRepository;
+import com.futapp.repository.EquipoAliasRepository;
 import com.futapp.model.Usuario;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -35,6 +36,7 @@ public class EquipoService {
     private final InscripcionJugadorRepository inscripcionesJugador;
     private final EquipoAuthorizationService equipoAuthorization;
     private final EquipoAdministradorRepository administradores;
+    private final EquipoAliasRepository aliases;
 
     public EquipoService(EquipoRepository equipoRepository, TorneoRepository torneoRepository,
                          JugadorRepository jugadorRepository, PartidoRepository partidoRepository,
@@ -42,7 +44,8 @@ public class EquipoService {
                          InscripcionEquipoRepository inscripcionesEquipo,
                          InscripcionJugadorRepository inscripcionesJugador,
                          EquipoAuthorizationService equipoAuthorization,
-                         EquipoAdministradorRepository administradores) {
+                         EquipoAdministradorRepository administradores,
+                         EquipoAliasRepository aliases) {
         this.equipoRepository = equipoRepository;
         this.torneoRepository = torneoRepository;
         this.jugadorRepository = jugadorRepository;
@@ -52,6 +55,7 @@ public class EquipoService {
         this.inscripcionesJugador = inscripcionesJugador;
         this.equipoAuthorization = equipoAuthorization;
         this.administradores = administradores;
+        this.aliases = aliases;
     }
 
     public List<EquipoResponseDTO> listarEquipos() {
@@ -82,8 +86,11 @@ public class EquipoService {
     }
 
     public EquipoResponseDTO buscarPorCodigo(String codigo) {
-        return convertirAResponseDTO(equipoRepository.findByCodigoPublicoIgnoreCase(codigo.trim())
-                .orElseThrow(() -> new ResourceNotFoundException("No encontramos un equipo con ese código")));
+        String normalizado = codigo.trim();
+        Equipo equipo = equipoRepository.findByCodigoPublicoIgnoreCase(normalizado)
+                .orElseGet(() -> aliases.findByCodigoIgnoreCase(normalizado).map(item -> item.getEquipo())
+                        .orElseThrow(() -> new ResourceNotFoundException("No encontramos un equipo con ese código")));
+        return convertirAResponseDTO(equipo);
     }
 
     public boolean puedeGestionar(Long id) {

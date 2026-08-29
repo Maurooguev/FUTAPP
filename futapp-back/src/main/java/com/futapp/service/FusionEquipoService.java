@@ -23,15 +23,17 @@ public class FusionEquipoService {
     private final TarjetaRepository tarjetas;
     private final EquipoAdministradorRepository administradores;
     private final SolicitudReclamoRepository reclamos;
+    private final EquipoAliasRepository aliases;
 
     public FusionEquipoService(EquipoRepository equipos, InscripcionEquipoRepository inscripciones,
                                JugadorRepository jugadores, PartidoRepository partidos,
                                GolRepository goles, TarjetaRepository tarjetas,
                                EquipoAdministradorRepository administradores,
-                               SolicitudReclamoRepository reclamos) {
+                               SolicitudReclamoRepository reclamos, EquipoAliasRepository aliases) {
         this.equipos = equipos; this.inscripciones = inscripciones; this.jugadores = jugadores;
         this.partidos = partidos; this.goles = goles; this.tarjetas = tarjetas;
         this.administradores = administradores; this.reclamos = reclamos;
+        this.aliases = aliases;
     }
 
     @Transactional
@@ -84,6 +86,13 @@ public class FusionEquipoService {
 
         completarDatosFaltantes(oficial, duplicado);
         equipos.save(oficial);
+        var aliasCodigoDuplicado = new com.futapp.model.EquipoAlias();
+        aliasCodigoDuplicado.setCodigo(duplicado.getCodigoPublico());
+        aliasCodigoDuplicado.setEquipo(oficial);
+        aliases.save(aliasCodigoDuplicado);
+        var aliasesAnteriores = aliases.findByEquipoIdEquipo(idDuplicado);
+        aliasesAnteriores.forEach(alias -> alias.setEquipo(oficial));
+        aliases.saveAll(aliasesAnteriores);
         equipos.delete(duplicado);
     }
 
