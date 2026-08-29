@@ -21,9 +21,9 @@ function FixtureByDate({ fechas, partidos, onSelectPartido, canManage, onEditDat
         return fechaConPartidoProgramado || fechasOrdenadas[fechasOrdenadas.length - 1];
     }, [fechasOrdenadas, partidos]);
 
-    const [fechaSeleccionada, setFechaSeleccionada] = useState(null);
+    const [fechaSeleccionadaId, setFechaSeleccionadaId] = useState(null);
 
-    const fechaActual = fechaSeleccionada || fechaInicial;
+    const fechaActual = fechasOrdenadas.find((fecha) => fecha.idFecha === fechaSeleccionadaId) || fechaInicial;
 
   const partidosDeFecha = useMemo(() => {
     if (!fechaActual) return [];
@@ -32,6 +32,10 @@ function FixtureByDate({ fechas, partidos, onSelectPartido, canManage, onEditDat
       (partido) => partido.idFecha === fechaActual.idFecha
     );
   }, [partidos, fechaActual]);
+
+  const partidosFinalizados = partidosDeFecha.filter((partido) => partido.estado?.toUpperCase() === "FINALIZADO");
+  const partidosPendientes = partidosDeFecha.filter((partido) => partido.estado?.toUpperCase() !== "FINALIZADO");
+  const progreso = partidosDeFecha.length === 0 ? 0 : Math.round((partidosFinalizados.length / partidosDeFecha.length) * 100);
 
   if (fechasOrdenadas.length === 0) {
     return (
@@ -62,18 +66,20 @@ function FixtureByDate({ fechas, partidos, onSelectPartido, canManage, onEditDat
                 ? "fixture-tab active"
                 : "fixture-tab"
             }
-            onClick={() => setFechaSeleccionada(fecha)}
+            onClick={() => setFechaSeleccionadaId(fecha.idFecha)}
           >
             Fecha {fecha.numeroFecha}
+            <small>{partidos.filter((partido) => partido.idFecha === fecha.idFecha && partido.estado?.toUpperCase() === "FINALIZADO").length}/{partidos.filter((partido) => partido.idFecha === fecha.idFecha).length}</small>
           </button>
         ))}
       </div>
 
       <div className="fixture-current">
-        <h3>Fecha {fechaActual.numeroFecha}</h3>
-        <span>{fechaActual.estado}</span>
+        <div className="fixture-current-copy"><h3>Fecha {fechaActual.numeroFecha}</h3><span>{fechaActual.estado}</span></div>
+        <div className="fixture-progress"><div><strong>{partidosFinalizados.length} de {partidosDeFecha.length}</strong><span> resultados cargados</span></div><div className="fixture-progress-track"><i style={{ width: `${progreso}%` }} /></div></div>
         {canManage && <div className="fixture-admin-actions">
-          {fechaActual.estado?.toUpperCase() !== "FINALIZADA" && <button className="close-date" onClick={() => onCloseDate(fechaActual)}>Cerrar jornada</button>}
+          {partidosPendientes.length > 0 && <button className="next-result" onClick={() => onLoadResult(partidosPendientes[0])}>Cargar próximo resultado</button>}
+          {fechaActual.estado?.toUpperCase() !== "FINALIZADA" && <button className="close-date" disabled={partidosDeFecha.length === 0 || partidosPendientes.length > 0} title={partidosPendientes.length > 0 ? "Primero cargá todos los resultados" : "Cerrar jornada"} onClick={() => onCloseDate(fechaActual)}>Cerrar jornada</button>}
           <button onClick={() => onEditDate(fechaActual)}>Editar</button>
           <button className="danger" onClick={() => onDeleteDate(fechaActual)}>Eliminar</button>
         </div>}
@@ -107,7 +113,7 @@ function FixtureByDate({ fechas, partidos, onSelectPartido, canManage, onEditDat
 
               <p>{partido.fechaHora || partido.observaciones || "Horario a confirmar"}</p>
               {canManage && <div className="fixture-quick-actions" onClick={(event) => event.stopPropagation()}>
-                <button className="result" onClick={() => onLoadResult(partido)}>Cargar resultado</button>
+                <button className="result" onClick={() => onLoadResult(partido)}>{partido.estado?.toUpperCase() === "FINALIZADO" ? "Editar resultado" : "Cargar resultado"}</button>
                 <button className="incidents" onClick={() => onSelectPartido(partido)}>Goles y tarjetas</button>
                 <button onClick={() => onEditMatch(partido)}>Editar</button>
                 <button className="danger" onClick={() => onDeleteMatch(partido)}>Eliminar</button>
