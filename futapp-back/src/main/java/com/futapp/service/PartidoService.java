@@ -213,6 +213,21 @@ public class PartidoService {
         partidoRepository.deleteById(id);
     }
 
+    @Transactional
+    public void eliminarFixture(Long idTorneo) {
+        authorization.verificarGestion(idTorneo);
+        List<Partido> partidos = partidoRepository.findByTorneoIdTorneo(idTorneo);
+        if (partidos.isEmpty()) throw new IllegalArgumentException("El torneo todavía no tiene un fixture");
+        if (partidos.stream().anyMatch(partido -> "FINALIZADO".equalsIgnoreCase(partido.getEstado()))) {
+            throw new IllegalArgumentException("No se puede rehacer el fixture porque ya hay resultados cargados");
+        }
+        if (golRepository.existsByPartidoTorneoIdTorneo(idTorneo)
+                || tarjetaRepository.existsByPartidoTorneoIdTorneo(idTorneo)) {
+            throw new IllegalArgumentException("No se puede rehacer el fixture porque ya tiene goles o tarjetas");
+        }
+        partidoRepository.deleteAll(partidos);
+    }
+
     private void cargarDatosPartido(Partido partido, PartidoRequestDTO requestDTO) {
         Torneo torneo = torneoRepository.findById(requestDTO.getIdTorneo())
                 .orElseThrow(() -> new ResourceNotFoundException("Torneo no encontrado con id: " + requestDTO.getIdTorneo()));

@@ -210,6 +210,16 @@ const recargarDatosTorneo = () => {
     setMostrarGeneradorFixture(true);
   };
 
+  const rehacerFixture = async () => {
+    if (!window.confirm("¿Eliminar todo el fixture y volver a generarlo? Las jornadas se conservarán. Esta acción solo está disponible si todavía no hay resultados ni incidencias.")) return;
+    setAdminError(""); setGenerandoFixture(true);
+    try {
+      const response = await apiFetch(`${API_URL}/partidos/torneo/${id}/fixture`, { method: "DELETE" });
+      if (!response.ok) { const payload = await response.json().catch(() => null); throw new Error(payload?.message || "No se pudo rehacer el fixture"); }
+      setPartidos([]); setMostrarGeneradorFixture(true);
+    } catch (requestError) { setAdminError(requestError.message); } finally { setGenerandoFixture(false); }
+  };
+
   return (
     <div className="torneo-page">
       <TournamentHero torneo={torneo} fechaActual={fechaActual} />
@@ -223,8 +233,8 @@ const recargarDatosTorneo = () => {
           <button onClick={() => setMostrarFecha(true)}>Agregar jornada</button>
           <button onClick={() => setMostrarPartido(true)}>Agregar partido</button>
           {torneo.formato?.toUpperCase() === "LIGA" && (
-            <button onClick={abrirGeneradorFixture} disabled={generandoFixture}>
-              {generandoFixture ? "Generando..." : "Generar fixture automático"}
+            <button onClick={partidos.length > 0 ? rehacerFixture : abrirGeneradorFixture} disabled={generandoFixture}>
+              {generandoFixture ? "Procesando..." : partidos.length > 0 ? "Rehacer fixture" : "Generar fixture automático"}
             </button>
           )}
         </div>

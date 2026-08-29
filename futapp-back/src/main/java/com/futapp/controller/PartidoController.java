@@ -76,4 +76,9 @@ public class PartidoController {
         partidoService.eliminarPartido(id);
         return "Partido eliminado correctamente";
     }
+
+    @DeleteMapping("/torneo/{idTorneo}/fixture")
+    public void eliminarFixture(@PathVariable Long idTorneo) {
+        partidoService.eliminarFixture(idTorneo);
+    }
 }
