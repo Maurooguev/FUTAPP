@@ -287,7 +287,7 @@ const recargarDatosTorneo = () => {
             />
           </div>
 
-          <StandingsTable tabla={tabla} />
+          {torneo.formato?.toLowerCase() !== "eliminación directa" && <StandingsTable tabla={tabla} />}
 
           <TeamManagement
             torneoId={id}

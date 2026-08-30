@@ -154,6 +154,7 @@ public class PartidoService {
         }
 
         if ("ELIMINACIÓN DIRECTA".equalsIgnoreCase(torneo.getFormato())) {
+            equipos = ordenarEquiposParaLlave(equipos, request.ordenEquipos());
             return generarPrimeraLlave(torneo, equipos, request);
         }
         if ("ZONAS + PLAYOFFS".equalsIgnoreCase(torneo.getFormato())) {
@@ -238,6 +239,18 @@ public class PartidoService {
                     request.cancha(), nombreRonda(equipos.size())));
         }
         return generados.stream().map(this::convertirAResponseDTO).toList();
+    }
+
+    private List<Equipo> ordenarEquiposParaLlave(List<Equipo> equipos, List<Long> ordenSolicitado) {
+        if (ordenSolicitado == null || ordenSolicitado.isEmpty()) return equipos;
+        if (ordenSolicitado.size() != equipos.size() || ordenSolicitado.stream().distinct().count() != equipos.size()) {
+            throw new IllegalArgumentException("El orden de la llave debe incluir una sola vez a todos los equipos");
+        }
+        var porId = equipos.stream().collect(Collectors.toMap(Equipo::getIdEquipo, equipo -> equipo));
+        if (!porId.keySet().containsAll(ordenSolicitado)) {
+            throw new IllegalArgumentException("La llave contiene un equipo que no pertenece al torneo");
+        }
+        return ordenSolicitado.stream().map(porId::get).collect(Collectors.toCollection(ArrayList::new));
     }
 
     @Transactional
