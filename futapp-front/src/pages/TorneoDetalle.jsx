@@ -251,11 +251,9 @@ const recargarDatosTorneo = () => {
           <button onClick={() => { setPartidoResultado(null); setMostrarResultado(true); }}>Cargar resultado</button>
           <button onClick={() => setMostrarFecha(true)}>Agregar jornada</button>
           <button onClick={() => setMostrarPartido(true)}>Agregar partido</button>
-          {torneo.formato?.toUpperCase() === "LIGA" && (
-            <button onClick={partidos.length > 0 ? rehacerFixture : abrirGeneradorFixture} disabled={generandoFixture}>
-              {generandoFixture ? "Procesando..." : partidos.length > 0 ? "Rehacer fixture" : "Generar fixture automático"}
-            </button>
-          )}
+          <button onClick={partidos.length > 0 ? rehacerFixture : abrirGeneradorFixture} disabled={generandoFixture}>
+            {generandoFixture ? "Procesando..." : partidos.length > 0 ? "Rehacer fixture" : torneo.formato?.toLowerCase().includes("eliminación") ? "Generar llaves" : "Generar fixture automático"}
+          </button>
         </div>
       )}
       {adminError && <div className="admin-actions"><p className="tournament-form-error">{adminError}</p></div>}

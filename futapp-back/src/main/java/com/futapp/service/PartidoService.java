@@ -21,6 +21,8 @@ import com.futapp.repository.InscripcionEquipoRepository;
 import com.futapp.repository.InscripcionJugadorRepository;
 import com.futapp.repository.JugadorRepository;
 import com.futapp.repository.TarjetaRepository;
+import com.futapp.repository.CompeticionDivisionRepository;
+import com.futapp.repository.CupoEquipoRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
@@ -47,6 +49,8 @@ public class PartidoService {
     private final InscripcionEquipoRepository inscripcionesEquipo;
     private final InscripcionJugadorRepository inscripcionesJugador;
     private final JugadorRepository jugadores;
+    private final CompeticionDivisionRepository divisiones;
+    private final CupoEquipoRepository cupos;
 
     public PartidoService(PartidoRepository partidoRepository,
                           TorneoRepository torneoRepository,
@@ -58,7 +62,9 @@ public class PartidoService {
                           NotificacionService notificaciones,
                           InscripcionEquipoRepository inscripcionesEquipo,
                           InscripcionJugadorRepository inscripcionesJugador,
-                          JugadorRepository jugadores) {
+                          JugadorRepository jugadores,
+                          CompeticionDivisionRepository divisiones,
+                          CupoEquipoRepository cupos) {
         this.partidoRepository = partidoRepository;
         this.torneoRepository = torneoRepository;
         this.fechaRepository = fechaRepository;
@@ -70,6 +76,8 @@ public class PartidoService {
         this.inscripcionesEquipo = inscripcionesEquipo;
         this.inscripcionesJugador = inscripcionesJugador;
         this.jugadores = jugadores;
+        this.divisiones = divisiones;
+        this.cupos = cupos;
     }
 
     public List<PartidoResponseDTO> listarPartidos() {
@@ -134,10 +142,6 @@ public class PartidoService {
         Torneo torneo = torneoRepository.findById(idTorneo)
                 .orElseThrow(() -> new ResourceNotFoundException("Torneo no encontrado con id: " + idTorneo));
 
-        if (!"LIGA".equalsIgnoreCase(torneo.getFormato())) {
-            throw new IllegalArgumentException("Por ahora el fixture automático está disponible para torneos con formato Liga");
-        }
-
         if (!partidoRepository.findByTorneoIdTorneo(idTorneo).isEmpty()) {
             throw new IllegalArgumentException("El fixture automático solo se puede generar si el torneo todavía no tiene partidos");
         }
@@ -147,6 +151,13 @@ public class PartidoService {
         equipos.sort(Comparator.comparing(Equipo::getIdEquipo));
         if (equipos.size() < 2) {
             throw new IllegalArgumentException("Se necesitan al menos 2 equipos para generar el fixture");
+        }
+
+        if ("ELIMINACIÓN DIRECTA".equalsIgnoreCase(torneo.getFormato())) {
+            return generarPrimeraLlave(torneo, equipos, request);
+        }
+        if ("ZONAS + PLAYOFFS".equalsIgnoreCase(torneo.getFormato())) {
+            return generarFixturePorZonas(torneo, equipos, request);
         }
 
         if (equipos.size() % 2 != 0) {
@@ -213,6 +224,100 @@ public class PartidoService {
         }
 
         return partidosGenerados.stream().map(this::convertirAResponseDTO).toList();
+    }
+
+    private List<PartidoResponseDTO> generarPrimeraLlave(Torneo torneo, List<Equipo> equipos, FixtureRequestDTO request) {
+        List<Partido> generados = new ArrayList<>();
+        Fecha fecha = crearFecha(torneo, 1, nombreRonda(equipos.size()), true);
+        DateTimeFormatter formato = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+        int partidos = equipos.size() / 2;
+        for (int i = 0; i < partidos; i++) {
+            generados.add(crearPartidoAutomatico(torneo, fecha, equipos.get(i), equipos.get(equipos.size() - 1 - i),
+                    LocalDateTime.of(request.fechaInicio(), request.horaInicio())
+                            .plusMinutes((long) i * request.minutosEntrePartidos()).format(formato),
+                    request.cancha(), nombreRonda(equipos.size())));
+        }
+        return generados.stream().map(this::convertirAResponseDTO).toList();
+    }
+
+    private List<PartidoResponseDTO> generarFixturePorZonas(Torneo torneo, List<Equipo> equiposActivos, FixtureRequestDTO request) {
+        var division = divisiones.findByTorneoIdTorneoOrderByOrden(torneo.getIdTorneo()).stream().findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("El torneo no tiene una estructura de zonas"));
+        var porZona = cupos.findByDivisionIdDivisionOrderByNumero(division.getIdDivision()).stream()
+                .filter(c -> c.getZona() != null && c.getEquipo() != null
+                        && equiposActivos.stream().anyMatch(e -> e.getIdEquipo().equals(c.getEquipo().getIdEquipo())))
+                .collect(Collectors.groupingBy(c -> c.getZona().getNombre(), java.util.LinkedHashMap::new,
+                        Collectors.mapping(c -> c.getEquipo(), Collectors.toCollection(ArrayList::new))));
+        if (porZona.size() < 2) throw new IllegalArgumentException("No se encontraron los equipos distribuidos en sus zonas");
+
+        List<List<List<Equipo[]>>> calendarios = new ArrayList<>();
+        int maxRondas = 0;
+        for (List<Equipo> zona : porZona.values()) {
+            var calendario = rondasLiga(zona);
+            calendarios.add(calendario);
+            maxRondas = Math.max(maxRondas, calendario.size());
+        }
+        List<Partido> generados = new ArrayList<>();
+        DateTimeFormatter formato = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+        for (int ronda = 0; ronda < maxRondas; ronda++) {
+            Fecha fecha = crearFecha(torneo, ronda + 1, "Fecha " + (ronda + 1) + " · Zonas", ronda == 0);
+            int horario = 0;
+            int zonaIndex = 0;
+            for (var calendario : calendarios) {
+                if (ronda < calendario.size()) {
+                    String zonaNombre = new ArrayList<>(porZona.keySet()).get(zonaIndex);
+                    for (Equipo[] cruce : calendario.get(ronda)) {
+                        generados.add(crearPartidoAutomatico(torneo, fecha, cruce[0], cruce[1],
+                                LocalDateTime.of(request.fechaInicio().plusDays((long) ronda * request.diasEntreJornadas()), request.horaInicio())
+                                        .plusMinutes((long) horario++ * request.minutosEntrePartidos()).format(formato),
+                                request.cancha(), zonaNombre));
+                    }
+                }
+                zonaIndex++;
+            }
+        }
+        return generados.stream().map(this::convertirAResponseDTO).toList();
+    }
+
+    private List<List<Equipo[]>> rondasLiga(List<Equipo> originales) {
+        List<Equipo> rotacion = new ArrayList<>(originales);
+        if (rotacion.size() % 2 != 0) rotacion.add(null);
+        List<List<Equipo[]>> rondas = new ArrayList<>();
+        for (int ronda = 0; ronda < rotacion.size() - 1; ronda++) {
+            List<Equipo[]> cruces = new ArrayList<>();
+            for (int i = 0; i < rotacion.size() / 2; i++) {
+                Equipo a = rotacion.get(i), b = rotacion.get(rotacion.size() - 1 - i);
+                if (a != null && b != null) cruces.add((ronda + i) % 2 == 0 ? new Equipo[]{a, b} : new Equipo[]{b, a});
+            }
+            rondas.add(cruces);
+            Equipo ultimo = rotacion.remove(rotacion.size() - 1);
+            rotacion.add(1, ultimo);
+        }
+        return rondas;
+    }
+
+    private Fecha crearFecha(Torneo torneo, int numero, String descripcion, boolean activa) {
+        Fecha fecha = fechaRepository.findByTorneoIdTorneoAndNumeroFecha(torneo.getIdTorneo(), numero).orElseGet(Fecha::new);
+        fecha.setNumeroFecha(numero); fecha.setDescripcion(descripcion);
+        fecha.setEstado(activa ? "ACTIVA" : "PENDIENTE"); fecha.setTorneo(torneo);
+        return fechaRepository.save(fecha);
+    }
+
+    private Partido crearPartidoAutomatico(Torneo torneo, Fecha fecha, Equipo local, Equipo visitante,
+                                            String fechaHora, String cancha, String detalle) {
+        Partido partido = new Partido();
+        partido.setTorneo(torneo); partido.setFecha(fecha); partido.setEquipoLocal(local); partido.setEquipoVisitante(visitante);
+        partido.setFechaHora(fechaHora); partido.setEstado("PROGRAMADO"); partido.setGolesLocal(0); partido.setGolesVisitante(0);
+        partido.setObservaciones(detalle); partido.setCancha(normalizarOpcional(cancha));
+        return partidoRepository.save(partido);
+    }
+
+    private String nombreRonda(int equipos) {
+        if (equipos <= 2) return "Final";
+        if (equipos <= 4) return "Semifinales";
+        if (equipos <= 8) return "Cuartos de final";
+        if (equipos <= 16) return "Octavos de final";
+        return "Primera ronda eliminatoria";
     }
 
     public PartidoResponseDTO actualizarPartido(Long id, PartidoRequestDTO requestDTO) {

@@ -14,10 +14,11 @@ function FixtureGeneratorModal({ torneo, equipos, fechas, onClose, onGenerated }
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const summary = useMemo(() => {
+    const direct = torneo.formato?.toLowerCase() === "eliminación directa";
     const adjustedTeams = equipos.length % 2 === 0 ? equipos.length : equipos.length + 1;
-    const rounds = Math.max(0, adjustedTeams - 1) * (torneo.idaVuelta ? 2 : 1);
-    return { rounds, matches: (equipos.length * (equipos.length - 1) / 2) * (torneo.idaVuelta ? 2 : 1) };
-  }, [equipos.length, torneo.idaVuelta]);
+    const rounds = direct ? 1 : Math.max(0, adjustedTeams - 1) * (torneo.idaVuelta ? 2 : 1);
+    return { direct, rounds, matches: direct ? Math.floor(equipos.length / 2) : (equipos.length * (equipos.length - 1) / 2) * (torneo.idaVuelta ? 2 : 1) };
+  }, [equipos.length, torneo.formato, torneo.idaVuelta]);
 
   const submit = async (event) => {
     event.preventDefault(); setSaving(true); setError("");
@@ -34,7 +35,7 @@ function FixtureGeneratorModal({ torneo, equipos, fechas, onClose, onGenerated }
 
   return <div className="tournament-form-backdrop" onMouseDown={onClose}><section className="tournament-form-modal" role="dialog" aria-modal="true" onMouseDown={(event) => event.stopPropagation()}>
     <button type="button" className="tournament-form-close" onClick={onClose}>×</button>
-    <span className="tournament-form-chip">Programación automática</span><h2>Generar fixture</h2><p>Definí el calendario base. Después podrás editar cada partido individualmente.</p>
+    <span className="tournament-form-chip">Programación automática</span><h2>{summary.direct ? "Generar llaves" : "Generar fixture"}</h2><p>{summary.direct ? "Se generará la primera ronda eliminatoria. Los ganadores avanzarán a la siguiente llave." : "Definí el calendario base. Después podrás editar cada partido individualmente."}</p>
     <form onSubmit={submit}><div className="tournament-form-grid">
       <label>Primera jornada<input type="date" value={form.fechaInicio} onChange={(e) => setForm({ ...form, fechaInicio: e.target.value })} required /></label>
       <label>Primer horario<input type="time" value={form.horaInicio} onChange={(e) => setForm({ ...form, horaInicio: e.target.value })} required /></label>
@@ -42,7 +43,7 @@ function FixtureGeneratorModal({ torneo, equipos, fechas, onClose, onGenerated }
       <label>Minutos entre partidos<input type="number" min="0" max="720" step="5" value={form.minutosEntrePartidos} onChange={(e) => setForm({ ...form, minutosEntrePartidos: e.target.value })} required /></label>
       <label>Cancha o sede<input type="text" maxLength="150" value={form.cancha} onChange={(e) => setForm({ ...form, cancha: e.target.value })} placeholder="Ej. Polideportivo Municipal" /></label>
     </div>
-    <div className="wizard-summary"><div><span>Equipos</span><strong>{equipos.length}</strong></div><div><span>Modalidad</span><strong>{torneo.idaVuelta ? "Ida y vuelta" : "Una rueda"}</strong></div><div><span>Jornadas</span><strong>{summary.rounds}</strong></div><div><span>Partidos</span><strong>{summary.matches}</strong></div></div>
+    <div className="wizard-summary"><div><span>Equipos</span><strong>{equipos.length}</strong></div><div><span>Modalidad</span><strong>{summary.direct ? "Eliminación" : torneo.idaVuelta ? "Ida y vuelta" : "Una rueda"}</strong></div><div><span>{summary.direct ? "Ronda inicial" : "Jornadas"}</span><strong>{summary.direct ? "Llave automática" : summary.rounds}</strong></div><div><span>Partidos iniciales</span><strong>{summary.matches}</strong></div></div>
     {fechas.length > 0 && <p className="wizard-draft-note">Las primeras {Math.min(fechas.length, summary.rounds)} jornadas existentes se reutilizarán.</p>}
     {error && <p className="tournament-form-error">{error}</p>}
     <div className="tournament-form-actions"><button type="button" className="tournament-form-cancel" onClick={onClose}>Cancelar</button><button className="tournament-form-save" disabled={saving}>{saving ? "Generando…" : `Generar ${summary.matches} partidos`}</button></div>

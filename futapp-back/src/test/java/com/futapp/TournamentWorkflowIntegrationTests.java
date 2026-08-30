@@ -173,6 +173,30 @@ class TournamentWorkflowIntegrationTests {
                 .andExpect(jsonPath("$.divisiones[0].cupos[0].etiqueta").value("Equipo 1"))
                 .andExpect(jsonPath("$.divisiones[0].cupos[0].equipo").value("Equipo 1"))
                 .andExpect(jsonPath("$.divisiones[0].cupos[7].etiqueta").value("Equipo 8"));
+
+        postJson("/partidos/torneo/" + torneoId + "/generar-fixture", token, Map.of(
+                "fechaInicio", "2026-09-05", "horaInicio", "14:00", "diasEntreJornadas", 7,
+                "minutosEntrePartidos", 60, "cancha", "Cancha principal"));
+        mockMvc.perform(get("/partidos/torneo/{id}", torneoId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", org.hamcrest.Matchers.hasSize(12)))
+                .andExpect(jsonPath("$[0].observaciones", org.hamcrest.Matchers.startsWith("Zona ")));
+    }
+
+    @Test
+    void generaLaPrimeraLlaveDeEliminacionDirecta() throws Exception {
+        String token = registrarOrganizador();
+        Map<String, Object> request = new LinkedHashMap<>(torneo());
+        request.put("formato", "Eliminación directa");
+        request.put("cantidadEquipos", 8);
+        request.put("generarEquiposPrueba", true);
+        long torneoId = postJson("/torneos", token, request).get("idTorneo").asLong();
+
+        JsonNode partidos = postJson("/partidos/torneo/" + torneoId + "/generar-fixture", token, Map.of(
+                "fechaInicio", "2026-09-05", "horaInicio", "14:00", "diasEntreJornadas", 7,
+                "minutosEntrePartidos", 60, "cancha", "Cancha principal"));
+        org.junit.jupiter.api.Assertions.assertEquals(4, partidos.size());
+        org.junit.jupiter.api.Assertions.assertEquals("Cuartos de final", partidos.get(0).get("observaciones").asString());
     }
 
     private String registrarOrganizador() throws Exception {
