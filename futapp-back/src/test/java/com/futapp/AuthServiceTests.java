@@ -23,6 +23,7 @@ class AuthServiceTests {
         assertNotNull(registration.token());
         assertEquals("ORGANIZADOR", registration.rol());
         assertTrue(registration.roles().contains("ORGANIZADOR"));
+        assertTrue(registration.roles().contains("JUGADOR"));
 
         var login = authService.login(new LoginRequestDTO("organizador@test.local", "password123"));
         assertNotNull(login.token());

@@ -101,6 +101,10 @@ class TournamentWorkflowIntegrationTests {
                 .andReturn().getResponse().getContentAsString();
         String token = jsonMapper.readTree(response).get("token").asString();
 
+        mockMvc.perform(get("/auth/me").header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.roles", org.hamcrest.Matchers.hasItem("JUGADOR")));
+
         long torneoId = postJson("/torneos", token, torneo()).get("idTorneo").asLong();
 
         mockMvc.perform(get("/auth/me").header("Authorization", "Bearer " + token))

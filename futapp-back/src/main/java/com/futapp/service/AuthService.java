@@ -43,6 +43,7 @@ public class AuthService {
             throw new IllegalArgumentException("Tipo de cuenta inválido");
         }
         Usuario user = new Usuario(); user.setNombre(request.nombre().trim()); user.setEmail(email); user.setPasswordHash(encoder.encode(request.password())); user.setRol(rol);
+        if (!"ADMIN".equals(rol)) user.agregarRol("JUGADOR");
         return createToken(usuarios.save(user));
     }
     public AuthResponseDTO login(LoginRequestDTO request) {
