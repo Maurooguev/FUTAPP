@@ -25,4 +25,6 @@ public interface InscripcionJugadorRepository extends JpaRepository<InscripcionJ
     void deleteByInscripcionEquipoIdInscripcion(Long idInscripcion);
     boolean existsByJugadorIdJugadorAndInscripcionEquipoTorneoIdTorneoAndInscripcionEquipoEquipoIdEquipoInAndEstado(
             Long idJugador, Long idTorneo, java.util.Collection<Long> idsEquipo, String estado);
+    boolean existsByJugadorIdJugadorAndInscripcionEquipoTorneoIdTorneoAndInscripcionEquipoEquipoIdEquipoAndEstado(
+            Long idJugador, Long idTorneo, Long idEquipo, String estado);
 }

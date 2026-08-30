@@ -17,6 +17,8 @@ public class TarjetaRequestDTO {
     private Long idPartido;
     @NotNull(message = "El jugador es obligatorio")
     private Long idJugador;
+    @NotNull(message = "El equipo es obligatorio")
+    private Long idEquipo;
 
     public TarjetaRequestDTO() {
     }
@@ -60,4 +62,6 @@ public class TarjetaRequestDTO {
     public void setIdJugador(Long idJugador) {
         this.idJugador = idJugador;
     }
+    public Long getIdEquipo() { return idEquipo; }
+    public void setIdEquipo(Long idEquipo) { this.idEquipo = idEquipo; }
 }

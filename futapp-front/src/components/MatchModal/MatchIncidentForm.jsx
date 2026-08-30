@@ -8,11 +8,8 @@ function MatchIncidentForm({ partido, type, onSaved, onCancel }) {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    Promise.all([
-      fetch(`${API_URL}/jugadores/equipo/${partido.idEquipoLocal}`).then((response) => response.json()),
-      fetch(`${API_URL}/jugadores/equipo/${partido.idEquipoVisitante}`).then((response) => response.json()),
-    ]).then(([local, visitor]) => setPlayers([...local, ...visitor]));
-  }, [partido.idEquipoLocal, partido.idEquipoVisitante]);
+    fetch(`${API_URL}/partidos/${partido.idPartido}/jugadores`).then((response) => response.json()).then(setPlayers);
+  }, [partido.idPartido]);
 
   const updateField = ({ target: { name, value } }) => setForm((current) => ({ ...current, [name]: value }));
   const handleSubmit = async (event) => {
@@ -21,7 +18,7 @@ function MatchIncidentForm({ partido, type, onSaved, onCancel }) {
     const endpoint = type === "goal" ? "goles" : "tarjetas";
     const payload = type === "goal"
       ? { minuto: Number(form.minuto), tipoGol: form.tipo, observacion: form.detail, idPartido: partido.idPartido, idJugador: player?.idJugador, idEquipo: player?.idEquipo }
-      : { minuto: form.minuto ? Number(form.minuto) : null, tipoTarjeta: form.tipo, motivo: form.detail, idPartido: partido.idPartido, idJugador: player?.idJugador };
+      : { minuto: form.minuto ? Number(form.minuto) : null, tipoTarjeta: form.tipo, motivo: form.detail, idPartido: partido.idPartido, idJugador: player?.idJugador, idEquipo: player?.idEquipo };
     try {
       const response = await apiFetch(`${API_URL}/${endpoint}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
       if (!response.ok) { const body = await response.json().catch(() => null); throw new Error(body?.message || "No se pudo guardar la incidencia"); }

@@ -35,8 +35,8 @@ class TournamentWorkflowIntegrationTests {
         JsonNode local = postJson("/equipos", token, equipo("Barrio Norte", "Azul", torneoId));
         JsonNode visitante = postJson("/equipos", token, equipo("Deportivo Sur", "Rojo", torneoId));
 
-        postJson("/jugadores", token, jugador("Juan", "Norte", 10, local.get("idEquipo").asLong()));
-        postJson("/jugadores", token, jugador("Pedro", "Sur", 9, visitante.get("idEquipo").asLong()));
+        JsonNode jugadorLocal = postJson("/jugadores", token, jugador("Juan", "Norte", 10, local.get("idEquipo").asLong()));
+        JsonNode jugadorVisitante = postJson("/jugadores", token, jugador("Pedro", "Sur", 9, visitante.get("idEquipo").asLong()));
 
         JsonNode fixture = postJson("/partidos/torneo/" + torneoId + "/generar-fixture", token, Map.of(
                 "fechaInicio", "2026-09-05",
@@ -65,6 +65,23 @@ class TournamentWorkflowIntegrationTests {
                 .andExpect(jsonPath("$.estado").value("FINALIZADO"))
                 .andExpect(jsonPath("$.golesLocal").value(3))
                 .andExpect(jsonPath("$.golesVisitante").value(1));
+
+        mockMvc.perform(get("/partidos/{id}/jugadores", partidoId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", org.hamcrest.Matchers.hasSize(2)));
+
+        postJson("/goles", token, Map.of("minuto", 12, "tipoGol", "Jugada", "idPartido", partidoId,
+                "idJugador", jugadorLocal.get("idJugador").asLong(), "idEquipo", local.get("idEquipo").asLong()));
+        postJson("/tarjetas", token, Map.of("minuto", 31, "tipoTarjeta", "AMARILLA", "idPartido", partidoId,
+                "idJugador", jugadorVisitante.get("idJugador").asLong(), "idEquipo", visitante.get("idEquipo").asLong()));
+
+        mockMvc.perform(post("/goles").header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonMapper.writeValueAsString(Map.of("minuto", 40, "tipoGol", "Jugada",
+                                "idPartido", partidoId, "idJugador", jugadorLocal.get("idJugador").asLong(),
+                                "idEquipo", visitante.get("idEquipo").asLong()))))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("El jugador no integra el plantel activo de ese equipo en este torneo"));
 
         mockMvc.perform(get("/torneos/mios/panel").header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk())

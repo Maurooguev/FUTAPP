@@ -8,6 +8,7 @@ import com.futapp.dto.ResultadoPartidoDTO;
 import com.futapp.dto.FixtureRequestDTO;
 import com.futapp.dto.MvpPartidoRequestDTO;
 import com.futapp.dto.EstadoPartidoRequestDTO;
+import com.futapp.dto.JugadorPartidoDTO;
 import jakarta.validation.Valid;
 
 import java.util.List;
@@ -45,6 +46,11 @@ public class PartidoController {
     @PostMapping
     public PartidoResponseDTO crearPartido(@Valid @RequestBody PartidoRequestDTO requestDTO) {
         return partidoService.crearPartido(requestDTO);
+    }
+
+    @GetMapping("/{id}/jugadores")
+    public List<JugadorPartidoDTO> listarJugadores(@PathVariable Long id) {
+        return partidoService.listarJugadoresDelPartido(id);
     }
 
     @PostMapping("/torneo/{idTorneo}/generar-fixture")

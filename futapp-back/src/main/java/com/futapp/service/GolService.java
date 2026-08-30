@@ -12,6 +12,7 @@ import com.futapp.repository.EquipoRepository;
 import com.futapp.repository.GolRepository;
 import com.futapp.repository.JugadorRepository;
 import com.futapp.repository.PartidoRepository;
+import com.futapp.repository.InscripcionJugadorRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -25,16 +26,19 @@ public class GolService {
     private final JugadorRepository jugadorRepository;
     private final EquipoRepository equipoRepository;
     private final TorneoAuthorizationService authorization;
+    private final InscripcionJugadorRepository inscripciones;
 
     public GolService(GolRepository golRepository,
                       PartidoRepository partidoRepository,
                       JugadorRepository jugadorRepository,
-                      EquipoRepository equipoRepository, TorneoAuthorizationService authorization) {
+                      EquipoRepository equipoRepository, TorneoAuthorizationService authorization,
+                      InscripcionJugadorRepository inscripciones) {
         this.golRepository = golRepository;
         this.partidoRepository = partidoRepository;
         this.jugadorRepository = jugadorRepository;
         this.equipoRepository = equipoRepository;
         this.authorization = authorization;
+        this.inscripciones = inscripciones;
     }
 
     public List<GolResponseDTO> listarGoles() {
@@ -70,7 +74,8 @@ public class GolService {
     }
 
     public GolResponseDTO crearGol(GolRequestDTO requestDTO) {
-        authorization.verificarGestion(partidoRepository.findById(requestDTO.getIdPartido()).orElseThrow().getTorneo());
+        authorization.verificarGestion(partidoRepository.findById(requestDTO.getIdPartido())
+                .orElseThrow(() -> new ResourceNotFoundException("Partido no encontrado con id: " + requestDTO.getIdPartido())).getTorneo());
         Gol gol = new Gol();
         cargarDatosGol(gol, requestDTO);
         return convertirAResponseDTO(golRepository.save(gol));
@@ -126,10 +131,6 @@ public class GolService {
             throw new IllegalArgumentException("El minuto del gol no puede ser mayor a 130");
         }
 
-        if (!jugador.getEquipo().getIdEquipo().equals(equipo.getIdEquipo())) {
-            throw new IllegalArgumentException("El jugador no pertenece al equipo indicado para el gol");
-        }
-
         boolean equipoParticipaEnPartido =
                 partido.getEquipoLocal().getIdEquipo().equals(equipo.getIdEquipo()) ||
                 partido.getEquipoVisitante().getIdEquipo().equals(equipo.getIdEquipo());
@@ -140,6 +141,11 @@ public class GolService {
 
         if (!"FINALIZADO".equalsIgnoreCase(partido.getEstado())) {
             throw new IllegalArgumentException("Solo se pueden registrar goles en un partido finalizado");
+        }
+
+        if (!inscripciones.existsByJugadorIdJugadorAndInscripcionEquipoTorneoIdTorneoAndInscripcionEquipoEquipoIdEquipoAndEstado(
+                jugador.getIdJugador(), partido.getTorneo().getIdTorneo(), equipo.getIdEquipo(), "ACTIVA")) {
+            throw new IllegalArgumentException("El jugador no integra el plantel activo de ese equipo en este torneo");
         }
     }
 

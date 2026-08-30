@@ -6,6 +6,7 @@ import com.futapp.dto.ResultadoPartidoDTO;
 import com.futapp.dto.FixtureRequestDTO;
 import com.futapp.dto.MvpPartidoRequestDTO;
 import com.futapp.dto.EstadoPartidoRequestDTO;
+import com.futapp.dto.JugadorPartidoDTO;
 import com.futapp.exception.ResourceNotFoundException;
 import com.futapp.model.Equipo;
 import com.futapp.model.Fecha;
@@ -109,6 +110,22 @@ public class PartidoService {
         partido = partidoRepository.save(partido);
         notificaciones.avisarPartido(partido, "FINALIZADO".equalsIgnoreCase(partido.getEstado()));
         return convertirAResponseDTO(partido);
+    }
+
+    public List<JugadorPartidoDTO> listarJugadoresDelPartido(Long idPartido) {
+        Partido partido = partidoRepository.findById(idPartido)
+                .orElseThrow(() -> new ResourceNotFoundException("Partido no encontrado con id: " + idPartido));
+        return java.util.stream.Stream.of(partido.getEquipoLocal(), partido.getEquipoVisitante())
+                .flatMap(equipo -> inscripcionesJugador
+                        .findByInscripcionEquipoEquipoIdEquipoAndInscripcionEquipoTorneoIdTorneoAndEstado(
+                                equipo.getIdEquipo(), partido.getTorneo().getIdTorneo(), "ACTIVA").stream())
+                .map(item -> new JugadorPartidoDTO(item.getJugador().getIdJugador(), item.getJugador().getNombre(),
+                        item.getJugador().getApellido(), item.getJugador().getApodo(), item.getJugador().getFoto(),
+                        item.getInscripcionEquipo().getEquipo().getIdEquipo(),
+                        item.getInscripcionEquipo().getEquipo().getNombre(), item.getNumeroCamiseta()))
+                .sorted(java.util.Comparator.comparing(JugadorPartidoDTO::nombreEquipo)
+                        .thenComparing(item -> item.numeroCamiseta() == null ? 999 : item.numeroCamiseta()))
+                .toList();
     }
 
     @Transactional

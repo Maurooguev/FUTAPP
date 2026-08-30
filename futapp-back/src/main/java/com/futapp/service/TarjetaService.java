@@ -10,6 +10,8 @@ import com.futapp.model.Tarjeta;
 import com.futapp.repository.JugadorRepository;
 import com.futapp.repository.PartidoRepository;
 import com.futapp.repository.TarjetaRepository;
+import com.futapp.repository.EquipoRepository;
+import com.futapp.repository.InscripcionJugadorRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -22,14 +24,19 @@ public class TarjetaService {
     private final PartidoRepository partidoRepository;
     private final JugadorRepository jugadorRepository;
     private final TorneoAuthorizationService authorization;
+    private final EquipoRepository equipoRepository;
+    private final InscripcionJugadorRepository inscripciones;
 
     public TarjetaService(TarjetaRepository tarjetaRepository,
                           PartidoRepository partidoRepository,
-                          JugadorRepository jugadorRepository, TorneoAuthorizationService authorization) {
+                          JugadorRepository jugadorRepository, TorneoAuthorizationService authorization,
+                          EquipoRepository equipoRepository, InscripcionJugadorRepository inscripciones) {
         this.tarjetaRepository = tarjetaRepository;
         this.partidoRepository = partidoRepository;
         this.jugadorRepository = jugadorRepository;
         this.authorization = authorization;
+        this.equipoRepository = equipoRepository;
+        this.inscripciones = inscripciones;
     }
 
     public List<TarjetaResponseDTO> listarTarjetas() {
@@ -61,7 +68,8 @@ public class TarjetaService {
     }
 
     public TarjetaResponseDTO crearTarjeta(TarjetaRequestDTO requestDTO) {
-        authorization.verificarGestion(partidoRepository.findById(requestDTO.getIdPartido()).orElseThrow().getTorneo());
+        authorization.verificarGestion(partidoRepository.findById(requestDTO.getIdPartido())
+                .orElseThrow(() -> new ResourceNotFoundException("Partido no encontrado con id: " + requestDTO.getIdPartido())).getTorneo());
         Tarjeta tarjeta = new Tarjeta();
         cargarDatosTarjeta(tarjeta, requestDTO);
         return convertirAResponseDTO(tarjetaRepository.save(tarjeta));
@@ -91,7 +99,8 @@ public class TarjetaService {
         Jugador jugador = jugadorRepository.findById(requestDTO.getIdJugador())
                 .orElseThrow(() -> new ResourceNotFoundException("Jugador no encontrado con id: " + requestDTO.getIdJugador()));
 
-        Equipo equipo = jugador.getEquipo();
+        Equipo equipo = equipoRepository.findById(requestDTO.getIdEquipo())
+                .orElseThrow(() -> new ResourceNotFoundException("Equipo no encontrado con id: " + requestDTO.getIdEquipo()));
 
         validarReglasDeNegocio(requestDTO, partido, jugador, equipo);
 
@@ -137,6 +146,11 @@ public class TarjetaService {
 
         if (!"FINALIZADO".equalsIgnoreCase(partido.getEstado())) {
             throw new IllegalArgumentException("Solo se pueden registrar tarjetas en un partido finalizado");
+        }
+
+        if (!inscripciones.existsByJugadorIdJugadorAndInscripcionEquipoTorneoIdTorneoAndInscripcionEquipoEquipoIdEquipoAndEstado(
+                jugador.getIdJugador(), partido.getTorneo().getIdTorneo(), equipo.getIdEquipo(), "ACTIVA")) {
+            throw new IllegalArgumentException("El jugador no integra el plantel activo de ese equipo en este torneo");
         }
     }
 
