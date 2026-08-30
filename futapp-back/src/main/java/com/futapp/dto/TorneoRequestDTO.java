@@ -35,6 +35,12 @@ public class TorneoRequestDTO {
     @Min(0) @Max(10) private Integer puntosEmpate = 1;
     @Min(0) @Max(10) private Integer puntosDerrota = 0;
     private String criterioDesempate = "DIFERENCIA_GOLES";
+    @Min(value = 2, message = "Debe haber al menos 2 zonas")
+    @Max(value = 16, message = "No puede haber más de 16 zonas")
+    private Integer cantidadZonas = 2;
+    @Min(value = 1, message = "Debe clasificar al menos 1 equipo por zona")
+    @Max(value = 16, message = "No pueden clasificar más de 16 equipos por zona")
+    private Integer clasificadosPorZona = 2;
 
     public TorneoRequestDTO() {
     }
@@ -91,4 +97,6 @@ public class TorneoRequestDTO {
     public Integer getPuntosEmpate() { return puntosEmpate; } public void setPuntosEmpate(Integer value) { this.puntosEmpate = value; }
     public Integer getPuntosDerrota() { return puntosDerrota; } public void setPuntosDerrota(Integer value) { this.puntosDerrota = value; }
     public String getCriterioDesempate() { return criterioDesempate; } public void setCriterioDesempate(String value) { this.criterioDesempate = value; }
+    public Integer getCantidadZonas() { return cantidadZonas; } public void setCantidadZonas(Integer value) { this.cantidadZonas = value; }
+    public Integer getClasificadosPorZona() { return clasificadosPorZona; } public void setClasificadosPorZona(Integer value) { this.clasificadosPorZona = value; }
 }

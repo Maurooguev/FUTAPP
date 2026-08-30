@@ -27,16 +27,19 @@ public class TorneoService {
     private final InscripcionEquipoRepository inscripcionesEquipo;
     private final InscripcionJugadorRepository inscripcionesJugador;
     private final UsuarioRepository usuarios;
+    private final EstructuraCompetenciaService estructuraCompetencia;
 
     public TorneoService(TorneoRepository torneoRepository, TorneoAuthorizationService authorization,
                          PartidoRepository partidos, InscripcionEquipoRepository inscripcionesEquipo,
-                         InscripcionJugadorRepository inscripcionesJugador, UsuarioRepository usuarios) {
+                         InscripcionJugadorRepository inscripcionesJugador, UsuarioRepository usuarios,
+                         EstructuraCompetenciaService estructuraCompetencia) {
         this.torneoRepository = torneoRepository;
         this.authorization = authorization;
         this.partidos = partidos;
         this.inscripcionesEquipo = inscripcionesEquipo;
         this.inscripcionesJugador = inscripcionesJugador;
         this.usuarios = usuarios;
+        this.estructuraCompetencia = estructuraCompetencia;
     }
 
     public List<TorneoResponseDTO> listarTorneos() {
@@ -114,6 +117,7 @@ public class TorneoService {
         torneo.setPropietario(propietario);
 
         Torneo torneoGuardado = torneoRepository.save(torneo);
+        estructuraCompetencia.crear(torneoGuardado, requestDTO);
         return convertirAResponseDTO(torneoGuardado);
     }
 
@@ -196,12 +200,14 @@ public class TorneoService {
     }
 
     private void cargarReglas(Torneo torneo, TorneoRequestDTO request) {
-        String formato = request.getFormato().trim().toUpperCase();
-        if (!java.util.Set.of("LIGA", "ELIMINACIÓN DIRECTA", "GRUPOS Y ELIMINACIÓN").contains(formato)) {
-            throw new IllegalArgumentException("El formato seleccionado no es válido");
-        }
-        torneo.setFormato(formato.equals("LIGA") ? "Liga" : formato.equals("ELIMINACIÓN DIRECTA") ? "Eliminación directa" : "Grupos y eliminación");
-        torneo.setIdaVuelta(Boolean.TRUE.equals(request.getIdaVuelta()) && formato.equals("LIGA"));
+        String formato = estructuraCompetencia.normalizarFormato(request.getFormato());
+        torneo.setFormato(switch (formato) {
+            case "LIGA" -> "Liga";
+            case "ELIMINACION_DIRECTA" -> "Eliminación directa";
+            case "LIGA_PLAYOFF" -> "Liga + Playoffs";
+            default -> "Zonas + Playoffs";
+        });
+        torneo.setIdaVuelta(Boolean.TRUE.equals(request.getIdaVuelta()) && !"ELIMINACION_DIRECTA".equals(formato));
         torneo.setPuntosVictoria(request.getPuntosVictoria() == null ? 3 : request.getPuntosVictoria());
         torneo.setPuntosEmpate(request.getPuntosEmpate() == null ? 1 : request.getPuntosEmpate());
         torneo.setPuntosDerrota(request.getPuntosDerrota() == null ? 0 : request.getPuntosDerrota());

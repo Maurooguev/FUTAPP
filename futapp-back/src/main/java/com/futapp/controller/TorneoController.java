@@ -3,6 +3,8 @@ package com.futapp.controller;
 import com.futapp.dto.TorneoRequestDTO;
 import com.futapp.dto.TorneoResponseDTO;
 import com.futapp.dto.TorneoPanelDTO;
+import com.futapp.dto.EstructuraTorneoDTO;
+import com.futapp.service.EstructuraCompetenciaService;
 import com.futapp.service.TorneoService;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
@@ -17,9 +19,11 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 public class TorneoController {
 
     private final TorneoService torneoService;
+    private final EstructuraCompetenciaService estructuraCompetencia;
 
-    public TorneoController(TorneoService torneoService) {
+    public TorneoController(TorneoService torneoService, EstructuraCompetenciaService estructuraCompetencia) {
         this.torneoService = torneoService;
+        this.estructuraCompetencia = estructuraCompetencia;
     }
 
     @GetMapping
@@ -30,6 +34,11 @@ public class TorneoController {
     @GetMapping("/{id}")
     public TorneoResponseDTO obtenerTorneo(@PathVariable Long id) {
         return torneoService.obtenerTorneoPorId(id);
+    }
+
+    @GetMapping("/{id}/estructura")
+    public EstructuraTorneoDTO obtenerEstructura(@PathVariable Long id) {
+        return estructuraCompetencia.obtener(id);
     }
 
     @GetMapping("/buscar")

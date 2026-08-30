@@ -148,6 +148,32 @@ class TournamentWorkflowIntegrationTests {
                 .andExpect(jsonPath("$.nombre").value("Liga integral"));
     }
 
+    @Test
+    void creaLaEstructuraDeZonasYPlayoffsConCuposVacios() throws Exception {
+        String token = registrarOrganizador();
+        Map<String, Object> request = new LinkedHashMap<>(torneo());
+        request.put("formato", "Zonas + Playoffs");
+        request.put("cantidadEquipos", 8);
+        request.put("cantidadZonas", 2);
+        request.put("clasificadosPorZona", 2);
+
+        long torneoId = postJson("/torneos", token, request).get("idTorneo").asLong();
+
+        mockMvc.perform(get("/torneos/{id}/estructura", torneoId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.divisiones", org.hamcrest.Matchers.hasSize(1)))
+                .andExpect(jsonPath("$.divisiones[0].nombre").value("División única"))
+                .andExpect(jsonPath("$.divisiones[0].fases", org.hamcrest.Matchers.hasSize(2)))
+                .andExpect(jsonPath("$.divisiones[0].fases[0].tipo").value("ZONAS"))
+                .andExpect(jsonPath("$.divisiones[0].fases[0].zonas", org.hamcrest.Matchers.hasSize(2)))
+                .andExpect(jsonPath("$.divisiones[0].fases[1].tipo").value("ELIMINACION_DIRECTA"))
+                .andExpect(jsonPath("$.divisiones[0].fases[1].clasificados").value(4))
+                .andExpect(jsonPath("$.divisiones[0].cupos", org.hamcrest.Matchers.hasSize(8)))
+                .andExpect(jsonPath("$.divisiones[0].cupos[0].etiqueta").value("Equipo 1"))
+                .andExpect(jsonPath("$.divisiones[0].cupos[0].equipo").doesNotExist())
+                .andExpect(jsonPath("$.divisiones[0].cupos[7].etiqueta").value("Equipo 8"));
+    }
+
     private String registrarOrganizador() throws Exception {
         String email = "workflow-" + System.nanoTime() + "@test.local";
         String response = mockMvc.perform(post("/auth/register")
