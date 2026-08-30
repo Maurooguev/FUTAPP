@@ -5,6 +5,7 @@ import com.futapp.dto.PartidoResponseDTO;
 import com.futapp.dto.ResultadoPartidoDTO;
 import com.futapp.dto.FixtureRequestDTO;
 import com.futapp.dto.MvpPartidoRequestDTO;
+import com.futapp.dto.EstadoPartidoRequestDTO;
 import com.futapp.exception.ResourceNotFoundException;
 import com.futapp.model.Equipo;
 import com.futapp.model.Fecha;
@@ -30,6 +31,9 @@ import java.time.format.DateTimeFormatter;
 
 @Service
 public class PartidoService {
+
+    private static final java.util.Set<String> ESTADOS = java.util.Set.of(
+            "PROGRAMADO", "EN_JUEGO", "FINALIZADO", "SUSPENDIDO", "CANCELADO");
 
     private final PartidoRepository partidoRepository;
     private final TorneoRepository torneoRepository;
@@ -97,6 +101,9 @@ public class PartidoService {
 
     public PartidoResponseDTO crearPartido(PartidoRequestDTO requestDTO) {
         authorization.verificarGestion(requestDTO.getIdTorneo());
+        if (!"PROGRAMADO".equals(normalizarEstado(requestDTO.getEstado()))) {
+            throw new IllegalArgumentException("Los partidos nuevos deben crearse como programados");
+        }
         Partido partido = new Partido();
         cargarDatosPartido(partido, requestDTO);
         partido = partidoRepository.save(partido);
@@ -196,6 +203,14 @@ public class PartidoService {
                 .orElseThrow(() -> new ResourceNotFoundException("Partido no encontrado con id: " + id));
         authorization.verificarGestion(partido.getTorneo());
 
+        String estadoAnterior = partido.getEstado();
+        validarTransicion(estadoAnterior, requestDTO.getEstado(), false);
+        if ("FINALIZADO".equalsIgnoreCase(estadoAnterior)
+                && (!java.util.Objects.equals(partido.getGolesLocal(), requestDTO.getGolesLocal())
+                || !java.util.Objects.equals(partido.getGolesVisitante(), requestDTO.getGolesVisitante()))) {
+            throw new IllegalArgumentException("Editá el marcador desde la opción Cargar resultado");
+        }
+
         cargarDatosPartido(partido, requestDTO);
         partido = partidoRepository.save(partido);
         notificaciones.avisarPartido(partido, "FINALIZADO".equalsIgnoreCase(partido.getEstado()));
@@ -244,7 +259,7 @@ public class PartidoService {
         validarReglasDeNegocio(requestDTO, torneo, fecha, equipoLocal, equipoVisitante, partido.getIdPartido());
 
         partido.setFechaHora(requestDTO.getFechaHora());
-        partido.setEstado(requestDTO.getEstado());
+        partido.setEstado(normalizarEstado(requestDTO.getEstado()));
         partido.setGolesLocal(requestDTO.getGolesLocal());
         partido.setGolesVisitante(requestDTO.getGolesVisitante());
         partido.setObservaciones(requestDTO.getObservaciones());
@@ -300,6 +315,7 @@ public class PartidoService {
             throw new IllegalArgumentException("Los goles del equipo visitante no pueden ser negativos");
         }
 
+        normalizarEstado(requestDTO.getEstado());
         if ("FINALIZADO".equalsIgnoreCase(requestDTO.getEstado())) {
             if (requestDTO.getGolesLocal() == null || requestDTO.getGolesVisitante() == null) {
                 throw new IllegalArgumentException("Un partido finalizado debe tener goles local y visitante");
@@ -332,6 +348,47 @@ public class PartidoService {
 
     private String normalizarOpcional(String valor) {
         return valor == null || valor.isBlank() ? null : valor.trim();
+    }
+
+    private String normalizarEstado(String estado) {
+        String normalizado = estado == null ? "" : estado.trim().toUpperCase();
+        if (!ESTADOS.contains(normalizado)) throw new IllegalArgumentException("Estado de partido inválido");
+        return normalizado;
+    }
+
+    private void validarTransicion(String actual, String siguiente, boolean desdeResultado) {
+        String origen = normalizarEstado(actual);
+        String destino = normalizarEstado(siguiente);
+        if (origen.equals(destino)) return;
+        if (desdeResultado && "FINALIZADO".equals(destino)
+                && java.util.Set.of("PROGRAMADO", "EN_JUEGO").contains(origen)) return;
+        if ("FINALIZADO".equals(destino) && !desdeResultado) {
+            throw new IllegalArgumentException("Para finalizar el partido cargá el resultado");
+        }
+        boolean permitida = switch (origen) {
+            case "PROGRAMADO" -> java.util.Set.of("EN_JUEGO", "SUSPENDIDO", "CANCELADO").contains(destino);
+            case "EN_JUEGO" -> java.util.Set.of("SUSPENDIDO", "CANCELADO").contains(destino);
+            case "SUSPENDIDO" -> java.util.Set.of("PROGRAMADO", "CANCELADO").contains(destino);
+            case "FINALIZADO", "CANCELADO" -> false;
+            default -> false;
+        };
+        if (!permitida) throw new IllegalArgumentException("No se puede pasar un partido de " + origen + " a " + destino);
+    }
+
+    @Transactional
+    public PartidoResponseDTO cambiarEstado(Long id, EstadoPartidoRequestDTO request) {
+        Partido partido = partidoRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Partido no encontrado con id: " + id));
+        authorization.verificarGestion(partido.getTorneo());
+        String destino = normalizarEstado(request.estado());
+        validarTransicion(partido.getEstado(), destino, false);
+        if (java.util.Set.of("SUSPENDIDO", "CANCELADO").contains(destino)
+                && (request.motivo() == null || request.motivo().isBlank())) {
+            throw new IllegalArgumentException("Indicá el motivo del cambio");
+        }
+        partido.setEstado(destino);
+        if (request.motivo() != null && !request.motivo().isBlank()) partido.setObservaciones(request.motivo().trim());
+        return convertirAResponseDTO(partidoRepository.save(partido));
     }
 
     private String nombreJugador(com.futapp.model.Jugador jugador) {
@@ -370,6 +427,8 @@ public class PartidoService {
         if ("SUSPENDIDO".equalsIgnoreCase(partido.getEstado()) || "CANCELADO".equalsIgnoreCase(partido.getEstado())) {
             throw new IllegalArgumentException("Reprogramá el partido antes de cargar el resultado");
         }
+
+        validarTransicion(partido.getEstado(), "FINALIZADO", true);
 
         if (dto.getGolesLocal() == null || dto.getGolesVisitante() == null) {
             throw new IllegalArgumentException("Debe informar ambos goles");

@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.*;
 import com.futapp.dto.ResultadoPartidoDTO;
 import com.futapp.dto.FixtureRequestDTO;
 import com.futapp.dto.MvpPartidoRequestDTO;
+import com.futapp.dto.EstadoPartidoRequestDTO;
 import jakarta.validation.Valid;
 
 import java.util.List;
@@ -64,6 +65,12 @@ public class PartidoController {
             @RequestBody ResultadoPartidoDTO dto) {
 
         return partidoService.cargarResultado(id, dto);
+    }
+
+    @PutMapping("/{id}/estado")
+    public PartidoResponseDTO cambiarEstado(@PathVariable Long id,
+                                             @Valid @RequestBody EstadoPartidoRequestDTO request) {
+        return partidoService.cambiarEstado(id, request);
     }
 
     @PutMapping("/{id}/mvp")

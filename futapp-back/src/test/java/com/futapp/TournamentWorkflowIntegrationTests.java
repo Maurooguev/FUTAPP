@@ -51,6 +51,14 @@ class TournamentWorkflowIntegrationTests {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.estado").value("ACTIVO"));
 
+        putJson("/partidos/" + partidoId + "/estado", token, Map.of("estado", "FINALIZADO"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Para finalizar el partido cargá el resultado"));
+
+        putJson("/partidos/" + partidoId + "/estado", token, Map.of("estado", "EN_JUEGO"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.estado").value("EN_JUEGO"));
+
         putJson("/partidos/" + partidoId + "/resultado", token,
                 Map.of("golesLocal", 3, "golesVisitante", 1))
                 .andExpect(status().isOk())

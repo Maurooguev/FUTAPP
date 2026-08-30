@@ -26,6 +26,18 @@ function MatchFormModal({ torneoId, fechas, equipos, partido, onClose, onSaved }
   const [error, setError] = useState("");
 
   const hasRequiredData = sortedDates.length > 0 && sortedTeams.length >= 2;
+  const stateOptions = useMemo(() => {
+    if (!isEditing) return [["PROGRAMADO", "Programado"]];
+    const current = partido?.estado?.toUpperCase();
+    const options = {
+      PROGRAMADO: [["PROGRAMADO", "Programado"], ["EN_JUEGO", "En juego"], ["SUSPENDIDO", "Suspendido"], ["CANCELADO", "Cancelado"]],
+      EN_JUEGO: [["EN_JUEGO", "En juego"], ["SUSPENDIDO", "Suspendido"], ["CANCELADO", "Cancelado"]],
+      SUSPENDIDO: [["SUSPENDIDO", "Suspendido"], ["PROGRAMADO", "Reprogramar"], ["CANCELADO", "Cancelado"]],
+      FINALIZADO: [["FINALIZADO", "Finalizado"]],
+      CANCELADO: [["CANCELADO", "Cancelado"]],
+    };
+    return options[current] || [["PROGRAMADO", "Programado"]];
+  }, [isEditing, partido?.estado]);
 
   const updateField = (event) => {
     const { name, value } = event.target;
@@ -50,8 +62,8 @@ function MatchFormModal({ torneoId, fechas, equipos, partido, onClose, onSaved }
         body: JSON.stringify({
           fechaHora: form.fechaHora.replace("T", " "),
           estado: form.estado,
-          golesLocal: 0,
-          golesVisitante: 0,
+          golesLocal: partido?.golesLocal ?? 0,
+          golesVisitante: partido?.golesVisitante ?? 0,
           observaciones: form.observaciones,
           cancha: form.cancha,
           idTorneo: Number(torneoId),
@@ -166,9 +178,7 @@ function MatchFormModal({ torneoId, fechas, equipos, partido, onClose, onSaved }
               <label>
                 Estado
                 <select name="estado" value={form.estado} onChange={updateField}>
-                  <option value="PROGRAMADO">Programado</option>
-                  <option value="SUSPENDIDO">Suspendido</option>
-                  <option value="CANCELADO">Cancelado</option><option value="FINALIZADO">Finalizado</option>
+                  {stateOptions.map(([value, label]) => <option value={value} key={value}>{label}</option>)}
                 </select>
               </label>
               <label>Cancha o sede<input name="cancha" value={form.cancha} onChange={updateField} maxLength="150" placeholder="Ej. Cancha 1" /></label>
