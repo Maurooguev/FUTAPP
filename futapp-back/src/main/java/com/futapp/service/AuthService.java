@@ -93,7 +93,7 @@ public class AuthService {
     public void logout(String token) { tokens.deleteById(token); }
     private AuthResponseDTO createToken(Usuario user) {
         AuthToken authToken = new AuthToken(); authToken.setToken(UUID.randomUUID().toString().replace("-", "")); authToken.setUsuario(user); authToken.setExpiresAt(LocalDateTime.now().plusDays(7)); tokens.save(authToken);
-        return new AuthResponseDTO(authToken.getToken(), user.getIdUsuario(), user.getNombre(), user.getEmail(), user.getRol());
+        return new AuthResponseDTO(authToken.getToken(), user.getIdUsuario(), user.getNombre(), user.getEmail(), user.getRol(), user.getRoles());
     }
     private String hash(String value) {
         try {

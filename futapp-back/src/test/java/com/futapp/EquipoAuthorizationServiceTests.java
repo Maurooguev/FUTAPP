@@ -69,6 +69,7 @@ class EquipoAuthorizationServiceTests {
         Usuario usuario = mock(Usuario.class);
         when(usuario.getIdUsuario()).thenReturn(id);
         when(usuario.getRol()).thenReturn(rol);
+        when(usuario.tieneRol(rol)).thenReturn(true);
         return usuario;
     }
 

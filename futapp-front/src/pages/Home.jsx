@@ -6,6 +6,7 @@ import TournamentCard from "../components/TournamentCard/TournamentCard";
 import TournamentFormModal from "../components/TournamentFormModal/TournamentFormModal";
 import { API_URL } from "../config/api";
 import useAuth from "../context/useAuth";
+import { tieneRol } from "../utils/roles";
 
 function Home() {
   const [torneos, setTorneos] = useState([]);
@@ -207,7 +208,7 @@ function Home() {
           onClose={() => setShowTournamentForm(false)}
           onSaved={async (savedTournament) => {
             setTorneos((current) => [savedTournament, ...current]);
-            if (usuario?.rol === "JUGADOR") await refreshSession();
+            if (!tieneRol(usuario, "ORGANIZADOR")) await refreshSession();
             navigate(`/torneo/${savedTournament.idTorneo}`);
           }}
         />

@@ -10,7 +10,7 @@ function AuthProvider({ children }) {
   });
 
   const saveSession = (session) => {
-    const nuevoUsuario = { idUsuario: session.idUsuario, nombre: session.nombre, email: session.email, rol: session.rol };
+    const nuevoUsuario = { idUsuario: session.idUsuario, nombre: session.nombre, email: session.email, rol: session.rol, roles: session.roles || [session.rol] };
     setUsuario(nuevoUsuario);
     localStorage.setItem("usuario", JSON.stringify(nuevoUsuario));
     localStorage.setItem("authToken", session.token);
@@ -25,6 +25,7 @@ function AuthProvider({ children }) {
       nombre: session.nombre,
       email: session.email,
       rol: session.rol,
+      roles: session.roles || [session.rol],
     };
     setUsuario(usuarioActual);
     localStorage.setItem("usuario", JSON.stringify(usuarioActual));
@@ -43,6 +44,7 @@ function AuthProvider({ children }) {
           nombre: session.nombre,
           email: session.email,
           rol: session.rol,
+          roles: session.roles || [session.rol],
         };
         setUsuario(usuarioActual);
         localStorage.setItem("usuario", JSON.stringify(usuarioActual));

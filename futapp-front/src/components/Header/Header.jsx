@@ -2,13 +2,14 @@ import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import useAuth from "../../context/useAuth";
 import { API_URL, apiFetch } from "../../config/api";
+import { tieneRol } from "../../utils/roles";
 import "./Header.css";
 
 function Header() {
   const { usuario, logout } = useAuth();
   const [pendingRequests, setPendingRequests] = useState(0);
   const [unreadNotifications, setUnreadNotifications] = useState(0);
-  const canReview = usuario?.rol === "ADMIN" || usuario?.rol === "ORGANIZADOR" || usuario?.rol === "DIRECTOR_EQUIPO";
+  const canReview = tieneRol(usuario, "ADMIN") || tieneRol(usuario, "ORGANIZADOR") || tieneRol(usuario, "DIRECTOR_EQUIPO");
   const loadPendingRequests = useCallback(() => {
     if (!canReview) return Promise.resolve();
     return apiFetch(`${API_URL}/reclamos/pendientes/count`).then((response) => response.ok ? response.json() : { cantidad: 0 }).then((data) => setPendingRequests(data.cantidad || 0)).catch(() => setPendingRequests(0));
@@ -48,9 +49,9 @@ function Header() {
           {usuario && (
             <Link to="/mis-torneos">Mis torneos</Link>
           )}
-          {(usuario?.rol === "ADMIN" || usuario?.rol === "DIRECTOR_EQUIPO") && <Link to="/mis-equipos">Mis equipos</Link>}
+          {(tieneRol(usuario, "ADMIN") || tieneRol(usuario, "DIRECTOR_EQUIPO")) && <Link to="/mis-equipos">Mis equipos</Link>}
           {canReview && <Link className="requests-nav-link" to="/solicitudes">Solicitudes{pendingRequests > 0 && <span>{pendingRequests > 99 ? "99+" : pendingRequests}</span>}</Link>}
-          {usuario?.rol === "JUGADOR" && <Link to="/mi-perfil-jugador">Mi perfil</Link>}
+          {tieneRol(usuario, "JUGADOR") && <Link to="/mi-perfil-jugador">Mi perfil</Link>}
         </nav>
 
         <div className="header-actions">

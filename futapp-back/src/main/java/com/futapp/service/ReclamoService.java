@@ -59,10 +59,10 @@ public class ReclamoService {
         return dto(item);
     }
 
-    private boolean puedeRevisar(Usuario u, SolicitudReclamo r) { if ("ADMIN".equals(u.getRol())) return true; if (r.getTorneo().getPropietario()!=null && r.getTorneo().getPropietario().getIdUsuario().equals(u.getIdUsuario())) return true; return "JUGADOR".equals(r.getTipo()) && administradores.existsByEquipoIdEquipoAndUsuarioIdUsuarioAndEstado(r.getJugador().getEquipo().getIdEquipo(),u.getIdUsuario(),"ACTIVO"); }
+    private boolean puedeRevisar(Usuario u, SolicitudReclamo r) { if (u.tieneRol("ADMIN")) return true; if (r.getTorneo().getPropietario()!=null && r.getTorneo().getPropietario().getIdUsuario().equals(u.getIdUsuario())) return true; return "JUGADOR".equals(r.getTipo()) && administradores.existsByEquipoIdEquipoAndUsuarioIdUsuarioAndEstado(r.getJugador().getEquipo().getIdEquipo(),u.getIdUsuario(),"ACTIVO"); }
     private SolicitudReclamo base(Usuario u,Torneo t,String m){SolicitudReclamo r=new SolicitudReclamo();r.setSolicitante(u);r.setTorneo(t);r.setMensaje(normalizar(m));return r;}
     private Usuario actual(){Object p=SecurityContextHolder.getContext().getAuthentication().getPrincipal();if(p instanceof Usuario u)return u;throw new AccessDeniedException("Debés iniciar sesión");}
-    private void exigirRol(Usuario u,String rol){if(!rol.equals(u.getRol())&&!"ADMIN".equals(u.getRol()))throw new AccessDeniedException("Tu cuenta no puede realizar este reclamo");}
+    private void exigirRol(Usuario u,String rol){if(!u.tieneRol(rol)&&!u.tieneRol("ADMIN"))throw new AccessDeniedException("Tu cuenta no puede realizar este reclamo");}
     private String normalizar(String v){return v==null||v.isBlank()?null:v.trim();}
     private ReclamoResponseDTO dto(SolicitudReclamo r){
         Equipo equipo = r.getEquipo() != null ? r.getEquipo() : r.getJugador().getEquipo();

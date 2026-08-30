@@ -74,7 +74,7 @@ public class EquipoService {
 
     public List<EquipoResponseDTO> listarMisEquipos() {
         Usuario usuario = usuarioActual();
-        if ("ADMIN".equals(usuario.getRol())) return listarEquipos();
+        if (usuario.tieneRol("ADMIN")) return listarEquipos();
         return administradores.findByUsuarioIdUsuarioAndEstado(usuario.getIdUsuario(), "ACTIVO")
                 .stream().map(item -> convertirAResponseDTO(item.getEquipo())).toList();
     }

@@ -61,6 +61,6 @@ class FusionEquipoServiceTests {
 
     private Equipo equipo(Long id) { Equipo equipo = new Equipo(); equipo.setIdEquipo(id); return equipo; }
     private InscripcionEquipo inscripcion(Equipo equipo, Torneo torneo) { InscripcionEquipo item = new InscripcionEquipo(); item.setEquipo(equipo); item.setTorneo(torneo); return item; }
-    private Usuario usuario(Long id, String rol) { Usuario user = mock(Usuario.class); when(user.getIdUsuario()).thenReturn(id); when(user.getRol()).thenReturn(rol); return user; }
+    private Usuario usuario(Long id, String rol) { Usuario user = mock(Usuario.class); when(user.getIdUsuario()).thenReturn(id); when(user.getRol()).thenReturn(rol); when(user.tieneRol(rol)).thenReturn(true); return user; }
     private void autenticar(Usuario user) { SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(user, null, List.of())); }
 }

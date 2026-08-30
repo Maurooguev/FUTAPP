@@ -51,12 +51,12 @@ public class TorneoService {
     }
 
     public List<TorneoResponseDTO> listarPropios(Usuario usuario) {
-        if ("ADMIN".equals(usuario.getRol())) return listarTorneos();
+        if (usuario.tieneRol("ADMIN")) return listarTorneos();
         return torneoRepository.findByPropietarioIdUsuario(usuario.getIdUsuario()).stream().map(this::convertirAResponseDTO).toList();
     }
 
     public List<TorneoPanelDTO> obtenerPanel(Usuario usuario) {
-        List<Torneo> propios = "ADMIN".equals(usuario.getRol())
+        List<Torneo> propios = usuario.tieneRol("ADMIN")
                 ? torneoRepository.findAll()
                 : torneoRepository.findByPropietarioIdUsuario(usuario.getIdUsuario());
         return propios.stream().map(this::crearResumenPanel).toList();
@@ -98,8 +98,8 @@ public class TorneoService {
 
     @Transactional
     public TorneoResponseDTO crearTorneo(TorneoRequestDTO requestDTO, Usuario propietario) {
-        if ("JUGADOR".equalsIgnoreCase(propietario.getRol())) {
-            propietario.setRol("ORGANIZADOR");
+        if (!propietario.tieneRol("ORGANIZADOR")) {
+            propietario.agregarRol("ORGANIZADOR");
             propietario = usuarios.save(propietario);
         }
         Torneo torneo = new Torneo();

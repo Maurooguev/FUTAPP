@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { API_URL, apiFetch, assetUrl } from "../config/api";
 import useAuth from "../context/useAuth";
+import { tieneRol } from "../utils/roles";
 import "./Profiles.css";
 import TeamFormModal from "../components/TeamManagement/TeamFormModal";
 import TeamRosterModal from "../components/TeamManagement/TeamRosterModal";
@@ -81,7 +82,7 @@ function EquipoPerfil() {
       <div><span className="profile-code">{equipo.codigoPublico}</span><h1>{equipo.nombre}</h1><p>{equipo.barrio || "Barrio sin informar"}</p></div>
       <div className="profile-owner-actions">
         {hasManageAccess && <><span className="profile-owner-badge">Administrás este club</span><button onClick={() => setShowEdit(true)}>Editar perfil</button><button onClick={() => setShowRoster(true)}>Gestionar plantel</button></>}
-        {!hasManageAccess && usuario?.rol === "DIRECTOR_EQUIPO" && <button className="profile-claim-button" onClick={claimTeam}>Reclamar equipo</button>}
+        {!hasManageAccess && tieneRol(usuario, "DIRECTOR_EQUIPO") && <button className="profile-claim-button" onClick={claimTeam}>Reclamar equipo</button>}
       </div>
     </section>
     {claimMessage && <p className="profile-action-message">{claimMessage}</p>}

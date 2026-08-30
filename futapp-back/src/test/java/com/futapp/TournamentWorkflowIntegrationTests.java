@@ -97,7 +97,9 @@ class TournamentWorkflowIntegrationTests {
 
         mockMvc.perform(get("/auth/me").header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.rol").value("ORGANIZADOR"));
+                .andExpect(jsonPath("$.rol").value("ORGANIZADOR"))
+                .andExpect(jsonPath("$.roles").isArray())
+                .andExpect(jsonPath("$.roles", org.hamcrest.Matchers.hasItems("JUGADOR", "ORGANIZADOR")));
 
         mockMvc.perform(get("/torneos/mios").header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk())

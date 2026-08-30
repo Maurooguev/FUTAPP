@@ -97,7 +97,7 @@ public class FusionEquipoService {
     }
 
     private boolean puedeFusionar(Usuario usuario, Equipo oficial, Equipo duplicado) {
-        if ("ADMIN".equals(usuario.getRol())) return true;
+        if (usuario.tieneRol("ADMIN")) return true;
         boolean administraAmbos = administradores.existsByEquipoIdEquipoAndUsuarioIdUsuarioAndEstado(oficial.getIdEquipo(), usuario.getIdUsuario(), "ACTIVO")
                 && administradores.existsByEquipoIdEquipoAndUsuarioIdUsuarioAndEstado(duplicado.getIdEquipo(), usuario.getIdUsuario(), "ACTIVO");
         boolean creoAmbos = oficial.getCreador() != null && duplicado.getCreador() != null

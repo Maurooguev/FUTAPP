@@ -19,7 +19,8 @@ public class BearerTokenFilter extends OncePerRequestFilter {
         if (header != null && header.startsWith("Bearer ")) {
             tokens.findById(header.substring(7)).filter(token -> token.getExpiresAt().isAfter(LocalDateTime.now())).ifPresent(token -> {
                 var user = token.getUsuario();
-                SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(user, null, List.of(new SimpleGrantedAuthority("ROLE_" + user.getRol()))));
+                var authorities = user.getRoles().stream().map(role -> new SimpleGrantedAuthority("ROLE_" + role)).toList();
+                SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(user, null, authorities));
             });
         }
         chain.doFilter(request, response);

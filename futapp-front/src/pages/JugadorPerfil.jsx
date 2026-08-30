@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { API_URL, apiFetch, assetUrl } from "../config/api";
 import useAuth from "../context/useAuth";
+import { tieneRol } from "../utils/roles";
 import "./Profiles.css";
 
 async function fetchJson(url, message) {
@@ -62,7 +63,7 @@ function JugadorPerfil() {
   }, [id]);
 
   useEffect(() => {
-    if (usuario?.rol !== "JUGADOR") return;
+    if (!tieneRol(usuario, "JUGADOR")) return;
     apiFetch(`${API_URL}/perfil-jugador/mio`)
       .then((response) => response.ok ? response.json() : null)
       .then((profile) => setOwnPlayerId(profile?.idJugador ?? null))
@@ -85,7 +86,7 @@ function JugadorPerfil() {
       <div className="profile-avatar player-avatar">{jugador.foto ? <img src={assetUrl(jugador.foto)} alt={`${jugador.nombre} ${jugador.apellido}`} /> : jugador.numeroCamiseta}</div>
       <div><span className="profile-code">{jugador.codigoPublico}</span><h1>{jugador.nombre} {jugador.apellido}</h1>{jugador.apodo && <p className="player-nickname">“{jugador.apodo}”</p>}<Link to={`/equipo/${equipo.idEquipo}`}>{equipo.nombre}</Link></div>
       <strong className="shirt-number">#{jugador.numeroCamiseta}</strong>
-      {isOwnProfile ? <Link className="profile-edit-link" to="/mi-perfil-jugador/editar">Editar perfil</Link> : usuario?.rol === "JUGADOR" && <button className="profile-claim-button" onClick={claimPlayer}>Este jugador soy yo</button>}
+      {isOwnProfile ? <Link className="profile-edit-link" to="/mi-perfil-jugador/editar">Editar perfil</Link> : tieneRol(usuario, "JUGADOR") && <button className="profile-claim-button" onClick={claimPlayer}>Este jugador soy yo</button>}
     </section>
     {claimMessage && <p className="profile-action-message">{claimMessage}</p>}
     <section className="player-facts"><div><span>Posición</span><strong>{jugador.posicion}</strong></div><div><span>Edad</span><strong>{calcularEdad(jugador.fechaNacimiento) ?? "—"}</strong></div><div><span>Nacimiento</span><strong>{jugador.fechaNacimiento || "—"}</strong></div><div><span>Pierna hábil</span><strong>{jugador.piernaHabil || "—"}</strong></div></section>

@@ -23,7 +23,7 @@ public class EquipoAuthorizationService {
     public boolean puedeGestionar(Equipo equipo) {
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (!(principal instanceof Usuario usuario)) return false;
-        if ("ADMIN".equals(usuario.getRol())) return true;
+        if (usuario.tieneRol("ADMIN")) return true;
         if (administradores.existsByEquipoIdEquipoAndUsuarioIdUsuarioAndEstado(
                 equipo.getIdEquipo(), usuario.getIdUsuario(), "ACTIVO")) return true;
         if (administradores.existsByEquipoIdEquipoAndEstado(equipo.getIdEquipo(), "ACTIVO")) return false;
@@ -34,7 +34,7 @@ public class EquipoAuthorizationService {
     public void verificarGestionPlantel(InscripcionEquipo inscripcion) {
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (!(principal instanceof Usuario usuario)) throw new AccessDeniedException("Debés iniciar sesión");
-        if ("ADMIN".equals(usuario.getRol())
+        if (usuario.tieneRol("ADMIN")
                 || (inscripcion.getTorneo().getPropietario() != null
                     && inscripcion.getTorneo().getPropietario().getIdUsuario().equals(usuario.getIdUsuario()))
                 || administradores.existsByEquipoIdEquipoAndUsuarioIdUsuarioAndEstado(
