@@ -12,7 +12,7 @@ function Home() {
   const [busqueda, setBusqueda] = useState("");
   const [showTournamentForm, setShowTournamentForm] = useState(false);
   const navigate = useNavigate();
-  const { usuario } = useAuth();
+  const { usuario, refreshSession } = useAuth();
 
   useEffect(() => {
     fetch(`${API_URL}/torneos`)
@@ -205,8 +205,10 @@ function Home() {
       {showTournamentForm && (
         <TournamentFormModal
           onClose={() => setShowTournamentForm(false)}
-          onSaved={(savedTournament) => {
+          onSaved={async (savedTournament) => {
             setTorneos((current) => [savedTournament, ...current]);
+            if (usuario?.rol === "JUGADOR") await refreshSession();
+            navigate(`/torneo/${savedTournament.idTorneo}`);
           }}
         />
       )}

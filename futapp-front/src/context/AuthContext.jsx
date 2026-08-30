@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import AuthContext from "./auth-context";
 import { API_URL, apiFetch } from "../config/api";
 
@@ -15,6 +15,21 @@ function AuthProvider({ children }) {
     localStorage.setItem("usuario", JSON.stringify(nuevoUsuario));
     localStorage.setItem("authToken", session.token);
   };
+
+  const refreshSession = useCallback(async () => {
+    const response = await apiFetch(`${API_URL}/auth/me`);
+    if (!response.ok) throw new Error("La sesión ya no es válida");
+    const session = await response.json();
+    const usuarioActual = {
+      idUsuario: session.idUsuario,
+      nombre: session.nombre,
+      email: session.email,
+      rol: session.rol,
+    };
+    setUsuario(usuarioActual);
+    localStorage.setItem("usuario", JSON.stringify(usuarioActual));
+    return usuarioActual;
+  }, []);
 
   useEffect(() => {
     if (!localStorage.getItem("authToken")) return;
@@ -61,7 +76,7 @@ function AuthProvider({ children }) {
   };
 
   return (
-    <AuthContext.Provider value={{ usuario, login, register, logout }}>
+    <AuthContext.Provider value={{ usuario, login, register, logout, refreshSession }}>
       {children}
     </AuthContext.Provider>
   );

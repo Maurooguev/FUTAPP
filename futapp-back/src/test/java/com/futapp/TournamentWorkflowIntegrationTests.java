@@ -73,6 +73,33 @@ class TournamentWorkflowIntegrationTests {
                 .andExpect(jsonPath("$.estado").value("FINALIZADO"));
     }
 
+    @Test
+    void convierteAlJugadorEnOrganizadorAlCrearSuPrimerTorneo() throws Exception {
+        String response = mockMvc.perform(post("/auth/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonMapper.writeValueAsString(new RegisterRequestDTO(
+                                "Jugador organizador", "jugador-organizador-" + System.nanoTime() + "@test.local",
+                                "password123", "JUGADOR"))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.rol").value("JUGADOR"))
+                .andReturn().getResponse().getContentAsString();
+        String token = jsonMapper.readTree(response).get("token").asString();
+
+        long torneoId = postJson("/torneos", token, torneo()).get("idTorneo").asLong();
+
+        mockMvc.perform(get("/auth/me").header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.rol").value("ORGANIZADOR"));
+
+        mockMvc.perform(get("/torneos/mios").header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].idTorneo").value(torneoId));
+
+        putJson("/torneos/" + torneoId, token, torneo())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.nombre").value("Liga integral"));
+    }
+
     private String registrarOrganizador() throws Exception {
         String email = "workflow-" + System.nanoTime() + "@test.local";
         String response = mockMvc.perform(post("/auth/register")

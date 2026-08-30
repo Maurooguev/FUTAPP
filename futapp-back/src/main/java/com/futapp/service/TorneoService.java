@@ -9,6 +9,7 @@ import com.futapp.repository.TorneoRepository;
 import com.futapp.repository.PartidoRepository;
 import com.futapp.repository.InscripcionEquipoRepository;
 import com.futapp.repository.InscripcionJugadorRepository;
+import com.futapp.repository.UsuarioRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,15 +25,17 @@ public class TorneoService {
     private final PartidoRepository partidos;
     private final InscripcionEquipoRepository inscripcionesEquipo;
     private final InscripcionJugadorRepository inscripcionesJugador;
+    private final UsuarioRepository usuarios;
 
     public TorneoService(TorneoRepository torneoRepository, TorneoAuthorizationService authorization,
                          PartidoRepository partidos, InscripcionEquipoRepository inscripcionesEquipo,
-                         InscripcionJugadorRepository inscripcionesJugador) {
+                         InscripcionJugadorRepository inscripcionesJugador, UsuarioRepository usuarios) {
         this.torneoRepository = torneoRepository;
         this.authorization = authorization;
         this.partidos = partidos;
         this.inscripcionesEquipo = inscripcionesEquipo;
         this.inscripcionesJugador = inscripcionesJugador;
+        this.usuarios = usuarios;
     }
 
     public List<TorneoResponseDTO> listarTorneos() {
@@ -58,7 +61,12 @@ public class TorneoService {
         return convertirAResponseDTO(torneo);
     }
 
+    @Transactional
     public TorneoResponseDTO crearTorneo(TorneoRequestDTO requestDTO, Usuario propietario) {
+        if ("JUGADOR".equalsIgnoreCase(propietario.getRol())) {
+            propietario.setRol("ORGANIZADOR");
+            propietario = usuarios.save(propietario);
+        }
         Torneo torneo = new Torneo();
         torneo.setNombre(requestDTO.getNombre());
         torneo.setDescripcion(requestDTO.getDescripcion());
