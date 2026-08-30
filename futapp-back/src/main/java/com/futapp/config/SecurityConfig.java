@@ -24,7 +24,7 @@ public class SecurityConfig {
         return http.csrf(csrf -> csrf.disable()).cors(cors -> {}).sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/auth/login", "/auth/register", "/auth/password/forgot", "/auth/password/reset", "/status", "/hola").permitAll()
-                .requestMatchers("/auth/me", "/auth/logout", "/auth/password", "/torneos/mios", "/equipos/mios").authenticated()
+                .requestMatchers("/auth/me", "/auth/logout", "/auth/password", "/torneos/mios", "/torneos/mios/**", "/equipos/mios").authenticated()
                 .requestMatchers(HttpMethod.POST, "/torneos").authenticated()
                 .requestMatchers(HttpMethod.PUT, "/torneos/**").authenticated()
                 .requestMatchers(HttpMethod.DELETE, "/torneos/**").authenticated()

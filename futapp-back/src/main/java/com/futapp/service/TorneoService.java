@@ -2,6 +2,7 @@ package com.futapp.service;
 
 import com.futapp.dto.TorneoRequestDTO;
 import com.futapp.dto.TorneoResponseDTO;
+import com.futapp.dto.TorneoPanelDTO;
 import com.futapp.exception.ResourceNotFoundException;
 import com.futapp.model.Torneo;
 import com.futapp.model.Usuario;
@@ -52,6 +53,40 @@ public class TorneoService {
     public List<TorneoResponseDTO> listarPropios(Usuario usuario) {
         if ("ADMIN".equals(usuario.getRol())) return listarTorneos();
         return torneoRepository.findByPropietarioIdUsuario(usuario.getIdUsuario()).stream().map(this::convertirAResponseDTO).toList();
+    }
+
+    public List<TorneoPanelDTO> obtenerPanel(Usuario usuario) {
+        List<Torneo> propios = "ADMIN".equals(usuario.getRol())
+                ? torneoRepository.findAll()
+                : torneoRepository.findByPropietarioIdUsuario(usuario.getIdUsuario());
+        return propios.stream().map(this::crearResumenPanel).toList();
+    }
+
+    private TorneoPanelDTO crearResumenPanel(Torneo torneo) {
+        var equipos = inscripcionesEquipo.findByTorneoIdTorneoAndEstado(torneo.getIdTorneo(), "ACTIVA");
+        int sinPlantel = (int) equipos.stream()
+                .filter(item -> inscripcionesJugador.countByInscripcionEquipoIdInscripcionAndEstado(
+                        item.getIdInscripcion(), "ACTIVA") == 0)
+                .count();
+        var partidosTorneo = partidos.findByTorneoIdTorneo(torneo.getIdTorneo());
+        int jugados = (int) partidosTorneo.stream()
+                .filter(item -> "FINALIZADO".equalsIgnoreCase(item.getEstado())).count();
+        int pendientes = partidosTorneo.size() - jugados;
+        Integer proximaJornada = partidosTorneo.stream()
+                .filter(item -> !"FINALIZADO".equalsIgnoreCase(item.getEstado()))
+                .map(item -> item.getFecha().getNumeroFecha())
+                .min(Integer::compareTo).orElse(null);
+
+        String accion;
+        if (equipos.size() < 2) accion = "Agregá al menos 2 equipos";
+        else if (sinPlantel > 0) accion = "Completá los planteles";
+        else if (partidosTorneo.isEmpty()) accion = "Generá el fixture";
+        else if (pendientes > 0) accion = "Gestioná la próxima jornada";
+        else if (!"FINALIZADO".equalsIgnoreCase(torneo.getEstado())) accion = "Finalizá el torneo";
+        else accion = "Torneo completo";
+
+        return new TorneoPanelDTO(convertirAResponseDTO(torneo), equipos.size(), sinPlantel,
+                jugados, pendientes, proximaJornada, accion);
     }
 
     public TorneoResponseDTO obtenerTorneoPorId(Long id) {

@@ -1,19 +1,60 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
 import { API_URL, apiFetch } from "../config/api";
 import useAuth from "../context/useAuth";
-import TournamentCard from "../components/TournamentCard/TournamentCard";
+import "./MisTorneos.css";
 
 function MisTorneos() {
   const { usuario } = useAuth();
   const navigate = useNavigate();
-  const [torneos, setTorneos] = useState([]);
+  const [resumenes, setResumenes] = useState([]);
+  const [pendientes, setPendientes] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
   useEffect(() => {
     if (!usuario) return;
-    apiFetch(`${API_URL}/torneos/mios`).then((response) => response.json()).then(setTorneos).finally(() => setLoading(false));
+    Promise.all([
+      apiFetch(`${API_URL}/torneos/mios/panel`).then(async (response) => {
+        if (!response.ok) throw new Error("No se pudo cargar el panel");
+        return response.json();
+      }),
+      apiFetch(`${API_URL}/reclamos/pendientes/count`)
+        .then((response) => response.ok ? response.json() : { cantidad: 0 })
+        .catch(() => ({ cantidad: 0 })),
+    ]).then(([panel, solicitudes]) => {
+      setResumenes(panel);
+      setPendientes(solicitudes.cantidad || 0);
+    }).catch((requestError) => setError(requestError.message)).finally(() => setLoading(false));
   }, [usuario]);
+
+  const totales = useMemo(() => resumenes.reduce((acc, item) => ({
+    equipos: acc.equipos + item.equiposInscriptos,
+    partidos: acc.partidos + item.partidosPendientes,
+    alertas: acc.alertas + item.equiposSinPlantel,
+  }), { equipos: 0, partidos: 0, alertas: 0 }), [resumenes]);
+
   if (!usuario) return <Navigate to="/login" replace />;
-  return <main className="my-tournaments-page"><div className="my-tournaments-shell"><span className="tournament-form-chip">Panel del organizador</span><h1>Mis torneos</h1><p>Administrá tus competencias y compartí su código público.</p>{loading ? <p>Cargando...</p> : torneos.length === 0 ? <div className="team-empty"><h3>Todavía no creaste torneos</h3><p>Creá el primero desde la página de inicio.</p></div> : <div className="cards-grid">{torneos.map((torneo) => <TournamentCard key={torneo.idTorneo} torneo={torneo} onClick={() => navigate(`/torneo/${torneo.idTorneo}`)} />)}</div>}</div></main>;
+
+  return <main className="organizer-page"><div className="organizer-shell">
+    <header className="organizer-heading"><div><span>Panel del organizador</span><h1>Mis torneos</h1><p>Lo importante para continuar cada competencia, en un solo lugar.</p></div><button onClick={() => navigate("/")}>+ Crear torneo</button></header>
+    <section className="organizer-totals">
+      <article><span>Torneos</span><strong>{resumenes.length}</strong></article>
+      <article><span>Equipos</span><strong>{totales.equipos}</strong></article>
+      <article><span>Partidos pendientes</span><strong>{totales.partidos}</strong></article>
+      <article className={totales.alertas ? "has-alert" : ""}><span>Planteles incompletos</span><strong>{totales.alertas}</strong></article>
+      <article className={pendientes ? "has-alert" : ""}><span>Solicitudes</span><strong>{pendientes}</strong>{pendientes > 0 && <button onClick={() => navigate("/solicitudes")}>Revisar</button>}</article>
+    </section>
+    {loading ? <div className="organizer-message">Cargando panel…</div> : error ? <div className="organizer-message error">{error}</div> : resumenes.length === 0 ? <div className="organizer-empty"><h2>Todavía no creaste torneos</h2><p>Creá el primero y empezá cargando sus equipos.</p><button onClick={() => navigate("/")}>Crear torneo</button></div> : <section className="organizer-list">
+      {resumenes.map((item) => <article className="organizer-tournament" key={item.torneo.idTorneo}>
+        <div className="organizer-tournament-main"><div className="organizer-badge">{item.torneo.estado}</div><div><span>{item.torneo.codigoPublico}</span><h2>{item.torneo.nombre}</h2><p>{item.torneo.ubicacion} · {item.torneo.formato}</p></div></div>
+        <div className="organizer-progress">
+          <div><span>Equipos</span><strong>{item.equiposInscriptos}/{item.torneo.cantidadEquipos}</strong></div><div><span>Sin plantel</span><strong>{item.equiposSinPlantel}</strong></div><div><span>Jugados</span><strong>{item.partidosJugados}</strong></div><div><span>Pendientes</span><strong>{item.partidosPendientes}</strong></div><div><span>Próxima jornada</span><strong>{item.proximaJornada ? `Fecha ${item.proximaJornada}` : "—"}</strong></div>
+        </div>
+        <footer><div><span>Siguiente paso</span><strong>{item.accionRecomendada}</strong></div><button onClick={() => navigate(`/torneo/${item.torneo.idTorneo}`)}>Administrar →</button></footer>
+      </article>)}
+    </section>}
+  </div></main>;
 }
+
 export default MisTorneos;

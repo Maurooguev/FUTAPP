@@ -2,6 +2,7 @@ package com.futapp.controller;
 
 import com.futapp.dto.TorneoRequestDTO;
 import com.futapp.dto.TorneoResponseDTO;
+import com.futapp.dto.TorneoPanelDTO;
 import com.futapp.service.TorneoService;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
@@ -36,6 +37,9 @@ public class TorneoController {
 
     @GetMapping("/mios")
     public List<TorneoResponseDTO> misTorneos(@AuthenticationPrincipal Usuario usuario) { return torneoService.listarPropios(usuario); }
+
+    @GetMapping("/mios/panel")
+    public List<TorneoPanelDTO> miPanel(@AuthenticationPrincipal Usuario usuario) { return torneoService.obtenerPanel(usuario); }
 
     @PostMapping
     public TorneoResponseDTO crearTorneo(@Valid @RequestBody TorneoRequestDTO requestDTO,

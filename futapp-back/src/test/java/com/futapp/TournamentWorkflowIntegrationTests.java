@@ -58,6 +58,14 @@ class TournamentWorkflowIntegrationTests {
                 .andExpect(jsonPath("$.golesLocal").value(3))
                 .andExpect(jsonPath("$.golesVisitante").value(1));
 
+        mockMvc.perform(get("/torneos/mios/panel").header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].equiposInscriptos").value(2))
+                .andExpect(jsonPath("$[0].equiposSinPlantel").value(0))
+                .andExpect(jsonPath("$[0].partidosJugados").value(1))
+                .andExpect(jsonPath("$[0].partidosPendientes").value(0))
+                .andExpect(jsonPath("$[0].accionRecomendada").value("Finalizá el torneo"));
+
         mockMvc.perform(get("/torneos/{id}/tabla", torneoId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].puntos").value(3))
