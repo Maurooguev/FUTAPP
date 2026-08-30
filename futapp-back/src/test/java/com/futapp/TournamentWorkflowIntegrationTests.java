@@ -156,6 +156,7 @@ class TournamentWorkflowIntegrationTests {
         request.put("cantidadEquipos", 8);
         request.put("cantidadZonas", 2);
         request.put("clasificadosPorZona", 2);
+        request.put("generarEquiposPrueba", true);
 
         long torneoId = postJson("/torneos", token, request).get("idTorneo").asLong();
 
@@ -170,7 +171,7 @@ class TournamentWorkflowIntegrationTests {
                 .andExpect(jsonPath("$.divisiones[0].fases[1].clasificados").value(4))
                 .andExpect(jsonPath("$.divisiones[0].cupos", org.hamcrest.Matchers.hasSize(8)))
                 .andExpect(jsonPath("$.divisiones[0].cupos[0].etiqueta").value("Equipo 1"))
-                .andExpect(jsonPath("$.divisiones[0].cupos[0].equipo").doesNotExist())
+                .andExpect(jsonPath("$.divisiones[0].cupos[0].equipo").value("Equipo 1"))
                 .andExpect(jsonPath("$.divisiones[0].cupos[7].etiqueta").value("Equipo 8"));
     }
 
@@ -205,14 +206,15 @@ class TournamentWorkflowIntegrationTests {
     }
 
     private Map<String, Object> torneo() {
-        return Map.of(
-                "nombre", "Liga integral",
-                "descripcion", "Torneo creado por la prueba del circuito principal",
-                "ubicacion", "Buenos Aires",
-                "estado", "BORRADOR",
-                "formato", "LIGA",
-                "cantidadEquipos", 2
-        );
+        Map<String, Object> torneo = new LinkedHashMap<>();
+        torneo.put("nombre", "Liga integral");
+        torneo.put("descripcion", "Torneo creado por la prueba del circuito principal");
+        torneo.put("ubicacion", "Buenos Aires");
+        torneo.put("estado", "BORRADOR");
+        torneo.put("formato", "LIGA");
+        torneo.put("cantidadEquipos", 2);
+        torneo.put("generarEquiposPrueba", false);
+        return torneo;
     }
 
     private Map<String, Object> equipo(String nombre, String color, long torneoId) {

@@ -18,10 +18,14 @@ public class EstructuraCompetenciaService {
     private final CompeticionFaseRepository fases;
     private final CompeticionZonaRepository zonas;
     private final CupoEquipoRepository cupos;
+    private final EquipoRepository equipos;
+    private final InscripcionEquipoRepository inscripciones;
 
     public EstructuraCompetenciaService(TorneoRepository torneos, CompeticionDivisionRepository divisiones,
-            CompeticionFaseRepository fases, CompeticionZonaRepository zonas, CupoEquipoRepository cupos) {
+            CompeticionFaseRepository fases, CompeticionZonaRepository zonas, CupoEquipoRepository cupos,
+            EquipoRepository equipos, InscripcionEquipoRepository inscripciones) {
         this.torneos = torneos; this.divisiones = divisiones; this.fases = fases; this.zonas = zonas; this.cupos = cupos;
+        this.equipos = equipos; this.inscripciones = inscripciones;
     }
 
     @Transactional
@@ -57,6 +61,9 @@ public class EstructuraCompetenciaService {
             CupoEquipo cupo = new CupoEquipo();
             cupo.setDivision(division); cupo.setNumero(i); cupo.setEtiqueta("Equipo " + i);
             if (!zonasCreadas.isEmpty()) cupo.setZona(zonasCreadas.get((i - 1) % zonasCreadas.size()));
+            if (Boolean.TRUE.equals(request.getGenerarEquiposPrueba())) {
+                cupo.setEquipo(crearEquipoDePrueba(torneo, i));
+            }
             cupos.save(cupo);
         }
     }
@@ -102,4 +109,23 @@ public class EstructuraCompetenciaService {
     }
 
     private String letraZona(int indice) { return String.valueOf((char) ('A' + indice)); }
+
+    private Equipo crearEquipoDePrueba(Torneo torneo, int numero) {
+        String[] colores = {"Azul", "Rojo", "Verde", "Amarillo", "Negro", "Blanco", "Naranja", "Violeta"};
+        Equipo equipo = new Equipo();
+        equipo.setNombre("Equipo " + numero);
+        equipo.setDescripcion("Equipo de prueba generado automáticamente. Podés editarlo o reemplazarlo.");
+        equipo.setColorCamiseta(colores[(numero - 1) % colores.length]);
+        equipo.setBarrio(torneo.getUbicacion());
+        equipo.setResponsable(torneo.getPropietario().getNombre());
+        equipo.setEstado("ACTIVO");
+        equipo.setTorneo(torneo);
+        equipo.setCreador(torneo.getPropietario());
+        equipo = equipos.save(equipo);
+
+        InscripcionEquipo inscripcion = new InscripcionEquipo();
+        inscripcion.setEquipo(equipo); inscripcion.setTorneo(torneo); inscripcion.setEstado("ACTIVA");
+        inscripciones.save(inscripcion);
+        return equipo;
+    }
 }
