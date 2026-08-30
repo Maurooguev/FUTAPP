@@ -59,6 +59,11 @@ public class PartidoController {
         return partidoService.generarFixture(idTorneo, request);
     }
 
+    @PostMapping("/torneo/{idTorneo}/generar-siguiente-llave")
+    public List<PartidoResponseDTO> generarSiguienteLlave(@PathVariable Long idTorneo) {
+        return partidoService.generarSiguienteLlave(idTorneo);
+    }
+
     @PutMapping("/{id}")
     public PartidoResponseDTO actualizarPartido(@PathVariable Long id, @Valid @RequestBody PartidoRequestDTO requestDTO) {
         return partidoService.actualizarPartido(id, requestDTO);

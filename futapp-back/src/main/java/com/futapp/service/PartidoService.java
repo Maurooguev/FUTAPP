@@ -240,6 +240,43 @@ public class PartidoService {
         return generados.stream().map(this::convertirAResponseDTO).toList();
     }
 
+    @Transactional
+    public List<PartidoResponseDTO> generarSiguienteLlave(Long idTorneo) {
+        authorization.verificarGestion(idTorneo);
+        Torneo torneo = torneoRepository.findById(idTorneo)
+                .orElseThrow(() -> new ResourceNotFoundException("Torneo no encontrado con id: " + idTorneo));
+        if (!"ELIMINACIÓN DIRECTA".equalsIgnoreCase(torneo.getFormato())) {
+            throw new IllegalArgumentException("Esta acción corresponde a torneos de eliminación directa");
+        }
+        List<Partido> todos = partidoRepository.findByTorneoIdTorneo(idTorneo);
+        if (todos.isEmpty()) throw new IllegalArgumentException("Primero generá la llave inicial");
+        int ultimaRonda = todos.stream().map(p -> p.getFecha().getNumeroFecha()).max(Integer::compareTo).orElseThrow();
+        List<Partido> ronda = todos.stream().filter(p -> p.getFecha().getNumeroFecha() == ultimaRonda)
+                .sorted(Comparator.comparing(Partido::getIdPartido)).toList();
+        if (ronda.stream().anyMatch(p -> !"FINALIZADO".equalsIgnoreCase(p.getEstado()))) {
+            throw new IllegalArgumentException("Cargá todos los resultados de la ronda antes de generar la siguiente");
+        }
+        if (ronda.stream().anyMatch(p -> p.getGolesLocal().equals(p.getGolesVisitante()))) {
+            throw new IllegalArgumentException("Definí un ganador en cada cruce; no puede haber empates en eliminación directa");
+        }
+        List<Equipo> ganadores = ronda.stream().map(p -> p.getGolesLocal() > p.getGolesVisitante()
+                ? p.getEquipoLocal() : p.getEquipoVisitante()).collect(Collectors.toCollection(ArrayList::new));
+        if (ganadores.size() == 1) throw new IllegalArgumentException("La llave ya tiene un campeón");
+
+        String nombre = nombreRonda(ganadores.size());
+        Fecha fecha = crearFecha(torneo, ultimaRonda + 1, nombre, true);
+        DateTimeFormatter formato = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+        LocalDateTime inicio = ronda.stream().map(Partido::getFechaHora).filter(java.util.Objects::nonNull)
+                .map(valor -> LocalDateTime.parse(valor, formato)).max(LocalDateTime::compareTo)
+                .orElse(LocalDateTime.now()).plusDays(7);
+        List<Partido> generados = new ArrayList<>();
+        for (int i = 0; i < ganadores.size() / 2; i++) {
+            generados.add(crearPartidoAutomatico(torneo, fecha, ganadores.get(i), ganadores.get(ganadores.size() - 1 - i),
+                    inicio.plusMinutes(i * 90L).format(formato), ronda.get(0).getCancha(), nombre));
+        }
+        return generados.stream().map(this::convertirAResponseDTO).toList();
+    }
+
     private List<PartidoResponseDTO> generarFixturePorZonas(Torneo torneo, List<Equipo> equiposActivos, FixtureRequestDTO request) {
         var division = divisiones.findByTorneoIdTorneoOrderByOrden(torneo.getIdTorneo()).stream().findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("El torneo no tiene una estructura de zonas"));

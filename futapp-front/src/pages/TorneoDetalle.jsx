@@ -20,6 +20,7 @@ import DateFormModal from "../components/DateFormModal/DateFormModal";
 import FixtureGeneratorModal from "../components/FixtureGeneratorModal/FixtureGeneratorModal";
 import TournamentReadiness from "../components/TournamentReadiness/TournamentReadiness";
 import TournamentExports from "../components/TournamentExports/TournamentExports";
+import KnockoutBracket from "../components/KnockoutBracket/KnockoutBracket";
 
 function TorneoDetalle() {
   const { id } = useParams();
@@ -221,6 +222,17 @@ const recargarDatosTorneo = () => {
     } catch (requestError) { setAdminError(requestError.message); } finally { setGenerandoFixture(false); }
   };
 
+  const generarSiguienteLlave = async () => {
+    setAdminError(""); setGenerandoFixture(true);
+    try {
+      const response = await apiFetch(`${API_URL}/partidos/torneo/${id}/generar-siguiente-llave`, { method: "POST" });
+      const payload = await response.json().catch(() => null);
+      if (!response.ok) throw new Error(payload?.message || "No se pudo generar la siguiente ronda");
+      const [partidosResponse, fechasResponse] = await Promise.all([fetch(`${API_URL}/partidos/torneo/${id}`), fetch(`${API_URL}/fechas/torneo/${id}`)]);
+      setPartidos(await partidosResponse.json()); setFechas(await fechasResponse.json());
+    } catch (requestError) { setAdminError(requestError.message); } finally { setGenerandoFixture(false); }
+  };
+
   const suspenderPartido = async (partido) => {
     const motivo = window.prompt(`Motivo de la suspensión de ${partido.nombreEquipoLocal} vs ${partido.nombreEquipoVisitante}:`);
     if (motivo === null) return;
@@ -296,6 +308,8 @@ const recargarDatosTorneo = () => {
             <TopScorersTable goleadores={topGoleadores} />
             <TopCardsTable jugadores={topAmarillas} />
           </div>
+
+          {torneo.formato?.toLowerCase() === "eliminación directa" && <KnockoutBracket equipos={equipos} partidos={partidos} canManage={puedeEditar} onNextRound={generarSiguienteLlave} loading={generandoFixture} />}
 
           <FixtureByDate
             fechas={fechas}

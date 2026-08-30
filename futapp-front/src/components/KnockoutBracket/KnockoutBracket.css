@@ -1,0 +1,21 @@
+.bracket-block { margin-top: 18px; border: 1px solid #dbe3e8; background: #fff; padding: 18px; }
+.bracket-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+.bracket-heading span { color: #0877a7; font-size: 9px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; }
+.bracket-heading h2 { margin: 3px 0; font-size: 19px; }
+.bracket-heading p { margin: 0; color: #64748b; font-size: 11px; }
+.bracket-heading button { background: #0877a7; color: #fff; font-size: 11px; }
+.bracket-champion { margin-top: 14px; padding: 10px; background: #fff7d6; color: #795e00; font-size: 12px; text-align: center; }
+.bracket-scroll { margin-top: 16px; overflow-x: auto; padding-bottom: 8px; }
+.bracket-grid { display: grid; min-width: 720px; grid-template-columns: repeat(3, minmax(200px, 1fr)); gap: 30px; }
+.bracket-round { display: flex; min-width: 0; flex-direction: column; }
+.bracket-round h3 { margin: 0 0 9px; color: #334155; font-size: 11px; text-align: center; text-transform: uppercase; }
+.bracket-round-matches { display: flex; flex: 1; flex-direction: column; justify-content: space-around; gap: 12px; }
+.bracket-match { position: relative; border: 1px solid #cbd5e1; background: #f8fafc; box-shadow: 0 2px 5px rgba(15,23,42,.05); }
+.bracket-match::after { position: absolute; top: 50%; left: 100%; width: 31px; border-top: 1px solid #94a3b8; content: ""; }
+.bracket-round:last-child .bracket-match::after { display: none; }
+.bracket-team { display: flex; justify-content: space-between; gap: 8px; padding: 8px 10px; color: #334155; font-size: 11px; }
+.bracket-team + .bracket-team { border-top: 1px solid #dbe3e8; }
+.bracket-team a { overflow: hidden; color: inherit; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+.bracket-team.winner { border-left: 3px solid #16a34a; background: #effcf3; color: #166534; }
+.bracket-team.pending { color: #94a3b8; font-style: italic; }
+@media (max-width: 700px) { .bracket-block { padding: 13px; } .bracket-heading { flex-direction: column; } .bracket-heading button { width: 100%; } }

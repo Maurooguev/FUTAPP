@@ -197,6 +197,13 @@ class TournamentWorkflowIntegrationTests {
                 "minutosEntrePartidos", 60, "cancha", "Cancha principal"));
         org.junit.jupiter.api.Assertions.assertEquals(4, partidos.size());
         org.junit.jupiter.api.Assertions.assertEquals("Cuartos de final", partidos.get(0).get("observaciones").asString());
+        for (JsonNode partido : partidos) {
+            putJson("/partidos/" + partido.get("idPartido").asLong() + "/resultado", token,
+                    Map.of("golesLocal", 2, "golesVisitante", 1)).andExpect(status().isOk());
+        }
+        JsonNode semifinales = postJson("/partidos/torneo/" + torneoId + "/generar-siguiente-llave", token, null);
+        org.junit.jupiter.api.Assertions.assertEquals(2, semifinales.size());
+        org.junit.jupiter.api.Assertions.assertEquals("Semifinales", semifinales.get(0).get("observaciones").asString());
     }
 
     private String registrarOrganizador() throws Exception {
