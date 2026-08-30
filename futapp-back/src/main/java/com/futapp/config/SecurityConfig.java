@@ -30,6 +30,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.DELETE, "/torneos/**").authenticated()
                 .requestMatchers("/reclamos/**", "/perfil-jugador/**").authenticated()
                 .requestMatchers("/notificaciones/**").authenticated()
+                .requestMatchers("/favoritos/**").authenticated()
                 .requestMatchers(HttpMethod.POST, "/archivos/imagenes").authenticated()
                 .requestMatchers(HttpMethod.GET, "/equipos/*/permisos").authenticated()
                 .requestMatchers(HttpMethod.PUT, "/equipos/*", "/jugadores/*").authenticated()

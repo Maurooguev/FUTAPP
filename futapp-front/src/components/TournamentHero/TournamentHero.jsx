@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import "./TournamentHero.css";
+import FavoriteButton from "../FavoriteButton/FavoriteButton";
 
 function TournamentHero({ torneo, fechaActual }) {
   const inicial = torneo.nombre?.trim().charAt(0).toUpperCase() || "T";
@@ -21,6 +22,7 @@ function TournamentHero({ torneo, fechaActual }) {
             <h1>{torneo.nombre}</h1>
             <p>{torneo.descripcion || "Competición de fútbol amateur"}</p>
           </div>
+          <FavoriteButton type="torneos" id={torneo.idTorneo} />
         </div>
 
         <div className="tournament-meta">

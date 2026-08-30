@@ -1,0 +1,6 @@
+.favorite-button { display: inline-flex; min-height: 40px; align-items: center; gap: 6px; padding: 7px 11px; border: 1px solid #cbd5e1; border-radius: 5px; background: #fff; color: #475569; font-weight: 800; }
+.favorite-button span { color: #f59e0b; font-size: 19px; line-height: 1; }
+.favorite-button small { font-size: 10px; }
+.favorite-button.active { border-color: #f2c45c; background: #fff9e8; color: #8a5b00; }
+.favorite-button:disabled { opacity: .6; }
+@media (max-width: 600px) { .favorite-button { min-width: 44px; min-height: 44px; justify-content: center; padding: 8px; }.favorite-button small { display: none; } }

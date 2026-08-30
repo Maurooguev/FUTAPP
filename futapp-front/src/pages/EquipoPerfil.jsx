@@ -6,6 +6,7 @@ import { tieneRol } from "../utils/roles";
 import "./Profiles.css";
 import TeamFormModal from "../components/TeamManagement/TeamFormModal";
 import TeamRosterModal from "../components/TeamManagement/TeamRosterModal";
+import FavoriteButton from "../components/FavoriteButton/FavoriteButton";
 
 async function fetchJson(url, message) {
   const response = await fetch(url);
@@ -81,6 +82,7 @@ function EquipoPerfil() {
       <div className="profile-avatar club-avatar">{equipo.escudo ? <img src={assetUrl(equipo.escudo)} alt={`Escudo de ${equipo.nombre}`} /> : equipo.nombre.slice(0, 2).toUpperCase()}</div>
       <div><span className="profile-code">{equipo.codigoPublico}</span><h1>{equipo.nombre}</h1><p>{equipo.barrio || "Barrio sin informar"}</p></div>
       <div className="profile-owner-actions">
+        <FavoriteButton type="equipos" id={equipo.idEquipo} />
         {hasManageAccess && <><span className="profile-owner-badge">Administrás este club</span><button onClick={() => setShowEdit(true)}>Editar perfil</button><button onClick={() => setShowRoster(true)}>Gestionar plantel</button></>}
         {!hasManageAccess && tieneRol(usuario, "DIRECTOR_EQUIPO") && <button className="profile-claim-button" onClick={claimTeam}>Reclamar equipo</button>}
       </div>

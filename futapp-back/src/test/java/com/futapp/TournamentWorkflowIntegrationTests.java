@@ -35,6 +35,15 @@ class TournamentWorkflowIntegrationTests {
         JsonNode local = postJson("/equipos", token, equipo("Barrio Norte", "Azul", torneoId));
         JsonNode visitante = postJson("/equipos", token, equipo("Deportivo Sur", "Rojo", torneoId));
 
+        putJson("/favoritos/torneos/" + torneoId, token, null)
+                .andExpect(status().isOk()).andExpect(jsonPath("$.favorito").value(true));
+        putJson("/favoritos/equipos/" + local.get("idEquipo").asLong(), token, null)
+                .andExpect(status().isOk()).andExpect(jsonPath("$.favorito").value(true));
+        mockMvc.perform(get("/favoritos").header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.torneos", org.hamcrest.Matchers.hasItem((int) torneoId)))
+                .andExpect(jsonPath("$.equipos", org.hamcrest.Matchers.hasItem(local.get("idEquipo").asInt())));
+
         JsonNode jugadorLocal = postJson("/jugadores", token, jugador("Juan", "Norte", 10, local.get("idEquipo").asLong()));
         JsonNode jugadorVisitante = postJson("/jugadores", token, jugador("Pedro", "Sur", 9, visitante.get("idEquipo").asLong()));
 
