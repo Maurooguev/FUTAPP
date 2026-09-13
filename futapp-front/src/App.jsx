@@ -19,6 +19,7 @@ import Cuenta from "./pages/Cuenta";
 import Notificaciones from "./pages/Notificaciones";
 import PerfilOrganizador from "./pages/PerfilOrganizador";
 import MiPerfilOrganizador from "./pages/MiPerfilOrganizador";
+import MiPerfilOrganizadorRedirect from "./pages/MiPerfilOrganizadorRedirect";
 
 function App() {
   return (
@@ -41,7 +42,8 @@ function App() {
         <Route path="/mis-torneos" element={<MisTorneos />} />
         <Route path="/mis-equipos" element={<MisEquipos />} />
         <Route path="/organizador/:id" element={<PerfilOrganizador />} />
-        <Route path="/mi-perfil-organizador" element={<MiPerfilOrganizador />} />
+        <Route path="/mi-perfil-organizador" element={<MiPerfilOrganizadorRedirect />} />
+        <Route path="/mi-perfil-organizador/editar" element={<MiPerfilOrganizador />} />
       </Route>
     </Routes>
   );

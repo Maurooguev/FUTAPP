@@ -30,7 +30,7 @@ function PerfilOrganizador() {
       <div className="organizer-profile-identity">
         <div className="organizer-profile-avatar">{perfil.fotoPerfil ? <img src={assetUrl(perfil.fotoPerfil)} alt={perfil.nombrePublico} /> : perfil.nombrePublico.slice(0, 2).toUpperCase()}</div>
         <div><span>Perfil de organizador</span><h1>{perfil.nombrePublico}</h1><p>{perfil.descripcion}</p></div>
-        {propio && <Link to="/mi-perfil-organizador">Editar perfil</Link>}
+        {propio && <Link to="/mi-perfil-organizador/editar">Editar perfil</Link>}
       </div>
     </section>
 
