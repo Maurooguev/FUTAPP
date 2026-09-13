@@ -211,6 +211,10 @@ class TournamentWorkflowIntegrationTests {
         JsonNode semifinales = postJson("/partidos/torneo/" + torneoId + "/generar-siguiente-llave", token, null);
         org.junit.jupiter.api.Assertions.assertEquals(2, semifinales.size());
         org.junit.jupiter.api.Assertions.assertEquals("Semifinales", semifinales.get(0).get("observaciones").asString());
+        org.junit.jupiter.api.Assertions.assertEquals("Equipo 1", semifinales.get(0).get("nombreEquipoLocal").asString());
+        org.junit.jupiter.api.Assertions.assertEquals("Equipo 2", semifinales.get(0).get("nombreEquipoVisitante").asString());
+        org.junit.jupiter.api.Assertions.assertEquals("Equipo 3", semifinales.get(1).get("nombreEquipoLocal").asString());
+        org.junit.jupiter.api.Assertions.assertEquals("Equipo 4", semifinales.get(1).get("nombreEquipoVisitante").asString());
     }
 
     @Test

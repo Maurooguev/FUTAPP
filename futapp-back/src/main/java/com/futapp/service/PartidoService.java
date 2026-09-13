@@ -305,9 +305,17 @@ public class PartidoService {
                         .filter(f -> "ELIMINACION_DIRECTA".equals(f.getTipo())).map(f -> f.getClasificados() == null ? 4 : f.getClasificados()).findFirst().orElse(4);
                 participantesLlave = obtenerClasificados(torneo, clasificados, division.getIdDivision());
             }
-            participantesLlave.stream()
+            List<Equipo> pasesLibres = participantesLlave.stream()
                     .filter(e -> !participantes.contains(e.getIdEquipo())).sorted(Comparator.comparing(Equipo::getIdEquipo))
-                    .forEach(ganadores::add);
+                    .collect(Collectors.toCollection(ArrayList::new));
+            List<Equipo> ordenConPases = new ArrayList<>();
+            int pase = 0;
+            for (Equipo ganador : ganadores) {
+                ordenConPases.add(ganador);
+                if (pase < pasesLibres.size()) ordenConPases.add(pasesLibres.get(pase++));
+            }
+            while (pase < pasesLibres.size()) ordenConPases.add(pasesLibres.get(pase++));
+            ganadores = ordenConPases;
         }
         if (ganadores.size() == 1) throw new IllegalArgumentException("La llave ya tiene un campeón");
 
@@ -319,7 +327,7 @@ public class PartidoService {
                 .orElse(LocalDateTime.now()).plusDays(7);
         List<Partido> generados = new ArrayList<>();
         for (int i = 0; i < ganadores.size() / 2; i++) {
-            generados.add(crearPartidoAutomatico(torneo, fecha, ganadores.get(i), ganadores.get(ganadores.size() - 1 - i),
+            generados.add(crearPartidoAutomatico(torneo, fecha, ganadores.get(i * 2), ganadores.get(i * 2 + 1),
                     inicio.plusMinutes(i * 90L).format(formato), ronda.get(0).getCancha(), nombre));
         }
         return generados.stream().map(this::convertirAResponseDTO).toList();
