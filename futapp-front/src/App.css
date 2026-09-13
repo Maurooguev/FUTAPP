@@ -919,6 +919,14 @@ button {
   background: #eefbf3;
 }
 
+.league-champion { display: flex; align-items: center; gap: 13px; margin-bottom: 18px; border: 1px solid #ead88b; border-left: 4px solid #eab308; border-radius: 7px; background: linear-gradient(90deg,#fff8d9,#fffdf5); padding: 13px 16px; color: #795e00; }
+.league-champion-trophy { font-size: 28px; line-height: 1; }
+.league-champion div { display: grid; gap: 1px; }
+.league-champion small { font-size: 9px; font-weight: 900; letter-spacing: .06em; text-transform: uppercase; }
+.league-champion a { color: #0f172a; font-size: 17px; font-weight: 900; }
+.league-champion p { margin: 0; color: #786a32; font-size: 10px; }
+.league-champion + .torneo-stats-grid { margin-top: 0; }
+
 .equipo-cell {
   text-align: left;
   font-weight: 700;

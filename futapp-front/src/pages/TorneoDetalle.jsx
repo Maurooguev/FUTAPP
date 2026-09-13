@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 
 import useAuth from "../context/useAuth";
 import { puedeAdministrarTorneo } from "../utils/roles";
@@ -181,6 +181,8 @@ function TorneoDetalle() {
     ).length;
   }, [partidos]);
   const cantidadEquiposLlave = estructura?.divisiones?.[0]?.fases?.find((fase) => fase.tipo === "ELIMINACION_DIRECTA")?.clasificados || equipos.length;
+  const usaLlave = torneo?.formato?.toLowerCase() === "eliminación directa" || torneo?.formato?.toLowerCase().includes("playoffs");
+  const campeonLiga = torneo?.estado?.toUpperCase() === "FINALIZADO" && !usaLlave && tabla.length > 0 ? tabla[0] : null;
 
   if (!torneo) {
     return <p style={{ padding: "20px" }}>Cargando...</p>;
@@ -310,6 +312,10 @@ const recargarDatosTorneo = () => {
       <main className="torneo-content">
         <div className="torneo-shell">
           {puedeEditar && <TournamentReadiness torneoId={id} torneo={torneo} equipos={equipos} partidos={partidos} onGenerateFixture={abrirGeneradorFixture} onNextRound={generarSiguienteLlave} />}
+          {campeonLiga && <div className="league-champion">
+            <span className="league-champion-trophy">🏆</span>
+            <div><small>Campeón del torneo</small><Link to={`/equipo/${campeonLiga.idEquipo}`}>{campeonLiga.nombreEquipo}</Link><p>{campeonLiga.puntos} puntos · {campeonLiga.ganados} partidos ganados</p></div>
+          </div>}
           <div className="torneo-stats-grid" id="resumen">
             <StatsCard label="Torneo" value={torneo.nombre} />
             <StatsCard label="Partidos jugados" value={partidosJugados} />
