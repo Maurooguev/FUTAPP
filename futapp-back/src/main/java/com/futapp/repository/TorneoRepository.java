@@ -12,4 +12,5 @@ public interface TorneoRepository extends JpaRepository<Torneo, Long> {
     Optional<Torneo> findByCodigoPublicoIgnoreCase(String codigoPublico);
     List<Torneo> findByNombreContainingIgnoreCaseOrCodigoPublicoContainingIgnoreCase(String nombre, String codigoPublico);
     List<Torneo> findByPropietarioIdUsuario(Long idUsuario);
+    List<Torneo> findByCampeonIdEquipoOrderByIdTorneoDesc(Long idEquipo);
 }

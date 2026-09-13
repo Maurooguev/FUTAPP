@@ -21,6 +21,7 @@ function EquipoPerfil() {
   const [jugadores, setJugadores] = useState([]);
   const [partidos, setPartidos] = useState([]);
   const [inscripciones, setInscripciones] = useState([]);
+  const [titulos, setTitulos] = useState([]);
   const [error, setError] = useState("");
   const [claimMessage, setClaimMessage] = useState("");
   const [canManage, setCanManage] = useState(false);
@@ -37,9 +38,10 @@ function EquipoPerfil() {
     fetchJson(`${API_URL}/equipos/${id}`, "No se encontró el equipo")
       .then(async (team) => {
         setEquipo(team);
-        const [matches, enrollments] = await Promise.all([
+        const [matches, enrollments, championships] = await Promise.all([
           fetchJson(`${API_URL}/partidos/torneo/${team.idTorneo}`, "No se pudieron cargar los partidos"),
           fetchJson(`${API_URL}/inscripciones/equipos/${id}`, "No se pudo cargar el historial de torneos"),
+          fetchJson(`${API_URL}/torneos/campeones/equipo/${id}`, "No se pudieron cargar los títulos"),
         ]);
         const currentEnrollment = enrollments.find((item) => item.idTorneo === team.idTorneo)
           ?? enrollments.find((item) => item.estado === "ACTIVA")
@@ -47,12 +49,13 @@ function EquipoPerfil() {
         const roster = currentEnrollment
           ? await fetchJson(`${API_URL}/inscripciones/${currentEnrollment.idInscripcion}/jugadores`, "No se pudo cargar el plantel")
           : [];
-        return [roster.filter((player) => player.estado === "ACTIVA"), matches, enrollments];
+        return [roster.filter((player) => player.estado === "ACTIVA"), matches, enrollments, championships];
       })
-      .then(([players, matches, enrollments]) => {
+      .then(([players, matches, enrollments, championships]) => {
         setJugadores(Array.isArray(players) ? players : []);
         setPartidos(Array.isArray(matches) ? matches : []);
         setInscripciones(Array.isArray(enrollments) ? enrollments : []);
+        setTitulos(Array.isArray(championships) ? championships : []);
       })
       .catch((requestError) => setError(`${requestError.message}. Actualizá la página para reintentar.`));
   }, [id]);
@@ -80,7 +83,7 @@ function EquipoPerfil() {
     </section>
     <section className="profile-identity">
       <div className="profile-avatar club-avatar">{equipo.escudo ? <img src={assetUrl(equipo.escudo)} alt={`Escudo de ${equipo.nombre}`} /> : equipo.nombre.slice(0, 2).toUpperCase()}</div>
-      <div><span className="profile-code">{equipo.codigoPublico}</span><h1>{equipo.nombre}</h1><p>{equipo.barrio || "Barrio sin informar"}</p></div>
+      <div><span className="profile-code">{equipo.codigoPublico}</span><h1>{equipo.nombre} {titulos.length > 0 && <span className="club-stars" title={`${titulos.length} título${titulos.length === 1 ? "" : "s"}`}>{"★".repeat(titulos.length)}</span>}</h1><p>{equipo.barrio || "Barrio sin informar"}</p></div>
       <div className="profile-owner-actions">
         <FavoriteButton type="equipos" id={equipo.idEquipo} />
         {hasManageAccess && <><span className="profile-owner-badge">Administrás este club</span><button onClick={() => setShowEdit(true)}>Editar perfil</button><button onClick={() => setShowRoster(true)}>Gestionar plantel</button></>}
@@ -92,6 +95,7 @@ function EquipoPerfil() {
       <section className="profile-panel"><h2>Sobre el club</h2><p>{equipo.descripcion || "El club todavía no agregó una descripción."}</p><dl><div><dt>Responsable</dt><dd>{equipo.responsable}</dd></div><div><dt>Contacto</dt><dd>{equipo.telefonoContacto}</dd></div>{equipo.emailContacto && <div><dt>Email</dt><dd>{equipo.emailContacto}</dd></div>}</dl></section>
       <section className="profile-panel"><h2>Historial de torneos</h2><div className="enrollment-list">{inscripciones.map((item) => <Link className="history-link" to={`/torneo/${item.idTorneo}`} key={item.idInscripcion}><strong>{item.nombreTorneo}</strong><small>{item.estado} · {item.cantidadJugadores} jugadores</small><span>Ver torneo →</span></Link>)}</div></section>
     </div>
+    {titulos.length > 0 && <section className="profile-panel"><h2>Títulos</h2><div className="club-title-list">{titulos.map((torneo) => <Link to={`/torneo/${torneo.idTorneo}`} key={torneo.idTorneo}><span>🏆</span><div><strong>{torneo.nombre}</strong><small>{torneo.formato} · {torneo.ubicacion}</small></div><b>Ver torneo →</b></Link>)}</div></section>}
     <section className="profile-panel"><div className="profile-section-head"><div><span>Plantel</span><h2>{jugadores.length} jugadores</h2></div></div><div className="player-mini-grid">{jugadores.map((jugador) => <Link to={`/jugador/${jugador.idJugador}`} className="player-mini" key={jugador.idJugador}><div>{jugador.foto ? <img src={assetUrl(jugador.foto)} alt="" /> : jugador.numeroCamiseta}</div><strong>{jugador.apodo || jugador.nombre}</strong><span>{jugador.posicion}</span></Link>)}</div></section>
     <section className="profile-panel"><h2>Partidos</h2><div className="profile-match-list">{historial.length === 0 ? <p>Todavía no hay partidos.</p> : historial.slice().reverse().map((partido) => <Link to={`/partido/${partido.idPartido}`} key={partido.idPartido}><span>{partido.nombreEquipoLocal}</span><strong>{partido.estado === "JUGADO" || partido.estado === "FINALIZADO" ? `${partido.golesLocal} - ${partido.golesVisitante}` : "vs"}</strong><span>{partido.nombreEquipoVisitante}</span></Link>)}</div></section>
     {showEdit && <TeamFormModal torneoId={equipo.idTorneo} equipo={equipo} onClose={() => setShowEdit(false)} onSaved={setEquipo} />}

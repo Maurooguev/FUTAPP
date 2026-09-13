@@ -50,6 +50,9 @@ public class TorneoController {
     @GetMapping("/mios/panel")
     public List<TorneoPanelDTO> miPanel(@AuthenticationPrincipal Usuario usuario) { return torneoService.obtenerPanel(usuario); }
 
+    @GetMapping("/campeones/equipo/{idEquipo}")
+    public List<TorneoResponseDTO> titulosEquipo(@PathVariable Long idEquipo) { return torneoService.listarTitulosEquipo(idEquipo); }
+
     @PostMapping
     public TorneoResponseDTO crearTorneo(@Valid @RequestBody TorneoRequestDTO requestDTO,
                                          @AuthenticationPrincipal Usuario usuario) {

@@ -66,6 +66,12 @@ public class TorneoService {
         return torneoRepository.findByPropietarioIdUsuario(usuario.getIdUsuario()).stream().map(this::convertirAResponseDTO).toList();
     }
 
+    public List<TorneoResponseDTO> listarTitulosEquipo(Long idEquipo) {
+        return torneoRepository.findByCampeonIdEquipoOrderByIdTorneoDesc(idEquipo).stream()
+                .filter(torneo -> "FINALIZADO".equalsIgnoreCase(torneo.getEstado()))
+                .map(this::convertirAResponseDTO).toList();
+    }
+
     public List<TorneoPanelDTO> obtenerPanel(Usuario usuario) {
         List<Torneo> propios = usuario.tieneRol("ADMIN")
                 ? torneoRepository.findAll()
