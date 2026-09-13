@@ -42,6 +42,7 @@ public class TorneoRequestDTO {
     @Max(value = 16, message = "No pueden clasificar más de 16 equipos por zona")
     private Integer clasificadosPorZona = 2;
     private Boolean generarEquiposPrueba = true;
+    @Min(0) @Max(30) private Integer jugadoresPorEquipoPrueba = 5;
 
     public TorneoRequestDTO() {
     }
@@ -101,4 +102,5 @@ public class TorneoRequestDTO {
     public Integer getCantidadZonas() { return cantidadZonas; } public void setCantidadZonas(Integer value) { this.cantidadZonas = value; }
     public Integer getClasificadosPorZona() { return clasificadosPorZona; } public void setClasificadosPorZona(Integer value) { this.clasificadosPorZona = value; }
     public Boolean getGenerarEquiposPrueba() { return generarEquiposPrueba; } public void setGenerarEquiposPrueba(Boolean value) { this.generarEquiposPrueba = value; }
+    public Integer getJugadoresPorEquipoPrueba() { return jugadoresPorEquipoPrueba; } public void setJugadoresPorEquipoPrueba(Integer value) { this.jugadoresPorEquipoPrueba = value; }
 }

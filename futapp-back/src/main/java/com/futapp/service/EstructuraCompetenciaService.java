@@ -20,12 +20,16 @@ public class EstructuraCompetenciaService {
     private final CupoEquipoRepository cupos;
     private final EquipoRepository equipos;
     private final InscripcionEquipoRepository inscripciones;
+    private final JugadorRepository jugadores;
+    private final InscripcionJugadorRepository planteles;
 
     public EstructuraCompetenciaService(TorneoRepository torneos, CompeticionDivisionRepository divisiones,
             CompeticionFaseRepository fases, CompeticionZonaRepository zonas, CupoEquipoRepository cupos,
-            EquipoRepository equipos, InscripcionEquipoRepository inscripciones) {
+            EquipoRepository equipos, InscripcionEquipoRepository inscripciones,
+            JugadorRepository jugadores, InscripcionJugadorRepository planteles) {
         this.torneos = torneos; this.divisiones = divisiones; this.fases = fases; this.zonas = zonas; this.cupos = cupos;
         this.equipos = equipos; this.inscripciones = inscripciones;
+        this.jugadores = jugadores; this.planteles = planteles;
     }
 
     @Transactional
@@ -62,7 +66,7 @@ public class EstructuraCompetenciaService {
             cupo.setDivision(division); cupo.setNumero(i); cupo.setEtiqueta("Equipo " + i);
             if (!zonasCreadas.isEmpty()) cupo.setZona(zonasCreadas.get((i - 1) % zonasCreadas.size()));
             if (Boolean.TRUE.equals(request.getGenerarEquiposPrueba())) {
-                cupo.setEquipo(crearEquipoDePrueba(torneo, i));
+                cupo.setEquipo(crearEquipoDePrueba(torneo, i, request.getJugadoresPorEquipoPrueba()));
             }
             cupos.save(cupo);
         }
@@ -110,7 +114,7 @@ public class EstructuraCompetenciaService {
 
     private String letraZona(int indice) { return String.valueOf((char) ('A' + indice)); }
 
-    private Equipo crearEquipoDePrueba(Torneo torneo, int numero) {
+    private Equipo crearEquipoDePrueba(Torneo torneo, int numero, Integer cantidadJugadores) {
         String[] colores = {"Azul", "Rojo", "Verde", "Amarillo", "Negro", "Blanco", "Naranja", "Violeta"};
         Equipo equipo = new Equipo();
         equipo.setNombre("Equipo " + numero);
@@ -125,7 +129,21 @@ public class EstructuraCompetenciaService {
 
         InscripcionEquipo inscripcion = new InscripcionEquipo();
         inscripcion.setEquipo(equipo); inscripcion.setTorneo(torneo); inscripcion.setEstado("ACTIVA");
-        inscripciones.save(inscripcion);
+        inscripcion = inscripciones.save(inscripcion);
+        int cantidad = cantidadJugadores == null ? 5 : cantidadJugadores;
+        String[] posiciones = {"Arquero", "Defensor", "Mediocampista", "Delantero", "Delantero"};
+        for (int dorsal = 1; dorsal <= cantidad; dorsal++) {
+            Jugador jugador = new Jugador();
+            jugador.setNombre("Jugador " + numero + "-" + dorsal);
+            jugador.setApellido("Prueba"); jugador.setApodo("J" + numero + dorsal);
+            jugador.setFechaNacimiento("2000-01-01"); jugador.setNumeroCamiseta(dorsal);
+            jugador.setPosicion(posiciones[(dorsal - 1) % posiciones.length]); jugador.setPiernaHabil(dorsal % 2 == 0 ? "Izquierda" : "Derecha");
+            jugador.setEstado("ACTIVO"); jugador.setEquipo(equipo);
+            jugador = jugadores.save(jugador);
+            InscripcionJugador alta = new InscripcionJugador();
+            alta.setInscripcionEquipo(inscripcion); alta.setJugador(jugador); alta.setNumeroCamiseta(dorsal);
+            alta.setPosicion(jugador.getPosicion()); alta.setEstado("ACTIVA"); planteles.save(alta);
+        }
         return equipo;
     }
 }

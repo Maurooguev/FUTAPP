@@ -23,6 +23,7 @@ import com.futapp.repository.JugadorRepository;
 import com.futapp.repository.TarjetaRepository;
 import com.futapp.repository.CompeticionDivisionRepository;
 import com.futapp.repository.CupoEquipoRepository;
+import com.futapp.repository.CompeticionFaseRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
@@ -51,6 +52,8 @@ public class PartidoService {
     private final JugadorRepository jugadores;
     private final CompeticionDivisionRepository divisiones;
     private final CupoEquipoRepository cupos;
+    private final CompeticionFaseRepository fases;
+    private final TablaPosicionService tablaPosiciones;
 
     public PartidoService(PartidoRepository partidoRepository,
                           TorneoRepository torneoRepository,
@@ -64,7 +67,9 @@ public class PartidoService {
                           InscripcionJugadorRepository inscripcionesJugador,
                           JugadorRepository jugadores,
                           CompeticionDivisionRepository divisiones,
-                          CupoEquipoRepository cupos) {
+                          CupoEquipoRepository cupos,
+                          CompeticionFaseRepository fases,
+                          TablaPosicionService tablaPosiciones) {
         this.partidoRepository = partidoRepository;
         this.torneoRepository = torneoRepository;
         this.fechaRepository = fechaRepository;
@@ -78,6 +83,8 @@ public class PartidoService {
         this.jugadores = jugadores;
         this.divisiones = divisiones;
         this.cupos = cupos;
+        this.fases = fases;
+        this.tablaPosiciones = tablaPosiciones;
     }
 
     public List<PartidoResponseDTO> listarPartidos() {
@@ -229,14 +236,16 @@ public class PartidoService {
 
     private List<PartidoResponseDTO> generarPrimeraLlave(Torneo torneo, List<Equipo> equipos, FixtureRequestDTO request) {
         List<Partido> generados = new ArrayList<>();
-        Fecha fecha = crearFecha(torneo, 1, nombreRonda(equipos.size()), true);
+        boolean potenciaDeDos = (equipos.size() & (equipos.size() - 1)) == 0;
+        String ronda = potenciaDeDos ? nombreRonda(equipos.size()) : "Primera ronda eliminatoria";
+        Fecha fecha = crearFecha(torneo, 1, ronda, true);
         DateTimeFormatter formato = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
-        int partidos = equipos.size() / 2;
+        int partidos = potenciaDeDos ? equipos.size() / 2 : equipos.size() - Integer.highestOneBit(equipos.size());
         for (int i = 0; i < partidos; i++) {
             generados.add(crearPartidoAutomatico(torneo, fecha, equipos.get(i), equipos.get(equipos.size() - 1 - i),
                     LocalDateTime.of(request.fechaInicio(), request.horaInicio())
                             .plusMinutes((long) i * request.minutosEntrePartidos()).format(formato),
-                    request.cancha(), nombreRonda(equipos.size())));
+                    request.cancha(), ronda));
         }
         return generados.stream().map(this::convertirAResponseDTO).toList();
     }
@@ -258,22 +267,40 @@ public class PartidoService {
         authorization.verificarGestion(idTorneo);
         Torneo torneo = torneoRepository.findById(idTorneo)
                 .orElseThrow(() -> new ResourceNotFoundException("Torneo no encontrado con id: " + idTorneo));
-        if (!"ELIMINACIÓN DIRECTA".equalsIgnoreCase(torneo.getFormato())) {
-            throw new IllegalArgumentException("Esta acción corresponde a torneos de eliminación directa");
-        }
         List<Partido> todos = partidoRepository.findByTorneoIdTorneo(idTorneo);
         if (todos.isEmpty()) throw new IllegalArgumentException("Primero generá la llave inicial");
+        List<Partido> eliminatorios = todos.stream().filter(this::esPartidoEliminatorio).toList();
+        if (eliminatorios.isEmpty()) {
+            if (!torneo.getFormato().toUpperCase().contains("PLAYOFF")) {
+                throw new IllegalArgumentException("Esta acción corresponde a torneos con eliminación directa o playoffs");
+            }
+            return generarPlayoffsDesdeClasificacion(torneo, todos);
+        }
+        todos = eliminatorios;
         int ultimaRonda = todos.stream().map(p -> p.getFecha().getNumeroFecha()).max(Integer::compareTo).orElseThrow();
         List<Partido> ronda = todos.stream().filter(p -> p.getFecha().getNumeroFecha() == ultimaRonda)
                 .sorted(Comparator.comparing(Partido::getIdPartido)).toList();
         if (ronda.stream().anyMatch(p -> !"FINALIZADO".equalsIgnoreCase(p.getEstado()))) {
             throw new IllegalArgumentException("Cargá todos los resultados de la ronda antes de generar la siguiente");
         }
-        if (ronda.stream().anyMatch(p -> p.getGolesLocal().equals(p.getGolesVisitante()))) {
-            throw new IllegalArgumentException("Definí un ganador en cada cruce; no puede haber empates en eliminación directa");
+        List<Equipo> ganadores = ronda.stream().map(this::ganadorEliminatoria).collect(Collectors.toCollection(ArrayList::new));
+        if (ronda.stream().allMatch(p -> "Primera ronda eliminatoria".equals(p.getObservaciones()))) {
+            java.util.Set<Long> participantes = ronda.stream()
+                    .flatMap(p -> java.util.stream.Stream.of(p.getEquipoLocal().getIdEquipo(), p.getEquipoVisitante().getIdEquipo()))
+                    .collect(Collectors.toSet());
+            List<Equipo> participantesLlave;
+            if ("ELIMINACIÓN DIRECTA".equalsIgnoreCase(torneo.getFormato())) {
+                participantesLlave = inscripcionesEquipo.findByTorneoIdTorneoAndEstado(idTorneo, "ACTIVA").stream().map(i -> i.getEquipo()).toList();
+            } else {
+                var division = divisiones.findByTorneoIdTorneoOrderByOrden(idTorneo).stream().findFirst().orElseThrow();
+                int clasificados = fases.findByDivisionIdDivisionOrderByOrden(division.getIdDivision()).stream()
+                        .filter(f -> "ELIMINACION_DIRECTA".equals(f.getTipo())).map(f -> f.getClasificados() == null ? 4 : f.getClasificados()).findFirst().orElse(4);
+                participantesLlave = obtenerClasificados(torneo, clasificados, division.getIdDivision());
+            }
+            participantesLlave.stream()
+                    .filter(e -> !participantes.contains(e.getIdEquipo())).sorted(Comparator.comparing(Equipo::getIdEquipo))
+                    .forEach(ganadores::add);
         }
-        List<Equipo> ganadores = ronda.stream().map(p -> p.getGolesLocal() > p.getGolesVisitante()
-                ? p.getEquipoLocal() : p.getEquipoVisitante()).collect(Collectors.toCollection(ArrayList::new));
         if (ganadores.size() == 1) throw new IllegalArgumentException("La llave ya tiene un campeón");
 
         String nombre = nombreRonda(ganadores.size());
@@ -288,6 +315,77 @@ public class PartidoService {
                     inicio.plusMinutes(i * 90L).format(formato), ronda.get(0).getCancha(), nombre));
         }
         return generados.stream().map(this::convertirAResponseDTO).toList();
+    }
+
+    private List<PartidoResponseDTO> generarPlayoffsDesdeClasificacion(Torneo torneo, List<Partido> faseRegular) {
+        if (faseRegular.stream().anyMatch(p -> !"FINALIZADO".equalsIgnoreCase(p.getEstado()))) {
+            throw new IllegalArgumentException("Finalizá todos los partidos de la fase clasificatoria antes de generar los playoffs");
+        }
+        var division = divisiones.findByTorneoIdTorneoOrderByOrden(torneo.getIdTorneo()).stream().findFirst().orElseThrow();
+        int clasificados = fases.findByDivisionIdDivisionOrderByOrden(division.getIdDivision()).stream()
+                .filter(f -> "ELIMINACION_DIRECTA".equals(f.getTipo())).map(f -> f.getClasificados() == null ? 4 : f.getClasificados())
+                .findFirst().orElse(4);
+        List<Equipo> equipos = obtenerClasificados(torneo, clasificados, division.getIdDivision());
+        if (equipos.size() < 2) throw new IllegalArgumentException("No hay suficientes equipos clasificados");
+        return crearRondaEliminatoria(torneo, equipos, faseRegular);
+    }
+
+    private List<Equipo> obtenerClasificados(Torneo torneo, int clasificados, Long idDivision) {
+        List<Long> idsClasificados = new ArrayList<>();
+        var tabla = tablaPosiciones.obtenerTablaPorTorneo(torneo.getIdTorneo());
+        if ("ZONAS + PLAYOFFS".equalsIgnoreCase(torneo.getFormato())) {
+            var zonasTorneo = cupos.findByDivisionIdDivisionOrderByNumero(idDivision).stream()
+                    .filter(c -> c.getZona() != null && c.getEquipo() != null)
+                    .collect(Collectors.groupingBy(c -> c.getZona().getNombre(), java.util.LinkedHashMap::new,
+                            Collectors.mapping(c -> c.getEquipo().getIdEquipo(), Collectors.toList())));
+            int porZona = Math.max(1, clasificados / zonasTorneo.size());
+            for (var idsZona : zonasTorneo.values()) {
+                tabla.stream().filter(f -> idsZona.contains(f.getIdEquipo())).limit(porZona)
+                        .forEach(f -> idsClasificados.add(f.getIdEquipo()));
+            }
+        } else {
+            tabla.stream().limit(clasificados).forEach(f -> idsClasificados.add(f.getIdEquipo()));
+        }
+        var porId = inscripcionesEquipo.findByTorneoIdTorneoAndEstado(torneo.getIdTorneo(), "ACTIVA").stream()
+                .map(i -> i.getEquipo()).collect(Collectors.toMap(Equipo::getIdEquipo, e -> e));
+        List<Equipo> equipos = idsClasificados.stream().map(porId::get).filter(java.util.Objects::nonNull)
+                .collect(Collectors.toCollection(ArrayList::new));
+        return equipos;
+    }
+
+    private List<PartidoResponseDTO> crearRondaEliminatoria(Torneo torneo, List<Equipo> equipos, List<Partido> anteriores) {
+        int numero = anteriores.stream().map(p -> p.getFecha().getNumeroFecha()).max(Integer::compareTo).orElse(0) + 1;
+        boolean potenciaDeDos = (equipos.size() & (equipos.size() - 1)) == 0;
+        String nombre = potenciaDeDos ? nombreRonda(equipos.size()) : "Primera ronda eliminatoria";
+        Fecha fecha = crearFecha(torneo, numero, nombre, true);
+        DateTimeFormatter formato = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+        LocalDateTime inicio = anteriores.stream().map(Partido::getFechaHora).filter(java.util.Objects::nonNull)
+                .map(v -> LocalDateTime.parse(v, formato)).max(LocalDateTime::compareTo).orElse(LocalDateTime.now()).plusDays(7);
+        String cancha = anteriores.stream().map(Partido::getCancha).filter(java.util.Objects::nonNull).findFirst().orElse(null);
+        List<Partido> creados = new ArrayList<>();
+        int partidos = potenciaDeDos ? equipos.size() / 2 : equipos.size() - Integer.highestOneBit(equipos.size());
+        for (int i = 0; i < partidos; i++) {
+            creados.add(crearPartidoAutomatico(torneo, fecha, equipos.get(i), equipos.get(equipos.size() - 1 - i),
+                    inicio.plusMinutes(i * 90L).format(formato), cancha, nombre));
+        }
+        return creados.stream().map(this::convertirAResponseDTO).toList();
+    }
+
+    private boolean esPartidoEliminatorio(Partido partido) {
+        String detalle = partido.getObservaciones();
+        return detalle != null && (detalle.equals("Final") || detalle.equals("Semifinales")
+                || detalle.equals("Cuartos de final") || detalle.equals("Octavos de final")
+                || detalle.equals("Primera ronda eliminatoria"));
+    }
+
+    private Equipo ganadorEliminatoria(Partido partido) {
+        if (partido.getGolesLocal() > partido.getGolesVisitante()) return partido.getEquipoLocal();
+        if (partido.getGolesVisitante() > partido.getGolesLocal()) return partido.getEquipoVisitante();
+        if (partido.getPenalesLocal() == null || partido.getPenalesVisitante() == null
+                || partido.getPenalesLocal().equals(partido.getPenalesVisitante())) {
+            throw new IllegalArgumentException("Definí los penales de cada partido empatado antes de avanzar");
+        }
+        return partido.getPenalesLocal() > partido.getPenalesVisitante() ? partido.getEquipoLocal() : partido.getEquipoVisitante();
     }
 
     private List<PartidoResponseDTO> generarFixturePorZonas(Torneo torneo, List<Equipo> equiposActivos, FixtureRequestDTO request) {
@@ -381,6 +479,11 @@ public class PartidoService {
                 && (!java.util.Objects.equals(partido.getGolesLocal(), requestDTO.getGolesLocal())
                 || !java.util.Objects.equals(partido.getGolesVisitante(), requestDTO.getGolesVisitante()))) {
             throw new IllegalArgumentException("Editá el marcador desde la opción Cargar resultado");
+        }
+        if ("FINALIZADO".equalsIgnoreCase(estadoAnterior)
+                && (!partido.getEquipoLocal().getIdEquipo().equals(requestDTO.getIdEquipoLocal())
+                || !partido.getEquipoVisitante().getIdEquipo().equals(requestDTO.getIdEquipoVisitante()))) {
+            throw new IllegalArgumentException("No se pueden cambiar los equipos de un partido finalizado");
         }
 
         cargarDatosPartido(partido, requestDTO);
@@ -496,7 +599,7 @@ public class PartidoService {
     }
 
     private PartidoResponseDTO convertirAResponseDTO(Partido partido) {
-        return new PartidoResponseDTO(
+        PartidoResponseDTO dto = new PartidoResponseDTO(
                 partido.getIdPartido(),
                 partido.getFechaHora(),
                 partido.getEstado(),
@@ -516,6 +619,9 @@ public class PartidoService {
                 partido.getEquipoVisitante().getIdEquipo(),
                 partido.getEquipoVisitante().getNombre()
         );
+        dto.setPenalesLocal(partido.getPenalesLocal());
+        dto.setPenalesVisitante(partido.getPenalesVisitante());
+        return dto;
     }
 
     private String normalizarOpcional(String valor) {
@@ -610,8 +716,21 @@ public class PartidoService {
             throw new IllegalArgumentException("Los goles no pueden ser negativos");
         }
 
+        boolean eliminatorio = esPartidoEliminatorio(partido);
+        if (eliminatorio && dto.getGolesLocal().equals(dto.getGolesVisitante())) {
+            if (dto.getPenalesLocal() == null || dto.getPenalesVisitante() == null) {
+                throw new IllegalArgumentException("En un cruce empatado debés cargar la definición por penales");
+            }
+            if (dto.getPenalesLocal() < 0 || dto.getPenalesVisitante() < 0
+                    || dto.getPenalesLocal().equals(dto.getPenalesVisitante())) {
+                throw new IllegalArgumentException("La definición por penales debe tener un ganador");
+            }
+        }
+
         partido.setGolesLocal(dto.getGolesLocal());
         partido.setGolesVisitante(dto.getGolesVisitante());
+        partido.setPenalesLocal(eliminatorio && dto.getGolesLocal().equals(dto.getGolesVisitante()) ? dto.getPenalesLocal() : null);
+        partido.setPenalesVisitante(eliminatorio && dto.getGolesLocal().equals(dto.getGolesVisitante()) ? dto.getPenalesVisitante() : null);
         partido.setEstado("FINALIZADO");
 
         partido = partidoRepository.save(partido);

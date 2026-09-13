@@ -4,6 +4,8 @@ public class ResultadoPartidoDTO {
 
     private Integer golesLocal;
     private Integer golesVisitante;
+    private Integer penalesLocal;
+    private Integer penalesVisitante;
 
     public Integer getGolesLocal() {
         return golesLocal;
@@ -20,4 +22,8 @@ public class ResultadoPartidoDTO {
     public void setGolesVisitante(Integer golesVisitante) {
         this.golesVisitante = golesVisitante;
     }
+    public Integer getPenalesLocal() { return penalesLocal; }
+    public void setPenalesLocal(Integer value) { this.penalesLocal = value; }
+    public Integer getPenalesVisitante() { return penalesVisitante; }
+    public void setPenalesVisitante(Integer value) { this.penalesVisitante = value; }
 }

@@ -21,6 +21,8 @@ public class Partido {
 
     @Column(name = "goles_visitante")
     private Integer golesVisitante = 0;
+    @Column(name = "penales_local") private Integer penalesLocal;
+    @Column(name = "penales_visitante") private Integer penalesVisitante;
 
     private String observaciones;
 
@@ -97,6 +99,10 @@ public class Partido {
     public void setObservaciones(String observaciones) {
         this.observaciones = observaciones;
     }
+    public Integer getPenalesLocal() { return penalesLocal; }
+    public void setPenalesLocal(Integer value) { this.penalesLocal = value; }
+    public Integer getPenalesVisitante() { return penalesVisitante; }
+    public void setPenalesVisitante(Integer value) { this.penalesVisitante = value; }
 
     public String getCancha() { return cancha; }
     public void setCancha(String cancha) { this.cancha = cancha; }

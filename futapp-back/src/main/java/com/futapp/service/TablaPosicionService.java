@@ -46,6 +46,9 @@ public class TablaPosicionService {
             if (!"FINALIZADO".equalsIgnoreCase(partido.getEstado())) {
                 continue;
             }
+            if (esEliminatorio(partido)) {
+                continue;
+            }
             if (partido.getGolesLocal() == null || partido.getGolesVisitante() == null) {
                 continue;
             }
@@ -105,5 +108,11 @@ public class TablaPosicionService {
         resultado.sort(Comparator.comparingInt(TablaPosicionDTO::getPuntos).reversed().thenComparing(desempate).thenComparing(TablaPosicionDTO::getNombreEquipo));
 
         return resultado;
+    }
+
+    private boolean esEliminatorio(Partido partido) {
+        String detalle = partido.getObservaciones();
+        return detalle != null && java.util.Set.of("Final", "Semifinales", "Cuartos de final",
+                "Octavos de final", "Primera ronda eliminatoria").contains(detalle);
     }
 }

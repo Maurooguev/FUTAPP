@@ -174,13 +174,18 @@ class TournamentWorkflowIntegrationTests {
                 .andExpect(jsonPath("$.divisiones[0].cupos[0].equipo").value("Equipo 1"))
                 .andExpect(jsonPath("$.divisiones[0].cupos[7].etiqueta").value("Equipo 8"));
 
-        postJson("/partidos/torneo/" + torneoId + "/generar-fixture", token, Map.of(
+        JsonNode partidosZona = postJson("/partidos/torneo/" + torneoId + "/generar-fixture", token, Map.of(
                 "fechaInicio", "2026-09-05", "horaInicio", "14:00", "diasEntreJornadas", 7,
                 "minutosEntrePartidos", 60, "cancha", "Cancha principal"));
         mockMvc.perform(get("/partidos/torneo/{id}", torneoId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", org.hamcrest.Matchers.hasSize(12)))
                 .andExpect(jsonPath("$[0].observaciones", org.hamcrest.Matchers.startsWith("Zona ")));
+        for (JsonNode partido : partidosZona) putJson("/partidos/" + partido.get("idPartido").asLong() + "/resultado", token,
+                Map.of("golesLocal", 2, "golesVisitante", 1)).andExpect(status().isOk());
+        JsonNode playoffs = postJson("/partidos/torneo/" + torneoId + "/generar-siguiente-llave", token, null);
+        org.junit.jupiter.api.Assertions.assertEquals(2, playoffs.size());
+        org.junit.jupiter.api.Assertions.assertEquals("Semifinales", playoffs.get(0).get("observaciones").asString());
     }
 
     @Test
@@ -197,13 +202,51 @@ class TournamentWorkflowIntegrationTests {
                 "minutosEntrePartidos", 60, "cancha", "Cancha principal"));
         org.junit.jupiter.api.Assertions.assertEquals(4, partidos.size());
         org.junit.jupiter.api.Assertions.assertEquals("Cuartos de final", partidos.get(0).get("observaciones").asString());
+        int indice = 0;
         for (JsonNode partido : partidos) {
             putJson("/partidos/" + partido.get("idPartido").asLong() + "/resultado", token,
-                    Map.of("golesLocal", 2, "golesVisitante", 1)).andExpect(status().isOk());
+                    indice++ == 0 ? Map.of("golesLocal", 1, "golesVisitante", 1, "penalesLocal", 5, "penalesVisitante", 4)
+                            : Map.of("golesLocal", 2, "golesVisitante", 1)).andExpect(status().isOk());
         }
         JsonNode semifinales = postJson("/partidos/torneo/" + torneoId + "/generar-siguiente-llave", token, null);
         org.junit.jupiter.api.Assertions.assertEquals(2, semifinales.size());
         org.junit.jupiter.api.Assertions.assertEquals("Semifinales", semifinales.get(0).get("observaciones").asString());
+    }
+
+    @Test
+    void generaPlayoffsDesdeLaTablaDeLiga() throws Exception {
+        String token = registrarOrganizador();
+        Map<String, Object> request = new LinkedHashMap<>(torneo());
+        request.put("formato", "Liga + Playoffs"); request.put("cantidadEquipos", 4);
+        request.put("generarEquiposPrueba", true); request.put("jugadoresPorEquipoPrueba", 2);
+        long torneoId = postJson("/torneos", token, request).get("idTorneo").asLong();
+        JsonNode liga = postJson("/partidos/torneo/" + torneoId + "/generar-fixture", token, Map.of(
+                "fechaInicio", "2026-09-05", "horaInicio", "14:00", "diasEntreJornadas", 7,
+                "minutosEntrePartidos", 60, "cancha", "Cancha principal"));
+        for (JsonNode partido : liga) {
+            putJson("/partidos/" + partido.get("idPartido").asLong() + "/resultado", token,
+                    Map.of("golesLocal", 2, "golesVisitante", 1)).andExpect(status().isOk());
+        }
+        JsonNode playoffs = postJson("/partidos/torneo/" + torneoId + "/generar-siguiente-llave", token, null);
+        org.junit.jupiter.api.Assertions.assertEquals(2, playoffs.size());
+        org.junit.jupiter.api.Assertions.assertEquals("Semifinales", playoffs.get(0).get("observaciones").asString());
+    }
+
+    @Test
+    void conservaPasesLibresConSeisEquipos() throws Exception {
+        String token = registrarOrganizador();
+        Map<String, Object> request = new LinkedHashMap<>(torneo());
+        request.put("formato", "Eliminación directa"); request.put("cantidadEquipos", 6);
+        request.put("generarEquiposPrueba", true);
+        long torneoId = postJson("/torneos", token, request).get("idTorneo").asLong();
+        JsonNode preliminar = postJson("/partidos/torneo/" + torneoId + "/generar-fixture", token, Map.of(
+                "fechaInicio", "2026-09-05", "horaInicio", "14:00", "diasEntreJornadas", 7,
+                "minutosEntrePartidos", 60, "cancha", "Cancha principal"));
+        org.junit.jupiter.api.Assertions.assertEquals(2, preliminar.size());
+        for (JsonNode partido : preliminar) putJson("/partidos/" + partido.get("idPartido").asLong() + "/resultado", token,
+                Map.of("golesLocal", 1, "golesVisitante", 0)).andExpect(status().isOk());
+        JsonNode semis = postJson("/partidos/torneo/" + torneoId + "/generar-siguiente-llave", token, null);
+        org.junit.jupiter.api.Assertions.assertEquals(2, semis.size());
     }
 
     private String registrarOrganizador() throws Exception {

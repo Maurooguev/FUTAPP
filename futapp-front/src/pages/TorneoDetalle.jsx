@@ -34,6 +34,7 @@ function TorneoDetalle() {
   const [partidos, setPartidos] = useState([]);
   const [tarjetas, setTarjetas] = useState([]);
   const [equipos, setEquipos] = useState([]);
+  const [estructura, setEstructura] = useState(null);
   const [partidoSeleccionado, setPartidoSeleccionado] = useState(null);
   const [mostrarResultado, setMostrarResultado] = useState(false);
   const [partidoResultado, setPartidoResultado] = useState(null);
@@ -103,6 +104,9 @@ function TorneoDetalle() {
       .then((res) => res.json())
       .then((data) => setEquipos(data))
       .catch((err) => console.error("Equipos:", err));
+    fetch(`${API_URL}/torneos/${id}/estructura`)
+      .then((res) => res.json()).then(setEstructura)
+      .catch((err) => console.error("Estructura:", err));
   }, [id]);
 
   const fechaActual = useMemo(() => {
@@ -176,6 +180,7 @@ function TorneoDetalle() {
       (partido) => partido.estado?.toUpperCase() === "FINALIZADO"
     ).length;
   }, [partidos]);
+  const cantidadEquiposLlave = estructura?.divisiones?.[0]?.fases?.find((fase) => fase.tipo === "ELIMINACION_DIRECTA")?.clasificados || equipos.length;
 
   if (!torneo) {
     return <p style={{ padding: "20px" }}>Cargando...</p>;
@@ -287,7 +292,11 @@ const recargarDatosTorneo = () => {
             />
           </div>
 
-          {torneo.formato?.toLowerCase() !== "eliminación directa" && <StandingsTable tabla={tabla} />}
+          {torneo.formato?.toLowerCase() !== "eliminación directa" && torneo.formato?.toLowerCase() !== "zonas + playoffs" && <StandingsTable tabla={tabla} />}
+          {torneo.formato?.toLowerCase() === "zonas + playoffs" && estructura?.divisiones?.[0]?.fases?.[0]?.zonas?.map((zona) => {
+            const ids = new Set(estructura.divisiones[0].cupos.filter((cupo) => cupo.idZona === zona.id).map((cupo) => cupo.idEquipo));
+            return <StandingsTable key={zona.id} title={`Tabla ${zona.nombre}`} tabla={tabla.filter((fila) => ids.has(fila.idEquipo))} />;
+          })}
 
           <TeamManagement
             torneoId={id}
@@ -309,7 +318,7 @@ const recargarDatosTorneo = () => {
             <TopCardsTable jugadores={topAmarillas} />
           </div>
 
-          {torneo.formato?.toLowerCase() === "eliminación directa" && <KnockoutBracket equipos={equipos} partidos={partidos} canManage={puedeEditar} onNextRound={generarSiguienteLlave} loading={generandoFixture} />}
+          {(torneo.formato?.toLowerCase() === "eliminación directa" || torneo.formato?.toLowerCase().includes("playoffs")) && <KnockoutBracket equipos={equipos} teamCount={cantidadEquiposLlave} partidos={partidos} canManage={puedeEditar} onNextRound={generarSiguienteLlave} loading={generandoFixture} />}
 
           <FixtureByDate
             fechas={fechas}

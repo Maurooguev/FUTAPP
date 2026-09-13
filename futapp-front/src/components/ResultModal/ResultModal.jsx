@@ -8,10 +8,14 @@ function ResultModal({ partidos, partidoInicial, onClose, onResultadoGuardado })
   const [idPartido, setIdPartido] = useState(partidoInicial?.idPartido ?? "");
   const [golesLocal, setGolesLocal] = useState(partidoInicial?.golesLocal ?? 0);
   const [golesVisitante, setGolesVisitante] = useState(partidoInicial?.golesVisitante ?? 0);
+  const [penalesLocal, setPenalesLocal] = useState(partidoInicial?.penalesLocal ?? 0);
+  const [penalesVisitante, setPenalesVisitante] = useState(partidoInicial?.penalesVisitante ?? 0);
 
   const partidoSeleccionado = partidos.find(
     (partido) => partido.idPartido === Number(idPartido)
   );
+  const esEliminatorio = ["Final", "Semifinales", "Cuartos de final", "Octavos de final", "Primera ronda eliminatoria"].includes(partidoSeleccionado?.observaciones);
+  const necesitaPenales = esEliminatorio && Number(golesLocal) === Number(golesVisitante);
 
 const guardarResultado = async (e) => {
   e.preventDefault();
@@ -21,6 +25,8 @@ const guardarResultado = async (e) => {
   const resultado = {
     golesLocal: Number(golesLocal),
     golesVisitante: Number(golesVisitante),
+    penalesLocal: necesitaPenales ? Number(penalesLocal) : null,
+    penalesVisitante: necesitaPenales ? Number(penalesVisitante) : null,
   };
 
   try {
@@ -35,16 +41,14 @@ const guardarResultado = async (e) => {
       }
     );
 
-    if (!res.ok) {
-      throw new Error("Error al guardar resultado");
-    }
+    if (!res.ok) { const payload = await res.json().catch(() => null); throw new Error(payload?.message || "Error al guardar resultado"); }
 
     const partidoActualizado = await res.json();
     onResultadoGuardado(partidoActualizado);
     onClose();
   } catch (error) {
     console.error(error);
-    alert("No se pudo guardar el resultado");
+    alert(error.message || "No se pudo guardar el resultado");
   }
 };
 
@@ -102,6 +106,8 @@ const guardarResultado = async (e) => {
               />
             </div>
           </div>
+
+          {necesitaPenales && <div className="result-penalties"><strong>Definición por penales</strong><div className="result-score-inputs"><div><label>Penales local</label><input type="number" min="0" value={penalesLocal} onChange={(e) => setPenalesLocal(e.target.value)} /></div><div><label>Penales visitante</label><input type="number" min="0" value={penalesVisitante} onChange={(e) => setPenalesVisitante(e.target.value)} /></div></div></div>}
 
           <button type="submit" className="result-save-btn">
             Guardar resultado

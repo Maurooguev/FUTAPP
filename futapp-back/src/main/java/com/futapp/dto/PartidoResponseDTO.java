@@ -7,6 +7,8 @@ public class PartidoResponseDTO {
     private String estado;
     private Integer golesLocal;
     private Integer golesVisitante;
+    private Integer penalesLocal;
+    private Integer penalesVisitante;
     private String observaciones;
     private String cancha;
     private Long idMvp;
@@ -102,6 +104,10 @@ public class PartidoResponseDTO {
     public void setObservaciones(String observaciones) {
         this.observaciones = observaciones;
     }
+    public Integer getPenalesLocal() { return penalesLocal; }
+    public void setPenalesLocal(Integer value) { this.penalesLocal = value; }
+    public Integer getPenalesVisitante() { return penalesVisitante; }
+    public void setPenalesVisitante(Integer value) { this.penalesVisitante = value; }
 
     public String getCancha() { return cancha; }
     public void setCancha(String cancha) { this.cancha = cancha; }

@@ -1,11 +1,11 @@
 import "./StandingsTable.css";
 import { Link } from "react-router-dom";
 
-function StandingsTable({ tabla }) {
+function StandingsTable({ tabla, title = "Tabla de posiciones" }) {
   return (
     <div className="standings-block" id="tabla">
       <div className="standings-header">
-        <h2>Tabla de posiciones</h2>
+        <h2>{title}</h2>
       </div>
 
       <div className="standings-wrap">
