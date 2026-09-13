@@ -15,9 +15,44 @@ function Team({ id, name, score, penalties, winner }) {
   return <div className={`bracket-team ${winner ? "winner" : ""}`}><Link to={`/equipo/${id}`}>{name}</Link><b>{score ?? "–"}{penalties != null ? ` (${penalties})` : ""}</b></div>;
 }
 
+const winnerId = (match) => {
+  if (match?.estado?.toUpperCase() !== "FINALIZADO") return null;
+  if (match.golesLocal > match.golesVisitante) return match.idEquipoLocal;
+  if (match.golesVisitante > match.golesLocal) return match.idEquipoVisitante;
+  if (match.penalesLocal > match.penalesVisitante) return match.idEquipoLocal;
+  if (match.penalesVisitante > match.penalesLocal) return match.idEquipoVisitante;
+  return null;
+};
+
+const orderByBracketBranch = (rounds, partidos) => {
+  const result = {};
+  let previousWinners = [];
+
+  rounds.forEach((round, roundIndex) => {
+    const matches = partidos
+      .filter((match) => match.observaciones === round)
+      .sort((a, b) => a.idPartido - b.idPartido);
+
+    if (roundIndex > 0 && previousWinners.length) {
+      const branchIndex = (match) => {
+        const local = previousWinners.indexOf(match.idEquipoLocal);
+        const visitor = previousWinners.indexOf(match.idEquipoVisitante);
+        const origins = [local, visitor].filter((index) => index >= 0);
+        return origins.length ? Math.min(...origins) : Number.MAX_SAFE_INTEGER;
+      };
+      matches.sort((a, b) => branchIndex(a) - branchIndex(b) || a.idPartido - b.idPartido);
+    }
+
+    result[round] = matches;
+    previousWinners = matches.map(winnerId).filter(Boolean);
+  });
+
+  return result;
+};
+
 function KnockoutBracket({ equipos, teamCount = equipos.length, partidos, canManage, onNextRound, loading }) {
   const rounds = roundsFor(teamCount);
-  const matchesByRound = Object.fromEntries(rounds.map((round) => [round, partidos.filter((match) => match.observaciones === round)]));
+  const matchesByRound = orderByBracketBranch(rounds, partidos);
   const generatedRounds = rounds.filter((round) => matchesByRound[round].length > 0);
   const latest = generatedRounds.length ? matchesByRound[generatedRounds.at(-1)] : [];
   const canAdvance = latest.length > 1 && latest.every((match) => match.estado?.toUpperCase() === "FINALIZADO");
