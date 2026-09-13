@@ -5,6 +5,10 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.Optional;
+import jakarta.persistence.LockModeType;
+import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 @Repository
 public interface TorneoRepository extends JpaRepository<Torneo, Long> {
@@ -13,4 +17,8 @@ public interface TorneoRepository extends JpaRepository<Torneo, Long> {
     List<Torneo> findByNombreContainingIgnoreCaseOrCodigoPublicoContainingIgnoreCase(String nombre, String codigoPublico);
     List<Torneo> findByPropietarioIdUsuario(Long idUsuario);
     List<Torneo> findByCampeonIdEquipoOrderByIdTorneoDesc(Long idEquipo);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select t from Torneo t where t.idTorneo = :id")
+    Optional<Torneo> findByIdForUpdate(@Param("id") Long id);
 }

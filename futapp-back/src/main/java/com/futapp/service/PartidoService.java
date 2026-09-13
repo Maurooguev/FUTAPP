@@ -154,7 +154,7 @@ public class PartidoService {
     @Transactional
     public List<PartidoResponseDTO> generarFixture(Long idTorneo, FixtureRequestDTO request) {
         authorization.verificarGestion(idTorneo);
-        Torneo torneo = torneoRepository.findById(idTorneo)
+        Torneo torneo = torneoRepository.findByIdForUpdate(idTorneo)
                 .orElseThrow(() -> new ResourceNotFoundException("Torneo no encontrado con id: " + idTorneo));
 
         if (!partidoRepository.findByTorneoIdTorneo(idTorneo).isEmpty()) {
@@ -273,7 +273,7 @@ public class PartidoService {
     @Transactional
     public List<PartidoResponseDTO> generarSiguienteLlave(Long idTorneo) {
         authorization.verificarGestion(idTorneo);
-        Torneo torneo = torneoRepository.findById(idTorneo)
+        Torneo torneo = torneoRepository.findByIdForUpdate(idTorneo)
                 .orElseThrow(() -> new ResourceNotFoundException("Torneo no encontrado con id: " + idTorneo));
         List<Partido> todos = partidoRepository.findByTorneoIdTorneo(idTorneo);
         if (todos.isEmpty()) throw new IllegalArgumentException("Primero generá la llave inicial");

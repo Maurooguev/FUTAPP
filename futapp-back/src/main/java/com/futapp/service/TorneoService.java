@@ -202,7 +202,7 @@ public class TorneoService {
 
     @Transactional
     public TorneoResponseDTO finalizarTorneo(Long id) {
-        Torneo torneo = torneoRepository.findById(id)
+        Torneo torneo = torneoRepository.findByIdForUpdate(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Torneo no encontrado con id: " + id));
         authorization.verificarGestion(torneo);
         var partidosTorneo = partidos.findByTorneoIdTorneo(id);
