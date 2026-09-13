@@ -46,6 +46,7 @@ function TorneoDetalle() {
   const [adminError, setAdminError] = useState("");
   const [generandoFixture, setGenerandoFixture] = useState(false);
   const [mostrarGeneradorFixture, setMostrarGeneradorFixture] = useState(false);
+  const [perfilOrganizador, setPerfilOrganizador] = useState(null);
 
   const eliminarRecurso = async (url, message, onSuccess) => {
     if (!window.confirm(message)) return;
@@ -108,6 +109,14 @@ function TorneoDetalle() {
       .then((res) => res.json()).then(setEstructura)
       .catch((err) => console.error("Estructura:", err));
   }, [id]);
+
+  useEffect(() => {
+    if (!torneo?.idPropietario) { setPerfilOrganizador(null); return; }
+    fetch(`${API_URL}/perfiles-organizador/${torneo.idPropietario}`)
+      .then((response) => response.ok ? response.json() : null)
+      .then(setPerfilOrganizador)
+      .catch(() => setPerfilOrganizador(null));
+  }, [torneo?.idPropietario]);
 
   const fechaActual = useMemo(() => {
     if (fechas.length === 0) return null;
@@ -311,6 +320,7 @@ const recargarDatosTorneo = () => {
 
       <main className="torneo-content">
         <div className="torneo-shell">
+          {perfilOrganizador && <Link className="tournament-organizer-link" to={`/organizador/${perfilOrganizador.idUsuario}`}><span>Organizado por <strong>{perfilOrganizador.nombrePublico}</strong></span><strong>Ver perfil →</strong></Link>}
           {puedeEditar && <TournamentReadiness torneoId={id} torneo={torneo} equipos={equipos} partidos={partidos} onGenerateFixture={abrirGeneradorFixture} onNextRound={generarSiguienteLlave} />}
           {campeonLiga && <div className="league-champion">
             <span className="league-champion-trophy">🏆</span>

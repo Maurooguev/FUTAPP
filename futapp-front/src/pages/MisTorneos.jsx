@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
-import { Navigate, useNavigate } from "react-router-dom";
+import { Link, Navigate, useNavigate } from "react-router-dom";
 import { API_URL, apiFetch } from "../config/api";
 import useAuth from "../context/useAuth";
 import "./MisTorneos.css";
+import "./OrganizerProfile.css";
 
 function MisTorneos() {
   const { usuario } = useAuth();
@@ -11,6 +12,7 @@ function MisTorneos() {
   const [pendientes, setPendientes] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [perfilOrganizador, setPerfilOrganizador] = useState(null);
 
   useEffect(() => {
     if (!usuario) return;
@@ -22,9 +24,14 @@ function MisTorneos() {
       apiFetch(`${API_URL}/reclamos/pendientes/count`)
         .then((response) => response.ok ? response.json() : { cantidad: 0 })
         .catch(() => ({ cantidad: 0 })),
-    ]).then(([panel, solicitudes]) => {
+      apiFetch(`${API_URL}/perfiles-organizador/mio`).then(async (response) => {
+        if (!response.ok) return null;
+        return response.json();
+      }).catch(() => null),
+    ]).then(([panel, solicitudes, perfil]) => {
       setResumenes(panel);
       setPendientes(solicitudes.cantidad || 0);
+      setPerfilOrganizador(perfil);
     }).catch((requestError) => setError(requestError.message)).finally(() => setLoading(false));
   }, [usuario]);
 
@@ -38,6 +45,7 @@ function MisTorneos() {
 
   return <main className="organizer-page"><div className="organizer-shell">
     <header className="organizer-heading"><div><span>Panel del organizador</span><h1>Mis torneos</h1><p>Lo importante para continuar cada competencia, en un solo lugar.</p></div><button onClick={() => navigate("/")}>+ Crear torneo</button></header>
+    {!loading && resumenes.length > 0 && <section className="organizer-profile-entry"><div><strong>{perfilOrganizador ? "Tu perfil público está activo" : "Perfil público de organizador"}</strong><span>{perfilOrganizador ? "Mostrá quién organiza y reuní tus torneos publicados." : "Es opcional: crealo cuando tengas lista tu descripción y tus fotos."}</span></div><Link to={perfilOrganizador ? `/organizador/${perfilOrganizador.idUsuario}` : "/mi-perfil-organizador"}>{perfilOrganizador ? "Ver perfil" : "Generar perfil"}</Link></section>}
     <section className="organizer-totals">
       <article><span>Torneos</span><strong>{resumenes.length}</strong></article>
       <article><span>Equipos</span><strong>{totales.equipos}</strong></article>

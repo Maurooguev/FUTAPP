@@ -17,6 +17,8 @@ import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import Cuenta from "./pages/Cuenta";
 import Notificaciones from "./pages/Notificaciones";
+import PerfilOrganizador from "./pages/PerfilOrganizador";
+import MiPerfilOrganizador from "./pages/MiPerfilOrganizador";
 
 function App() {
   return (
@@ -38,6 +40,8 @@ function App() {
         <Route path="/notificaciones" element={<Notificaciones />} />
         <Route path="/mis-torneos" element={<MisTorneos />} />
         <Route path="/mis-equipos" element={<MisEquipos />} />
+        <Route path="/organizador/:id" element={<PerfilOrganizador />} />
+        <Route path="/mi-perfil-organizador" element={<MiPerfilOrganizador />} />
       </Route>
     </Routes>
   );
