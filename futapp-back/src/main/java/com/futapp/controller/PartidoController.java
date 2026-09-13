@@ -9,6 +9,7 @@ import com.futapp.dto.FixtureRequestDTO;
 import com.futapp.dto.MvpPartidoRequestDTO;
 import com.futapp.dto.EstadoPartidoRequestDTO;
 import com.futapp.dto.JugadorPartidoDTO;
+import com.futapp.dto.ResultadoAuditoriaDTO;
 import jakarta.validation.Valid;
 
 import java.util.List;
@@ -53,6 +54,11 @@ public class PartidoController {
         return partidoService.listarJugadoresDelPartido(id);
     }
 
+    @GetMapping("/{id}/historial-resultado")
+    public List<ResultadoAuditoriaDTO> historialResultado(@PathVariable Long id) {
+        return partidoService.historialResultado(id);
+    }
+
     @PostMapping("/torneo/{idTorneo}/generar-fixture")
     public List<PartidoResponseDTO> generarFixture(@PathVariable Long idTorneo,
                                                    @Valid @RequestBody FixtureRequestDTO request) {
@@ -62,6 +68,11 @@ public class PartidoController {
     @PostMapping("/torneo/{idTorneo}/generar-siguiente-llave")
     public List<PartidoResponseDTO> generarSiguienteLlave(@PathVariable Long idTorneo) {
         return partidoService.generarSiguienteLlave(idTorneo);
+    }
+
+    @PostMapping("/torneo/{idTorneo}/simular")
+    public List<PartidoResponseDTO> simularTorneo(@PathVariable Long idTorneo) {
+        return partidoService.simularTorneo(idTorneo);
     }
 
     @PutMapping("/{id}")

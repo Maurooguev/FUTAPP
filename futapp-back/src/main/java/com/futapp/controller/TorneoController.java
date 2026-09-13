@@ -64,6 +64,9 @@ public class TorneoController {
     @PutMapping("/{id}/iniciar")
     public TorneoResponseDTO iniciarTorneo(@PathVariable Long id) { return torneoService.iniciarTorneo(id); }
 
+    @PutMapping("/{id}/publicar")
+    public TorneoResponseDTO publicarTorneo(@PathVariable Long id) { return torneoService.publicarTorneo(id); }
+
     @PutMapping("/{id}/finalizar")
     public TorneoResponseDTO finalizarTorneo(@PathVariable Long id) { return torneoService.finalizarTorneo(id); }
 

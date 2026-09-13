@@ -1627,7 +1627,13 @@ button {
 
 .torneo-page { background: #edf0f2; }
 .torneo-page .admin-actions { padding: 0; }
+.torneo-page .admin-actions .simulation-button { background: #7c3aed; color: #fff; }
 .torneo-page .admin-actions + .torneo-content .torneo-stats-grid { margin-top: 8px; }
+
+@media (max-width: 700px) {
+  .torneo-page .admin-actions { position: sticky; top: 0; z-index: 30; overflow-x: auto; flex-wrap: nowrap; padding: 7px 10px; background: rgba(255,255,255,.96); box-shadow: 0 4px 12px rgba(15,23,42,.12); }
+  .torneo-page .admin-actions button { flex: 0 0 auto; min-height: 38px; }
+}
 .torneo-page .torneo-dobles { gap: 12px; }
 .partido-content { padding-bottom: 40px; }
 .incidencia-card { grid-template-columns: 42px 1fr; gap: 9px; padding: 9px 0; }

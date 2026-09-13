@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import "./ResultModal.css";
 import { API_URL, apiFetch } from "../../config/api";
 
@@ -10,12 +10,18 @@ function ResultModal({ partidos, partidoInicial, onClose, onResultadoGuardado })
   const [golesVisitante, setGolesVisitante] = useState(partidoInicial?.golesVisitante ?? 0);
   const [penalesLocal, setPenalesLocal] = useState(partidoInicial?.penalesLocal ?? 0);
   const [penalesVisitante, setPenalesVisitante] = useState(partidoInicial?.penalesVisitante ?? 0);
+  const [historial, setHistorial] = useState([]);
 
   const partidoSeleccionado = partidos.find(
     (partido) => partido.idPartido === Number(idPartido)
   );
   const esEliminatorio = ["Final", "Semifinales", "Cuartos de final", "Octavos de final", "Primera ronda eliminatoria"].includes(partidoSeleccionado?.observaciones);
   const necesitaPenales = esEliminatorio && Number(golesLocal) === Number(golesVisitante);
+  useEffect(() => {
+    if (!partidoSeleccionado?.idPartido) { setHistorial([]); return; }
+    apiFetch(`${API_URL}/partidos/${partidoSeleccionado.idPartido}/historial-resultado`)
+      .then((response) => response.ok ? response.json() : []).then(setHistorial).catch(() => setHistorial([]));
+  }, [partidoSeleccionado?.idPartido]);
 
 const guardarResultado = async (e) => {
   e.preventDefault();
@@ -112,6 +118,7 @@ const guardarResultado = async (e) => {
           <button type="submit" className="result-save-btn">
             Guardar resultado
           </button>
+          {historial.length > 0 && <div className="result-history"><strong>Historial de cambios</strong>{historial.slice(0, 5).map((item) => <p key={item.id}><span>{item.usuario} · {new Date(item.fechaCambio).toLocaleString("es-AR")}</span><b>{item.golesLocalAnterior ?? "–"}-{item.golesVisitanteAnterior ?? "–"} → {item.golesLocalNuevo}-{item.golesVisitanteNuevo}</b></p>)}</div>}
         </form>
       </div>
     </div>

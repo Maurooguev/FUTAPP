@@ -7,6 +7,7 @@ import com.futapp.dto.FixtureRequestDTO;
 import com.futapp.dto.MvpPartidoRequestDTO;
 import com.futapp.dto.EstadoPartidoRequestDTO;
 import com.futapp.dto.JugadorPartidoDTO;
+import com.futapp.dto.ResultadoAuditoriaDTO;
 import com.futapp.exception.ResourceNotFoundException;
 import com.futapp.model.Equipo;
 import com.futapp.model.Fecha;
@@ -24,6 +25,10 @@ import com.futapp.repository.TarjetaRepository;
 import com.futapp.repository.CompeticionDivisionRepository;
 import com.futapp.repository.CupoEquipoRepository;
 import com.futapp.repository.CompeticionFaseRepository;
+import com.futapp.repository.ResultadoAuditoriaRepository;
+import com.futapp.model.ResultadoAuditoria;
+import com.futapp.model.Usuario;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
@@ -54,6 +59,7 @@ public class PartidoService {
     private final CupoEquipoRepository cupos;
     private final CompeticionFaseRepository fases;
     private final TablaPosicionService tablaPosiciones;
+    private final ResultadoAuditoriaRepository auditorias;
 
     public PartidoService(PartidoRepository partidoRepository,
                           TorneoRepository torneoRepository,
@@ -69,7 +75,8 @@ public class PartidoService {
                           CompeticionDivisionRepository divisiones,
                           CupoEquipoRepository cupos,
                           CompeticionFaseRepository fases,
-                          TablaPosicionService tablaPosiciones) {
+                          TablaPosicionService tablaPosiciones,
+                          ResultadoAuditoriaRepository auditorias) {
         this.partidoRepository = partidoRepository;
         this.torneoRepository = torneoRepository;
         this.fechaRepository = fechaRepository;
@@ -85,6 +92,7 @@ public class PartidoService {
         this.cupos = cupos;
         this.fases = fases;
         this.tablaPosiciones = tablaPosiciones;
+        this.auditorias = auditorias;
     }
 
     public List<PartidoResponseDTO> listarPartidos() {
@@ -727,6 +735,7 @@ public class PartidoService {
             }
         }
 
+        registrarAuditoria(partido, dto);
         partido.setGolesLocal(dto.getGolesLocal());
         partido.setGolesVisitante(dto.getGolesVisitante());
         partido.setPenalesLocal(eliminatorio && dto.getGolesLocal().equals(dto.getGolesVisitante()) ? dto.getPenalesLocal() : null);
@@ -736,6 +745,82 @@ public class PartidoService {
         partido = partidoRepository.save(partido);
         notificaciones.avisarPartido(partido, true);
         return convertirAResponseDTO(partido);
+    }
+
+    public List<ResultadoAuditoriaDTO> historialResultado(Long idPartido) {
+        Partido partido = partidoRepository.findById(idPartido).orElseThrow(() -> new ResourceNotFoundException("Partido no encontrado"));
+        authorization.verificarGestion(partido.getTorneo());
+        return auditorias.findByPartidoIdPartidoOrderByFechaCambioDesc(idPartido).stream().map(a ->
+                new ResultadoAuditoriaDTO(a.getIdAuditoria(), idPartido,
+                        a.getUsuario() == null ? null : a.getUsuario().getIdUsuario(),
+                        a.getUsuario() == null ? "Sistema" : a.getUsuario().getNombre(),
+                        a.getGolesLocalAnterior(), a.getGolesVisitanteAnterior(), a.getPenalesLocalAnterior(), a.getPenalesVisitanteAnterior(),
+                        a.getGolesLocalNuevo(), a.getGolesVisitanteNuevo(), a.getPenalesLocalNuevo(), a.getPenalesVisitanteNuevo(), a.getFechaCambio())).toList();
+    }
+
+    @Transactional
+    public List<PartidoResponseDTO> simularTorneo(Long idTorneo) {
+        authorization.verificarGestion(idTorneo);
+        Torneo torneo = torneoRepository.findById(idTorneo)
+                .orElseThrow(() -> new ResourceNotFoundException("Torneo no encontrado"));
+        if (partidoRepository.findByTorneoIdTorneo(idTorneo).isEmpty()) {
+            throw new IllegalArgumentException("Primero generá el fixture o la llave inicial");
+        }
+        for (int vuelta = 0; vuelta < 12; vuelta++) {
+            List<Partido> pendientes = partidoRepository.findByTorneoIdTorneo(idTorneo).stream()
+                    .filter(p -> !"FINALIZADO".equalsIgnoreCase(p.getEstado())).toList();
+            for (Partido partido : pendientes) simularPartido(partido);
+            if ("Liga".equalsIgnoreCase(torneo.getFormato())) break;
+            try {
+                generarSiguienteLlave(idTorneo);
+            } catch (IllegalArgumentException fin) {
+                if (fin.getMessage() != null && fin.getMessage().contains("campeón")) break;
+                throw fin;
+            }
+        }
+        return partidoRepository.findByTorneoIdTorneo(idTorneo).stream().map(this::convertirAResponseDTO).toList();
+    }
+
+    private void simularPartido(Partido partido) {
+        ResultadoPartidoDTO resultado = new ResultadoPartidoDTO();
+        resultado.setGolesLocal(2); resultado.setGolesVisitante(1);
+        cargarResultado(partido.getIdPartido(), resultado);
+        var locales = inscripcionesJugador.findByInscripcionEquipoEquipoIdEquipoAndInscripcionEquipoTorneoIdTorneoAndEstado(
+                partido.getEquipoLocal().getIdEquipo(), partido.getTorneo().getIdTorneo(), "ACTIVA");
+        var visitantes = inscripcionesJugador.findByInscripcionEquipoEquipoIdEquipoAndInscripcionEquipoTorneoIdTorneoAndEstado(
+                partido.getEquipoVisitante().getIdEquipo(), partido.getTorneo().getIdTorneo(), "ACTIVA");
+        if (!locales.isEmpty()) {
+            partido.setMvp(locales.get(0).getJugador()); partidoRepository.save(partido);
+            if (!golRepository.existsByPartidoIdPartido(partido.getIdPartido())) {
+                golRepository.save(golSimulado(partido, locales.get(0).getJugador(), partido.getEquipoLocal(), 18));
+                golRepository.save(golSimulado(partido, locales.get(Math.min(1, locales.size() - 1)).getJugador(), partido.getEquipoLocal(), 54));
+                if (!visitantes.isEmpty()) golRepository.save(golSimulado(partido, visitantes.get(0).getJugador(), partido.getEquipoVisitante(), 71));
+            }
+        }
+        if (!visitantes.isEmpty() && !tarjetaRepository.existsByPartidoIdPartido(partido.getIdPartido())) {
+            com.futapp.model.Tarjeta tarjeta = new com.futapp.model.Tarjeta();
+            tarjeta.setPartido(partido); tarjeta.setJugador(visitantes.get(0).getJugador()); tarjeta.setEquipo(partido.getEquipoVisitante());
+            tarjeta.setTipoTarjeta("AMARILLA"); tarjeta.setMinuto(63); tarjeta.setMotivo("Simulación de prueba");
+            tarjetaRepository.save(tarjeta);
+        }
+    }
+
+    private com.futapp.model.Gol golSimulado(Partido partido, com.futapp.model.Jugador jugador, Equipo equipo, int minuto) {
+        com.futapp.model.Gol gol = new com.futapp.model.Gol();
+        gol.setPartido(partido); gol.setJugador(jugador); gol.setEquipo(equipo); gol.setMinuto(minuto);
+        gol.setTipoGol("Jugada"); gol.setObservacion("Simulación de prueba"); return gol;
+    }
+
+    private void registrarAuditoria(Partido partido, ResultadoPartidoDTO nuevo) {
+        ResultadoAuditoria audit = new ResultadoAuditoria();
+        audit.setPartido(partido);
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (principal instanceof Usuario usuario) audit.setUsuario(usuario);
+        audit.setGolesLocalAnterior(partido.getGolesLocal()); audit.setGolesVisitanteAnterior(partido.getGolesVisitante());
+        audit.setPenalesLocalAnterior(partido.getPenalesLocal()); audit.setPenalesVisitanteAnterior(partido.getPenalesVisitante());
+        audit.setGolesLocalNuevo(nuevo.getGolesLocal()); audit.setGolesVisitanteNuevo(nuevo.getGolesVisitante());
+        audit.setPenalesLocalNuevo(nuevo.getPenalesLocal()); audit.setPenalesVisitanteNuevo(nuevo.getPenalesVisitante());
+        auditorias.save(audit);
     }
 
     

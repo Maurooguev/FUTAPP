@@ -12,4 +12,5 @@
 .readiness-steps b, .readiness-steps small { display: block; }.readiness-steps b { color: #0f172a; font-size: 11px; }.readiness-steps small { margin-top: 2px; color: #64748b; font-size: 9px; }
 .readiness-warning, .readiness-note { margin: 9px 0 0; padding: 7px 9px; border-radius: 3px; font-size: 10px; }
 .readiness-warning { background: #fff1f2; color: #be123c; }.readiness-note { background: #eff6ff; color: #1d4ed8; }
+.readiness-primary { width: 100%; margin-top: 10px; background: #0877a7; color: #fff; font-size: 11px; }
 @media (max-width: 700px) { .readiness-steps { grid-template-columns: 1fr; } }

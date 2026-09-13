@@ -58,7 +58,7 @@ function TorneoDetalle() {
   };
 
   const cambiarEstadoTorneo = async (accion) => {
-    const destino = accion === "iniciar" ? "iniciar el torneo" : "finalizar definitivamente el torneo";
+    const destino = accion === "iniciar" ? "iniciar el torneo" : accion === "publicar" ? "publicar el torneo" : "finalizar definitivamente el torneo";
     if (!window.confirm(`¿Querés ${destino}?`)) return;
     setAdminError("");
     try {
@@ -238,6 +238,17 @@ const recargarDatosTorneo = () => {
     } catch (requestError) { setAdminError(requestError.message); } finally { setGenerandoFixture(false); }
   };
 
+  const simularTorneo = async () => {
+    if (!window.confirm("¿Simular todos los resultados? Se cargarán marcadores, goles, tarjetas y MVP de prueba, y se avanzarán los playoffs.")) return;
+    setAdminError(""); setGenerandoFixture(true);
+    try {
+      const response = await apiFetch(`${API_URL}/partidos/torneo/${id}/simular`, { method: "POST" });
+      const payload = await response.json().catch(() => null);
+      if (!response.ok) throw new Error(payload?.message || "No se pudo simular el torneo");
+      setPartidos(payload); recargarDatosTorneo();
+    } catch (requestError) { setAdminError(requestError.message); } finally { setGenerandoFixture(false); }
+  };
+
   const suspenderPartido = async (partido) => {
     const motivo = window.prompt(`Motivo de la suspensión de ${partido.nombreEquipoLocal} vs ${partido.nombreEquipoVisitante}:`);
     if (motivo === null) return;
@@ -263,11 +274,14 @@ const recargarDatosTorneo = () => {
         <div className="admin-actions">
           <button onClick={() => setMostrarEdicion(true)}>Editar torneo</button>
           <TournamentExports torneo={torneo} tabla={tabla} fechas={fechas} partidos={partidos} goleadores={goleadores} />
+          {torneo.estado?.toUpperCase() === "BORRADOR" && <button onClick={() => cambiarEstadoTorneo("publicar")}>Publicar torneo</button>}
           {torneo.estado?.toUpperCase() === "BORRADOR" && <button onClick={() => cambiarEstadoTorneo("iniciar")}>Iniciar torneo</button>}
+          {torneo.estado?.toUpperCase() === "PUBLICADO" && <button onClick={() => cambiarEstadoTorneo("iniciar")}>Iniciar torneo</button>}
           {torneo.estado?.toUpperCase() === "ACTIVO" && <button onClick={() => cambiarEstadoTorneo("finalizar")}>Finalizar torneo</button>}
           <button onClick={() => { setPartidoResultado(null); setMostrarResultado(true); }}>Cargar resultado</button>
           <button onClick={() => setMostrarFecha(true)}>Agregar jornada</button>
           <button onClick={() => setMostrarPartido(true)}>Agregar partido</button>
+          {partidos.length > 0 && <button className="simulation-button" onClick={simularTorneo} disabled={generandoFixture}>Simular torneo</button>}
           <button onClick={partidos.length > 0 ? rehacerFixture : abrirGeneradorFixture} disabled={generandoFixture}>
             {generandoFixture ? "Procesando..." : partidos.length > 0 ? "Rehacer fixture" : torneo.formato?.toLowerCase().includes("eliminación") ? "Generar llaves" : "Generar fixture automático"}
           </button>
@@ -277,7 +291,7 @@ const recargarDatosTorneo = () => {
 
       <main className="torneo-content">
         <div className="torneo-shell">
-          {puedeEditar && <TournamentReadiness torneoId={id} equipos={equipos} partidos={partidos} onGenerateFixture={abrirGeneradorFixture} />}
+          {puedeEditar && <TournamentReadiness torneoId={id} torneo={torneo} equipos={equipos} partidos={partidos} onGenerateFixture={abrirGeneradorFixture} onNextRound={generarSiguienteLlave} />}
           <div className="torneo-stats-grid" id="resumen">
             <StatsCard label="Torneo" value={torneo.nombre} />
             <StatsCard label="Partidos jugados" value={partidosJugados} />

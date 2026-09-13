@@ -45,16 +45,18 @@ public class TorneoService {
     public List<TorneoResponseDTO> listarTorneos() {
         return torneoRepository.findAll()
                 .stream()
+                .filter(torneo -> !"BORRADOR".equalsIgnoreCase(torneo.getEstado()))
                 .map(this::convertirAResponseDTO)
                 .collect(Collectors.toList());
     }
 
     public List<TorneoResponseDTO> buscar(String query) {
-        return torneoRepository.findByNombreContainingIgnoreCaseOrCodigoPublicoContainingIgnoreCase(query, query).stream().map(this::convertirAResponseDTO).toList();
+        return torneoRepository.findByNombreContainingIgnoreCaseOrCodigoPublicoContainingIgnoreCase(query, query).stream()
+                .filter(torneo -> !"BORRADOR".equalsIgnoreCase(torneo.getEstado())).map(this::convertirAResponseDTO).toList();
     }
 
     public List<TorneoResponseDTO> listarPropios(Usuario usuario) {
-        if (usuario.tieneRol("ADMIN")) return listarTorneos();
+        if (usuario.tieneRol("ADMIN")) return torneoRepository.findAll().stream().map(this::convertirAResponseDTO).toList();
         return torneoRepository.findByPropietarioIdUsuario(usuario.getIdUsuario()).stream().map(this::convertirAResponseDTO).toList();
     }
 
@@ -165,6 +167,18 @@ public class TorneoService {
         }
         if (partidos.findByTorneoIdTorneo(id).isEmpty()) throw new IllegalArgumentException("Generá el fixture antes de iniciar el torneo");
         torneo.setEstado("ACTIVO");
+        return convertirAResponseDTO(torneoRepository.save(torneo));
+    }
+
+    @Transactional
+    public TorneoResponseDTO publicarTorneo(Long id) {
+        Torneo torneo = torneoRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Torneo no encontrado con id: " + id));
+        authorization.verificarGestion(torneo);
+        if (!"BORRADOR".equalsIgnoreCase(torneo.getEstado())) {
+            throw new IllegalArgumentException("Solo se puede publicar un torneo que está en borrador");
+        }
+        torneo.setEstado("PUBLICADO");
         return convertirAResponseDTO(torneoRepository.save(torneo));
     }
 

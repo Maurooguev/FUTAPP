@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { API_URL } from "../../config/api";
 import "./TournamentReadiness.css";
 
-function TournamentReadiness({ torneoId, equipos, partidos, onGenerateFixture }) {
+function TournamentReadiness({ torneoId, torneo, equipos, partidos, onGenerateFixture, onNextRound }) {
   const [rosters, setRosters] = useState({});
 
   useEffect(() => {
@@ -25,6 +25,9 @@ function TournamentReadiness({ torneoId, equipos, partidos, onGenerateFixture })
   const rostersReady = !loading && equipos.length >= 2 && emptyTeams.length === 0;
   const fixtureReady = partidos.length > 0;
   const ready = enoughTeams && rostersReady && fixtureReady;
+  const pendientes = partidos.filter((partido) => partido.estado?.toUpperCase() !== "FINALIZADO").length;
+  const usaLlave = torneo?.formato?.toLowerCase() === "eliminación directa" || torneo?.formato?.toLowerCase().includes("playoffs");
+  const campeonDefinido = partidos.some((partido) => partido.observaciones === "Final" && partido.estado?.toUpperCase() === "FINALIZADO");
   const scrollTo = (id) => document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
 
   return <section className={`tournament-readiness ${ready ? "ready" : ""}`}>
@@ -36,6 +39,7 @@ function TournamentReadiness({ torneoId, equipos, partidos, onGenerateFixture })
     </div>
     {!loading && emptyTeams.length > 0 && <p className="readiness-warning"><strong>Sin jugadores:</strong> {emptyTeams.map((team) => team.nombre).join(", ")}.</p>}
     {!loading && emptyTeams.length === 0 && shortTeams.length > 0 && <p className="readiness-note">Planteles con menos de 5 jugadores: {shortTeams.map((team) => team.nombre).join(", ")}. Podés continuar, pero conviene completarlos.</p>}
+    <button className="readiness-primary" disabled={campeonDefinido} onClick={!fixtureReady ? onGenerateFixture : pendientes > 0 ? () => scrollTo("fixture") : usaLlave ? onNextRound : () => scrollTo("fixture")}>{!fixtureReady ? "Generar fixture" : pendientes > 0 ? `Cargar resultados pendientes (${pendientes})` : campeonDefinido ? "Torneo con campeón definido" : usaLlave ? "Generar próxima fase" : "Revisar torneo completo"}</button>
   </section>;
 }
 

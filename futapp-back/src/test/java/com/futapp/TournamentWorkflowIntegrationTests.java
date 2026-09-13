@@ -249,6 +249,30 @@ class TournamentWorkflowIntegrationTests {
         org.junit.jupiter.api.Assertions.assertEquals(2, semis.size());
     }
 
+    @Test
+    void publicaYSimulaUnTorneoConAuditoriaEIncidencias() throws Exception {
+        String token = registrarOrganizador();
+        Map<String, Object> request = new LinkedHashMap<>(torneo());
+        request.put("cantidadEquipos", 4); request.put("generarEquiposPrueba", true);
+        request.put("jugadoresPorEquipoPrueba", 3);
+        long torneoId = postJson("/torneos", token, request).get("idTorneo").asLong();
+        putJson("/torneos/" + torneoId + "/publicar", token, null)
+                .andExpect(status().isOk()).andExpect(jsonPath("$.estado").value("PUBLICADO"));
+        JsonNode fixture = postJson("/partidos/torneo/" + torneoId + "/generar-fixture", token, Map.of(
+                "fechaInicio", "2026-09-05", "horaInicio", "14:00", "diasEntreJornadas", 7,
+                "minutosEntrePartidos", 60, "cancha", "Cancha principal"));
+        JsonNode simulados = postJson("/partidos/torneo/" + torneoId + "/simular", token, null);
+        org.junit.jupiter.api.Assertions.assertEquals(6, simulados.size());
+        for (JsonNode partido : simulados) {
+            org.junit.jupiter.api.Assertions.assertEquals("FINALIZADO", partido.get("estado").asString());
+            org.junit.jupiter.api.Assertions.assertFalse(partido.get("nombreMvp").isNull());
+        }
+        mockMvc.perform(get("/partidos/{id}/historial-resultado", fixture.get(0).get("idPartido").asLong())
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk()).andExpect(jsonPath("$", org.hamcrest.Matchers.hasSize(1)))
+                .andExpect(jsonPath("$[0].golesLocalNuevo").value(2));
+    }
+
     private String registrarOrganizador() throws Exception {
         String email = "workflow-" + System.nanoTime() + "@test.local";
         String response = mockMvc.perform(post("/auth/register")

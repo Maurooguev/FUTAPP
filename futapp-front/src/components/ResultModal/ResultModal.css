@@ -94,3 +94,7 @@
 .result-modal select, .result-modal input { padding: 8px 9px; border-radius: 4px; font-size: 12px; }
 .result-save-btn { margin-top: 5px; padding: 8px; border-radius: 4px; font-size: 11px; }
 .result-selected-match { padding: 9px; border-radius: 4px; font-size: 11px; }
+.result-history { display: grid; gap: 5px; margin-top: 10px; border-top: 1px solid #dbe3e8; padding-top: 10px; }
+.result-history > strong { font-size: 11px; }
+.result-history p { display: flex; justify-content: space-between; gap: 8px; margin: 0; color: #64748b; font-size: 9px; }
+.result-history b { color: #334155; }
