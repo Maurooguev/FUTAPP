@@ -33,6 +33,7 @@ function JugadorPerfil() {
   const [error, setError] = useState("");
   const [claimMessage, setClaimMessage] = useState("");
   const [ownPlayerId, setOwnPlayerId] = useState(null);
+  const [organizerProfileExists, setOrganizerProfileExists] = useState(false);
 
   const claimPlayer = async () => {
     const response = await apiFetch(`${API_URL}/reclamos/jugadores/${id}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ idTorneo: equipo.idTorneo, mensaje: "Este perfil soy yo" }) });
@@ -70,6 +71,13 @@ function JugadorPerfil() {
       .catch(() => setOwnPlayerId(null));
   }, [usuario]);
 
+  useEffect(() => {
+    if (!tieneRol(usuario, "ORGANIZADOR") && !tieneRol(usuario, "ADMIN")) return;
+    apiFetch(`${API_URL}/perfiles-organizador/mio`)
+      .then((response) => setOrganizerProfileExists(response.ok))
+      .catch(() => setOrganizerProfileExists(false));
+  }, [usuario]);
+
   const isOwnProfile = ownPlayerId === Number(id);
 
   const historial = useMemo(() => equipo ? partidos.filter((partido) =>
@@ -86,7 +94,7 @@ function JugadorPerfil() {
       <div className="profile-avatar player-avatar">{jugador.foto ? <img src={assetUrl(jugador.foto)} alt={`${jugador.nombre} ${jugador.apellido}`} /> : jugador.numeroCamiseta}</div>
       <div><span className="profile-code">{jugador.codigoPublico}</span><h1>{jugador.nombre} {jugador.apellido}</h1>{jugador.apodo && <p className="player-nickname">“{jugador.apodo}”</p>}<Link to={`/equipo/${equipo.idEquipo}`}>{equipo.nombre}</Link></div>
       <strong className="shirt-number">#{jugador.numeroCamiseta}</strong>
-      {isOwnProfile ? <Link className="profile-edit-link" to="/mi-perfil-jugador/editar">Editar perfil</Link> : tieneRol(usuario, "JUGADOR") && <button className="profile-claim-button" onClick={claimPlayer}>Este jugador soy yo</button>}
+      {isOwnProfile ? <div className="player-profile-actions"><Link className="profile-edit-link" to="/mi-perfil-jugador/editar">Editar perfil de jugador</Link>{(tieneRol(usuario, "ORGANIZADOR") || tieneRol(usuario, "ADMIN")) && <Link className="profile-organizer-link" to="/mi-perfil-organizador">{organizerProfileExists ? "Editar perfil de organizador" : "Generar perfil de organizador"}</Link>}</div> : tieneRol(usuario, "JUGADOR") && <button className="profile-claim-button" onClick={claimPlayer}>Este jugador soy yo</button>}
     </section>
     {claimMessage && <p className="profile-action-message">{claimMessage}</p>}
     <section className="player-facts"><div><span>Posición</span><strong>{jugador.posicion}</strong></div><div><span>Edad</span><strong>{calcularEdad(jugador.fechaNacimiento) ?? "—"}</strong></div><div><span>Nacimiento</span><strong>{jugador.fechaNacimiento || "—"}</strong></div><div><span>Pierna hábil</span><strong>{jugador.piernaHabil || "—"}</strong></div></section>
