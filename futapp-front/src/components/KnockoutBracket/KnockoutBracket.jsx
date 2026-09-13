@@ -58,9 +58,10 @@ function KnockoutBracket({ equipos, teamCount = equipos.length, partidos, canMan
   const canAdvance = latest.length > 1 && latest.every((match) => match.estado?.toUpperCase() === "FINALIZADO");
   const canStart = generatedRounds.length === 0 && partidos.length > 0 && partidos.every((match) => match.estado?.toUpperCase() === "FINALIZADO");
   const final = matchesByRound.Final?.[0];
-  const champion = final?.estado?.toUpperCase() === "FINALIZADO"
-    ? final.golesLocal > final.golesVisitante || final.golesLocal === final.golesVisitante && final.penalesLocal > final.penalesVisitante ? final.nombreEquipoLocal : final.nombreEquipoVisitante
-    : null;
+  const championId = winnerId(final);
+  const champion = championId === final?.idEquipoLocal
+    ? final.nombreEquipoLocal
+    : championId === final?.idEquipoVisitante ? final.nombreEquipoVisitante : null;
 
   return <section className="bracket-block" id="llave">
     <div className="bracket-heading"><div><span>Eliminación directa</span><h2>Llave del torneo</h2><p>Los ganadores avanzan de izquierda a derecha hasta la final.</p></div>{canManage && (canAdvance || canStart) && <button onClick={onNextRound} disabled={loading}>{loading ? "Generando…" : canStart ? "Generar playoffs" : "Generar siguiente ronda"}</button>}</div>
@@ -79,6 +80,7 @@ function KnockoutBracket({ equipos, teamCount = equipos.length, partidos, canMan
             return <article className="bracket-match" key={match?.idPartido || `${round}-${index}`}>
               <Team id={match?.idEquipoLocal} name={match?.nombreEquipoLocal} score={finished ? match.golesLocal : null} penalties={finished ? match.penalesLocal : null} winner={finished && (match.golesLocal > match.golesVisitante || match.golesLocal === match.golesVisitante && match.penalesLocal > match.penalesVisitante)} />
               <Team id={match?.idEquipoVisitante} name={match?.nombreEquipoVisitante} score={finished ? match.golesVisitante : null} penalties={finished ? match.penalesVisitante : null} winner={finished && (match.golesVisitante > match.golesLocal || match.golesLocal === match.golesVisitante && match.penalesVisitante > match.penalesLocal)} />
+              {round === "Final" && match?.idPartido === final?.idPartido && champion && <div className="bracket-final-champion">🏆 {champion}</div>}
             </article>;
           })}
         </div></div>;
