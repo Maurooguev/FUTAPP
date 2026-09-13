@@ -15,6 +15,9 @@ public class TorneoAuthorizationService {
     public void verificarGestion(Torneo torneo) {
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (!(principal instanceof Usuario usuario)) throw new AccessDeniedException("Debes iniciar sesión");
+        if ("FINALIZADO".equalsIgnoreCase(torneo.getEstado())) {
+            throw new IllegalArgumentException("El torneo está finalizado y su historial ya no se puede modificar");
+        }
         if (usuario.tieneRol("ADMIN")) return;
         if (torneo.getPropietario() == null || !torneo.getPropietario().getIdUsuario().equals(usuario.getIdUsuario())) {
             throw new AccessDeniedException("No tienes permiso para administrar este torneo");

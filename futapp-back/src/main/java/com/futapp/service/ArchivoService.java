@@ -13,6 +13,7 @@ import java.util.UUID;
 
 @Service
 public class ArchivoService {
+    private static final long MAX_IMAGE_BYTES = 8L * 1024 * 1024;
     private static final Map<String, String> EXTENSIONES = Map.of(
             "image/jpeg", ".jpg", "image/png", ".png", "image/webp", ".webp");
     private final Path carpeta;
@@ -23,6 +24,7 @@ public class ArchivoService {
 
     public String guardarImagen(MultipartFile archivo) {
         if (archivo == null || archivo.isEmpty()) throw new IllegalArgumentException("Seleccioná una imagen");
+        if (archivo.getSize() > MAX_IMAGE_BYTES) throw new IllegalArgumentException("La imagen no puede superar los 8 MB");
         String extension = EXTENSIONES.get(archivo.getContentType());
         if (extension == null) throw new IllegalArgumentException("La imagen debe ser JPG, PNG o WebP");
         String nombre = UUID.randomUUID() + extension;

@@ -115,6 +115,11 @@ class TournamentWorkflowIntegrationTests {
                 .andExpect(jsonPath("$.estado").value("FINALIZADO"))
                 .andExpect(jsonPath("$.idCampeon").value(local.get("idEquipo").asLong()))
                 .andExpect(jsonPath("$.nombreCampeon").value("Barrio Norte"));
+
+        putJson("/partidos/" + partidoId + "/resultado", token,
+                Map.of("golesLocal", 0, "golesVisitante", 0))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("El torneo está finalizado y su historial ya no se puede modificar"));
     }
 
     @Test
