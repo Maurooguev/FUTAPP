@@ -112,7 +112,9 @@ class TournamentWorkflowIntegrationTests {
 
         putJson("/torneos/" + torneoId + "/finalizar", token, null)
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.estado").value("FINALIZADO"));
+                .andExpect(jsonPath("$.estado").value("FINALIZADO"))
+                .andExpect(jsonPath("$.idCampeon").value(local.get("idEquipo").asLong()))
+                .andExpect(jsonPath("$.nombreCampeon").value("Barrio Norte"));
     }
 
     @Test
@@ -215,6 +217,18 @@ class TournamentWorkflowIntegrationTests {
         org.junit.jupiter.api.Assertions.assertEquals("Equipo 2", semifinales.get(0).get("nombreEquipoVisitante").asString());
         org.junit.jupiter.api.Assertions.assertEquals("Equipo 3", semifinales.get(1).get("nombreEquipoLocal").asString());
         org.junit.jupiter.api.Assertions.assertEquals("Equipo 4", semifinales.get(1).get("nombreEquipoVisitante").asString());
+        for (JsonNode semifinal : semifinales) {
+            putJson("/partidos/" + semifinal.get("idPartido").asLong() + "/resultado", token,
+                    Map.of("golesLocal", 2, "golesVisitante", 0)).andExpect(status().isOk());
+        }
+        JsonNode finalPartidos = postJson("/partidos/torneo/" + torneoId + "/generar-siguiente-llave", token, null);
+        org.junit.jupiter.api.Assertions.assertEquals(1, finalPartidos.size());
+        JsonNode finalPartido = finalPartidos.get(0);
+        putJson("/partidos/" + finalPartido.get("idPartido").asLong() + "/resultado", token,
+                Map.of("golesLocal", 3, "golesVisitante", 1)).andExpect(status().isOk());
+        putJson("/torneos/" + torneoId + "/finalizar", token, null)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.nombreCampeon").value(finalPartido.get("nombreEquipoLocal").asString()));
     }
 
     @Test

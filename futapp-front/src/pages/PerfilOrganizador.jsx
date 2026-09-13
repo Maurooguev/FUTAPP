@@ -40,6 +40,7 @@ function PerfilOrganizador() {
         {perfil.torneos.map((torneo) => <Link to={`/torneo/${torneo.idTorneo}`} key={torneo.idTorneo} className="organizer-public-tournament">
           <div><span>{torneo.estado}</span><small>{torneo.codigoPublico}</small></div>
           <h3>{torneo.nombre}</h3><p>{torneo.descripcion || "Sin descripción"}</p>
+          {torneo.nombreCampeon && <div className="organizer-tournament-champion">🏆 Campeón: <strong>{torneo.nombreCampeon}</strong></div>}
           <footer><span>{torneo.ubicacion}</span><span>{torneo.formato}</span><strong>Ver torneo →</strong></footer>
         </Link>)}
       </div>}

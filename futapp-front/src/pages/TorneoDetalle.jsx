@@ -191,7 +191,10 @@ function TorneoDetalle() {
   }, [partidos]);
   const cantidadEquiposLlave = estructura?.divisiones?.[0]?.fases?.find((fase) => fase.tipo === "ELIMINACION_DIRECTA")?.clasificados || equipos.length;
   const usaLlave = torneo?.formato?.toLowerCase() === "eliminación directa" || torneo?.formato?.toLowerCase().includes("playoffs");
-  const campeonLiga = torneo?.estado?.toUpperCase() === "FINALIZADO" && !usaLlave && tabla.length > 0 ? tabla[0] : null;
+  const filaCampeon = tabla.find((fila) => fila.idEquipo === torneo?.idCampeon) || tabla[0];
+  const campeonLiga = torneo?.estado?.toUpperCase() === "FINALIZADO" && !usaLlave && torneo?.idCampeon
+    ? { ...filaCampeon, idEquipo: torneo.idCampeon, nombreEquipo: torneo.nombreCampeon }
+    : null;
 
   if (!torneo) {
     return <p style={{ padding: "20px" }}>Cargando...</p>;

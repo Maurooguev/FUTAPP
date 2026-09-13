@@ -32,6 +32,10 @@ public class Torneo {
     @JoinColumn(name = "id_propietario")
     private Usuario propietario;
 
+    @ManyToOne
+    @JoinColumn(name = "id_campeon")
+    private Equipo campeon;
+
     public Torneo() {
     }
 
@@ -100,4 +104,6 @@ public class Torneo {
     public void setCodigoPublico(String codigoPublico) { this.codigoPublico = codigoPublico; }
     public Usuario getPropietario() { return propietario; }
     public void setPropietario(Usuario propietario) { this.propietario = propietario; }
+    public Equipo getCampeon() { return campeon; }
+    public void setCampeon(Equipo campeon) { this.campeon = campeon; }
 }

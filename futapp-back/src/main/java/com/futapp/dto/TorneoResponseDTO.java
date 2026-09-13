@@ -17,6 +17,8 @@ public class TorneoResponseDTO {
     private Integer puntosEmpate;
     private Integer puntosDerrota;
     private String criterioDesempate;
+    private Long idCampeon;
+    private String nombreCampeon;
 
     public TorneoResponseDTO() {
     }
@@ -106,4 +108,8 @@ public class TorneoResponseDTO {
     public Integer getPuntosEmpate() { return puntosEmpate; } public void setPuntosEmpate(Integer value) { this.puntosEmpate = value; }
     public Integer getPuntosDerrota() { return puntosDerrota; } public void setPuntosDerrota(Integer value) { this.puntosDerrota = value; }
     public String getCriterioDesempate() { return criterioDesempate; } public void setCriterioDesempate(String value) { this.criterioDesempate = value; }
+    public Long getIdCampeon() { return idCampeon; }
+    public void setIdCampeon(Long idCampeon) { this.idCampeon = idCampeon; }
+    public String getNombreCampeon() { return nombreCampeon; }
+    public void setNombreCampeon(String nombreCampeon) { this.nombreCampeon = nombreCampeon; }
 }

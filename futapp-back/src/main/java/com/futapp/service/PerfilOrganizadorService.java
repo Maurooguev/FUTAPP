@@ -87,7 +87,9 @@ public class PerfilOrganizadorService {
                 .filter(torneo -> !"BORRADOR".equalsIgnoreCase(torneo.getEstado()))
                 .map(torneo -> new TorneoPerfilOrganizadorDTO(torneo.getIdTorneo(), torneo.getNombre(),
                         torneo.getDescripcion(), torneo.getUbicacion(), torneo.getEstado(), torneo.getFormato(),
-                        torneo.getCantidadEquipos(), torneo.getCodigoPublico()))
+                        torneo.getCantidadEquipos(), torneo.getCodigoPublico(),
+                        torneo.getCampeon() == null ? null : torneo.getCampeon().getIdEquipo(),
+                        torneo.getCampeon() == null ? null : torneo.getCampeon().getNombre()))
                 .toList();
         return new PerfilOrganizadorResponseDTO(perfil.getIdPerfil(), perfil.getUsuario().getIdUsuario(),
                 perfil.getNombrePublico(), perfil.getDescripcion(), perfil.getFotoPerfil(),

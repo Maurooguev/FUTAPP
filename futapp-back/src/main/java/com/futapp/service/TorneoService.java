@@ -11,6 +11,7 @@ import com.futapp.repository.PartidoRepository;
 import com.futapp.repository.InscripcionEquipoRepository;
 import com.futapp.repository.InscripcionJugadorRepository;
 import com.futapp.repository.UsuarioRepository;
+import com.futapp.repository.EquipoRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,11 +29,14 @@ public class TorneoService {
     private final InscripcionJugadorRepository inscripcionesJugador;
     private final UsuarioRepository usuarios;
     private final EstructuraCompetenciaService estructuraCompetencia;
+    private final EquipoRepository equipos;
+    private final TablaPosicionService tablaPosiciones;
 
     public TorneoService(TorneoRepository torneoRepository, TorneoAuthorizationService authorization,
                          PartidoRepository partidos, InscripcionEquipoRepository inscripcionesEquipo,
                          InscripcionJugadorRepository inscripcionesJugador, UsuarioRepository usuarios,
-                         EstructuraCompetenciaService estructuraCompetencia) {
+                         EstructuraCompetenciaService estructuraCompetencia, EquipoRepository equipos,
+                         TablaPosicionService tablaPosiciones) {
         this.torneoRepository = torneoRepository;
         this.authorization = authorization;
         this.partidos = partidos;
@@ -40,6 +44,8 @@ public class TorneoService {
         this.inscripcionesJugador = inscripcionesJugador;
         this.usuarios = usuarios;
         this.estructuraCompetencia = estructuraCompetencia;
+        this.equipos = equipos;
+        this.tablaPosiciones = tablaPosiciones;
     }
 
     public List<TorneoResponseDTO> listarTorneos() {
@@ -94,9 +100,15 @@ public class TorneoService {
                 jugados, pendientes, proximaJornada, accion);
     }
 
+    @Transactional
     public TorneoResponseDTO obtenerTorneoPorId(Long id) {
         Torneo torneo = torneoRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Torneo no encontrado con id: " + id));
+
+        if ("FINALIZADO".equalsIgnoreCase(torneo.getEstado()) && torneo.getCampeon() == null) {
+            torneo.setCampeon(determinarCampeon(torneo, partidos.findByTorneoIdTorneo(id)));
+            torneo = torneoRepository.save(torneo);
+        }
 
         return convertirAResponseDTO(torneo);
     }
@@ -191,13 +203,14 @@ public class TorneoService {
         if (partidosTorneo.isEmpty()) throw new IllegalArgumentException("El torneo todavía no tiene partidos");
         long pendientes = partidosTorneo.stream().filter(partido -> !"FINALIZADO".equalsIgnoreCase(partido.getEstado())).count();
         if (pendientes > 0) throw new IllegalArgumentException("Todavía quedan " + pendientes + " partidos sin finalizar");
+        torneo.setCampeon(determinarCampeon(torneo, partidosTorneo));
         torneo.setEstado("FINALIZADO");
         return convertirAResponseDTO(torneoRepository.save(torneo));
     }
 
     private TorneoResponseDTO convertirAResponseDTO(Torneo torneo) {
         Usuario propietario = torneo.getPropietario();
-        return new TorneoResponseDTO(
+        TorneoResponseDTO response = new TorneoResponseDTO(
                 torneo.getIdTorneo(),
                 torneo.getNombre(),
                 torneo.getDescripcion(),
@@ -211,6 +224,37 @@ public class TorneoService {
                 torneo.getIdaVuelta(), torneo.getPuntosVictoria(), torneo.getPuntosEmpate(),
                 torneo.getPuntosDerrota(), torneo.getCriterioDesempate()
         );
+        if (torneo.getCampeon() != null) {
+            response.setIdCampeon(torneo.getCampeon().getIdEquipo());
+            response.setNombreCampeon(torneo.getCampeon().getNombre());
+        }
+        return response;
+    }
+
+    private com.futapp.model.Equipo determinarCampeon(Torneo torneo, List<com.futapp.model.Partido> partidosTorneo) {
+        String formato = torneo.getFormato() == null ? "" : torneo.getFormato().toUpperCase();
+        boolean tieneEliminacion = formato.contains("ELIMINACIÓN") || formato.contains("ELIMINACION") || formato.contains("PLAYOFF");
+        if (tieneEliminacion) {
+            var finalPartido = partidosTorneo.stream()
+                    .filter(partido -> "Final".equalsIgnoreCase(partido.getObservaciones()))
+                    .max(java.util.Comparator.comparing(com.futapp.model.Partido::getIdPartido))
+                    .orElseThrow(() -> new IllegalArgumentException("Generá y finalizá la final antes de cerrar el torneo"));
+            if (!"FINALIZADO".equalsIgnoreCase(finalPartido.getEstado())) {
+                throw new IllegalArgumentException("Finalizá el partido final antes de cerrar el torneo");
+            }
+            if (finalPartido.getGolesLocal() > finalPartido.getGolesVisitante()) return finalPartido.getEquipoLocal();
+            if (finalPartido.getGolesVisitante() > finalPartido.getGolesLocal()) return finalPartido.getEquipoVisitante();
+            if (finalPartido.getPenalesLocal() == null || finalPartido.getPenalesVisitante() == null
+                    || finalPartido.getPenalesLocal().equals(finalPartido.getPenalesVisitante())) {
+                throw new IllegalArgumentException("Definí el ganador de la final por penales antes de cerrar el torneo");
+            }
+            return finalPartido.getPenalesLocal() > finalPartido.getPenalesVisitante()
+                    ? finalPartido.getEquipoLocal() : finalPartido.getEquipoVisitante();
+        }
+        var tabla = tablaPosiciones.obtenerTablaPorTorneo(torneo.getIdTorneo());
+        if (tabla.isEmpty()) throw new IllegalArgumentException("No se pudo determinar el campeón desde la tabla");
+        return equipos.findById(tabla.get(0).getIdEquipo())
+                .orElseThrow(() -> new ResourceNotFoundException("No se encontró el equipo campeón"));
     }
 
     private void cargarReglas(Torneo torneo, TorneoRequestDTO request) {
