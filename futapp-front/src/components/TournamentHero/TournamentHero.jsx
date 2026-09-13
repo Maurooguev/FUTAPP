@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import "./TournamentHero.css";
 import FavoriteButton from "../FavoriteButton/FavoriteButton";
 
-function TournamentHero({ torneo, fechaActual }) {
+function TournamentHero({ torneo, fechaActual, perfilOrganizador }) {
   const inicial = torneo.nombre?.trim().charAt(0).toUpperCase() || "T";
 
   return (
@@ -21,6 +21,7 @@ function TournamentHero({ torneo, fechaActual }) {
             </div>
             <h1>{torneo.nombre}</h1>
             <p>{torneo.descripcion || "Competición de fútbol amateur"}</p>
+            {perfilOrganizador && <Link className="tournament-creator" to={`/organizador/${perfilOrganizador.idUsuario}`}><span>Organizado por</span><strong>{perfilOrganizador.nombrePublico}</strong><b>Ver perfil →</b></Link>}
           </div>
           <FavoriteButton type="torneos" id={torneo.idTorneo} />
         </div>

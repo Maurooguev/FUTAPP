@@ -300,7 +300,7 @@ const recargarDatosTorneo = () => {
 
   return (
     <div className="torneo-page">
-      <TournamentHero torneo={torneo} fechaActual={fechaActual} />
+      <TournamentHero torneo={torneo} fechaActual={fechaActual} perfilOrganizador={perfilOrganizador} />
 
       {puedeEditar && (
         <div className="admin-actions">
@@ -323,7 +323,6 @@ const recargarDatosTorneo = () => {
 
       <main className="torneo-content">
         <div className="torneo-shell">
-          {perfilOrganizador && <Link className="tournament-organizer-link" to={`/organizador/${perfilOrganizador.idUsuario}`}><span>Organizado por <strong>{perfilOrganizador.nombrePublico}</strong></span><strong>Ver perfil →</strong></Link>}
           {puedeEditar && <TournamentReadiness torneoId={id} torneo={torneo} equipos={equipos} partidos={partidos} onGenerateFixture={abrirGeneradorFixture} onNextRound={generarSiguienteLlave} />}
           {campeonLiga && <div className="league-champion">
             <span className="league-champion-trophy">🏆</span>
