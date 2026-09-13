@@ -249,6 +249,24 @@ const recargarDatosTorneo = () => {
     } catch (requestError) { setAdminError(requestError.message); } finally { setGenerandoFixture(false); }
   };
 
+  const guardarResultadoRapido = async (partido, score) => {
+    const eliminatorio = ["Final", "Semifinales", "Cuartos de final", "Octavos de final", "Primera ronda eliminatoria"].includes(partido.observaciones);
+    if (eliminatorio && score.local === score.visitante) {
+      setPartidoResultado({ ...partido, golesLocal: score.local, golesVisitante: score.visitante });
+      setMostrarResultado(true);
+      return;
+    }
+    setAdminError("");
+    const response = await apiFetch(`${API_URL}/partidos/${partido.idPartido}/resultado`, {
+      method: "PUT", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ golesLocal: score.local, golesVisitante: score.visitante }),
+    });
+    const payload = await response.json().catch(() => null);
+    if (!response.ok) { const message = payload?.message || "No se pudo guardar el resultado"; setAdminError(message); throw new Error(message); }
+    setPartidos((current) => current.map((item) => item.idPartido === payload.idPartido ? payload : item));
+    recargarDatosTorneo();
+  };
+
   const suspenderPartido = async (partido) => {
     const motivo = window.prompt(`Motivo de la suspensión de ${partido.nombreEquipoLocal} vs ${partido.nombreEquipoVisitante}:`);
     if (motivo === null) return;
@@ -356,6 +374,7 @@ const recargarDatosTorneo = () => {
             onSuspendMatch={suspenderPartido}
             onDeleteMatch={(partido) => eliminarRecurso(`${API_URL}/partidos/${partido.idPartido}`, `¿Eliminar ${partido.nombreEquipoLocal} vs ${partido.nombreEquipoVisitante}?`, () => setPartidos((current) => current.filter((item) => item.idPartido !== partido.idPartido)))}
             onLoadResult={(partido) => { setPartidoResultado(partido); setMostrarResultado(true); }}
+            onQuickResult={guardarResultadoRapido}
           />
 
           <MatchModal

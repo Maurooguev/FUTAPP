@@ -1,8 +1,8 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import "./FixtureByDate.css";
 
-function FixtureByDate({ fechas, partidos, onSelectPartido, canManage, onEditDate, onCloseDate, onDeleteDate, onEditMatch, onSuspendMatch, onDeleteMatch, onLoadResult }) {
+function FixtureByDate({ fechas, partidos, onSelectPartido, canManage, onEditDate, onCloseDate, onDeleteDate, onEditMatch, onSuspendMatch, onDeleteMatch, onLoadResult, onQuickResult }) {
   const fechasOrdenadas = useMemo(() => {
     return [...fechas].sort((a, b) => a.numeroFecha - b.numeroFecha);
   }, [fechas]);
@@ -22,6 +22,23 @@ function FixtureByDate({ fechas, partidos, onSelectPartido, canManage, onEditDat
     }, [fechasOrdenadas, partidos]);
 
     const [fechaSeleccionadaId, setFechaSeleccionadaId] = useState(null);
+    const [quickScores, setQuickScores] = useState({});
+    const [savingMatch, setSavingMatch] = useState(null);
+
+    useEffect(() => {
+      setQuickScores((current) => Object.fromEntries(partidos.map((partido) => [partido.idPartido, current[partido.idPartido] || { local: partido.golesLocal ?? 0, visitante: partido.golesVisitante ?? 0 }])));
+    }, [partidos]);
+
+    const changeScore = (idPartido, side, delta) => setQuickScores((current) => ({
+      ...current,
+      [idPartido]: { ...current[idPartido], [side]: Math.max(0, (current[idPartido]?.[side] ?? 0) + delta) },
+    }));
+
+    const saveQuickScore = async (partido) => {
+      const score = quickScores[partido.idPartido] || { local: 0, visitante: 0 };
+      setSavingMatch(partido.idPartido);
+      try { await onQuickResult(partido, score); } catch { /* El mensaje se muestra en el panel del torneo. */ } finally { setSavingMatch(null); }
+    };
 
     const fechaActual = fechasOrdenadas.find((fecha) => fecha.idFecha === fechaSeleccionadaId) || fechaInicial;
 
@@ -112,6 +129,12 @@ function FixtureByDate({ fechas, partidos, onSelectPartido, canManage, onEditDat
               </div>
 
               <p>{partido.fechaHora || "Horario a confirmar"}{partido.cancha ? ` · ${partido.cancha}` : ""}</p>
+              {canManage && ["PROGRAMADO", "EN_JUEGO"].includes(partido.estado?.toUpperCase()) && <div className="fixture-inline-result" onClick={(event) => event.stopPropagation()}>
+                <div><span>{partido.nombreEquipoLocal}</span><div className="fixture-score-stepper"><button type="button" disabled={(quickScores[partido.idPartido]?.local ?? 0) === 0} onClick={() => changeScore(partido.idPartido, "local", -1)}>−</button><strong>{quickScores[partido.idPartido]?.local ?? 0}</strong><button type="button" onClick={() => changeScore(partido.idPartido, "local", 1)}>+</button></div></div>
+                <i>–</i>
+                <div><span>{partido.nombreEquipoVisitante}</span><div className="fixture-score-stepper"><button type="button" disabled={(quickScores[partido.idPartido]?.visitante ?? 0) === 0} onClick={() => changeScore(partido.idPartido, "visitante", -1)}>−</button><strong>{quickScores[partido.idPartido]?.visitante ?? 0}</strong><button type="button" onClick={() => changeScore(partido.idPartido, "visitante", 1)}>+</button></div></div>
+                <button type="button" className="fixture-quick-save" disabled={savingMatch === partido.idPartido} onClick={() => saveQuickScore(partido)}>{savingMatch === partido.idPartido ? "Guardando…" : "Confirmar resultado"}</button>
+              </div>}
               {partido.estado?.toUpperCase() === "SUSPENDIDO" && partido.observaciones && <p className="fixture-suspension-reason">Motivo: {partido.observaciones}</p>}
               {partido.idMvp && <Link className="fixture-mvp" to={`/jugador/${partido.idMvp}`} onClick={(event) => event.stopPropagation()}>⭐ MVP: {partido.nombreMvp}</Link>}
               {canManage && <div className="fixture-quick-actions" onClick={(event) => event.stopPropagation()}>
