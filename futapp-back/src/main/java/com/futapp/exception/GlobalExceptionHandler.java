@@ -44,6 +44,11 @@ public class GlobalExceptionHandler {
                 "La operación está duplicada o entra en conflicto con datos existentes"), HttpStatus.CONFLICT);
     }
 
+    @ExceptionHandler(TooManyLoginAttemptsException.class)
+    public ResponseEntity<ErrorResponse> manejarDemasiadosIntentos(TooManyLoginAttemptsException ex) {
+        return new ResponseEntity<>(new ErrorResponse(429, ex.getMessage()), HttpStatus.TOO_MANY_REQUESTS);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> manejarGeneral(Exception ex) {
         ErrorResponse error = new ErrorResponse(500, "Error interno del servidor");
