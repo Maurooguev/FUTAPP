@@ -7,4 +7,6 @@ import java.util.Optional;
 public interface PasswordResetTokenRepository extends JpaRepository<PasswordResetToken, String> {
     Optional<PasswordResetToken> findByTokenHashAndUsedAtIsNull(String tokenHash);
     void deleteByUsuarioIdUsuario(Long idUsuario);
+    long deleteByExpiresAtBefore(java.time.LocalDateTime fecha);
+    long deleteByUsedAtIsNotNullAndUsedAtBefore(java.time.LocalDateTime fecha);
 }
