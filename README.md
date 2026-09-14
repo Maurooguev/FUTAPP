@@ -96,6 +96,14 @@ transaccion se revierte para evitar una migracion parcial.
 
 ### Respaldos
 
+Crear un respaldo integral de la base de datos y todas las imágenes subidas:
+
+```powershell
+.\backup-completo.ps1
+```
+
+El resultado es un ZIP fechado dentro de `backups`. Debe copiarse también a otro disco o almacenamiento externo; dejarlo únicamente en la misma PC no protege ante una falla del equipo.
+
 Crear un respaldo en la carpeta local ignorada `backups`:
 
 ```powershell
