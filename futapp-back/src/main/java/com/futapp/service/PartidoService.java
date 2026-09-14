@@ -752,6 +752,8 @@ public class PartidoService {
             }
         }
 
+        validarResultadoNoRompeLlave(partido, dto, eliminatorio);
+
         registrarAuditoria(partido, dto);
         partido.setGolesLocal(dto.getGolesLocal());
         partido.setGolesVisitante(dto.getGolesVisitante());
@@ -762,6 +764,38 @@ public class PartidoService {
         partido = partidoRepository.save(partido);
         notificaciones.avisarPartido(partido, true);
         return convertirAResponseDTO(partido);
+    }
+
+    private void validarResultadoNoRompeLlave(Partido partido, ResultadoPartidoDTO dto, boolean eliminatorio) {
+        if (!"FINALIZADO".equalsIgnoreCase(partido.getEstado())) return;
+        boolean cambio = !java.util.Objects.equals(partido.getGolesLocal(), dto.getGolesLocal())
+                || !java.util.Objects.equals(partido.getGolesVisitante(), dto.getGolesVisitante())
+                || !java.util.Objects.equals(partido.getPenalesLocal(), dto.getPenalesLocal())
+                || !java.util.Objects.equals(partido.getPenalesVisitante(), dto.getPenalesVisitante());
+        if (!cambio) return;
+
+        List<Partido> eliminatoriosDelTorneo = partidoRepository.findByTorneoIdTorneo(partido.getTorneo().getIdTorneo())
+                .stream().filter(this::esPartidoEliminatorio).toList();
+        if (!eliminatorio) {
+            if (partido.getTorneo().getFormato().toUpperCase().contains("PLAYOFF") && !eliminatoriosDelTorneo.isEmpty()) {
+                throw new IllegalArgumentException("No podés modificar la fase clasificatoria después de generar los playoffs");
+            }
+            return;
+        }
+
+        boolean existeRondaPosterior = eliminatoriosDelTorneo.stream().anyMatch(p ->
+                p.getFecha().getNumeroFecha() > partido.getFecha().getNumeroFecha());
+        if (existeRondaPosterior && !ganadorEliminatoria(partido).getIdEquipo()
+                .equals(idGanadorPropuesto(partido, dto))) {
+            throw new IllegalArgumentException("No podés cambiar el ganador porque la siguiente ronda ya fue generada");
+        }
+    }
+
+    private Long idGanadorPropuesto(Partido partido, ResultadoPartidoDTO dto) {
+        if (dto.getGolesLocal() > dto.getGolesVisitante()) return partido.getEquipoLocal().getIdEquipo();
+        if (dto.getGolesVisitante() > dto.getGolesLocal()) return partido.getEquipoVisitante().getIdEquipo();
+        return dto.getPenalesLocal() > dto.getPenalesVisitante()
+                ? partido.getEquipoLocal().getIdEquipo() : partido.getEquipoVisitante().getIdEquipo();
     }
 
     public List<ResultadoAuditoriaDTO> historialResultado(Long idPartido) {

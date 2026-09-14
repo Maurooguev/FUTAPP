@@ -266,6 +266,10 @@ class TournamentWorkflowIntegrationTests {
         org.junit.jupiter.api.Assertions.assertEquals("Equipo 2", semifinales.get(0).get("nombreEquipoVisitante").asString());
         org.junit.jupiter.api.Assertions.assertEquals("Equipo 3", semifinales.get(1).get("nombreEquipoLocal").asString());
         org.junit.jupiter.api.Assertions.assertEquals("Equipo 4", semifinales.get(1).get("nombreEquipoVisitante").asString());
+        putJson("/partidos/" + partidos.get(0).get("idPartido").asLong() + "/resultado", token,
+                Map.of("golesLocal", 0, "golesVisitante", 1))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("No podés cambiar el ganador porque la siguiente ronda ya fue generada"));
         for (JsonNode semifinal : semifinales) {
             putJson("/partidos/" + semifinal.get("idPartido").asLong() + "/resultado", token,
                     Map.of("golesLocal", 2, "golesVisitante", 0)).andExpect(status().isOk());
@@ -297,6 +301,10 @@ class TournamentWorkflowIntegrationTests {
         JsonNode playoffs = postJson("/partidos/torneo/" + torneoId + "/generar-siguiente-llave", token, null);
         org.junit.jupiter.api.Assertions.assertEquals(2, playoffs.size());
         org.junit.jupiter.api.Assertions.assertEquals("Semifinales", playoffs.get(0).get("observaciones").asString());
+        putJson("/partidos/" + liga.get(0).get("idPartido").asLong() + "/resultado", token,
+                Map.of("golesLocal", 3, "golesVisitante", 1))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("No podés modificar la fase clasificatoria después de generar los playoffs"));
     }
 
     @Test
