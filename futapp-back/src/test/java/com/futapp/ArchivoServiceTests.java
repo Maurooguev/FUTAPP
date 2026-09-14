@@ -17,7 +17,8 @@ class ArchivoServiceTests {
     @Test
     void guardaUnaImagenConNombreSeguro() {
         ArchivoService service = new ArchivoService(carpeta.toString());
-        MockMultipartFile imagen = new MockMultipartFile("archivo", "foto.png", "image/png", new byte[]{1, 2, 3});
+        MockMultipartFile imagen = new MockMultipartFile("archivo", "foto.png", "image/png",
+                new byte[]{(byte) 0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 1, 2, 3});
 
         String url = service.guardarImagen(imagen);
 
@@ -30,6 +31,13 @@ class ArchivoServiceTests {
         ArchivoService service = new ArchivoService(carpeta.toString());
         MockMultipartFile archivo = new MockMultipartFile("archivo", "datos.txt", "text/plain", new byte[]{1});
 
+        assertThrows(IllegalArgumentException.class, () -> service.guardarImagen(archivo));
+    }
+
+    @Test
+    void rechazaUnArchivoFalsoAunqueDeclareSerImagen() {
+        ArchivoService service = new ArchivoService(carpeta.toString());
+        MockMultipartFile archivo = new MockMultipartFile("archivo", "falso.png", "image/png", "no soy una imagen".getBytes());
         assertThrows(IllegalArgumentException.class, () -> service.guardarImagen(archivo));
     }
 }
