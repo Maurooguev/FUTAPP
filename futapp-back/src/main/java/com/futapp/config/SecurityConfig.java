@@ -31,6 +31,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.DELETE, "/torneos/**").authenticated()
                 .requestMatchers("/reclamos/**", "/perfil-jugador/**").authenticated()
                 .requestMatchers("/notificaciones/**").authenticated()
+                .requestMatchers("/auditoria/**").hasRole("ADMIN")
                 .requestMatchers("/favoritos/**").authenticated()
                 .requestMatchers(HttpMethod.POST, "/archivos/imagenes").authenticated()
                 .requestMatchers(HttpMethod.GET, "/equipos/*/permisos").authenticated()
