@@ -81,6 +81,23 @@ class TournamentWorkflowIntegrationTests {
 
         postJson("/goles", token, Map.of("minuto", 12, "tipoGol", "Jugada", "idPartido", partidoId,
                 "idJugador", jugadorLocal.get("idJugador").asLong(), "idEquipo", local.get("idEquipo").asLong()));
+        postJson("/goles", token, Map.of("minuto", 22, "tipoGol", "Jugada", "idPartido", partidoId,
+                "idJugador", jugadorLocal.get("idJugador").asLong(), "idEquipo", local.get("idEquipo").asLong()));
+        postJson("/goles", token, Map.of("minuto", 52, "tipoGol", "Jugada", "idPartido", partidoId,
+                "idJugador", jugadorLocal.get("idJugador").asLong(), "idEquipo", local.get("idEquipo").asLong()));
+
+        mockMvc.perform(post("/goles").header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonMapper.writeValueAsString(Map.of("minuto", 70, "tipoGol", "Jugada",
+                                "idPartido", partidoId, "idJugador", jugadorLocal.get("idJugador").asLong(),
+                                "idEquipo", local.get("idEquipo").asLong()))))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("No podés cargar más goles individuales que los indicados en el resultado"));
+
+        putJson("/partidos/" + partidoId + "/resultado", token,
+                Map.of("golesLocal", 2, "golesVisitante", 1))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("El resultado no puede ser menor que los goles individuales ya cargados"));
         postJson("/tarjetas", token, Map.of("minuto", 31, "tipoTarjeta", "AMARILLA", "idPartido", partidoId,
                 "idJugador", jugadorVisitante.get("idJugador").asLong(), "idEquipo", visitante.get("idEquipo").asLong()));
 

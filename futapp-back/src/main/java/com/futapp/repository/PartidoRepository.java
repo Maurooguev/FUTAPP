@@ -2,12 +2,22 @@ package com.futapp.repository;
 
 import com.futapp.model.Partido;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+
+import jakarta.persistence.LockModeType;
+import java.util.Optional;
 
 import java.util.List;
 
 @Repository
 public interface PartidoRepository extends JpaRepository<Partido, Long> {
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select p from Partido p where p.idPartido = :id")
+    Optional<Partido> findByIdForUpdate(@Param("id") Long id);
 
     List<Partido> findByTorneoIdTorneo(Long idTorneo);
 

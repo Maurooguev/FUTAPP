@@ -14,6 +14,7 @@ import com.futapp.repository.JugadorRepository;
 import com.futapp.repository.PartidoRepository;
 import com.futapp.repository.InscripcionJugadorRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -73,20 +74,26 @@ public class GolService {
         return golRepository.obtenerGoleadoresPorTorneo(idTorneo);
     }
 
+    @Transactional
     public GolResponseDTO crearGol(GolRequestDTO requestDTO) {
-        authorization.verificarGestion(partidoRepository.findById(requestDTO.getIdPartido())
-                .orElseThrow(() -> new ResourceNotFoundException("Partido no encontrado con id: " + requestDTO.getIdPartido())).getTorneo());
+        Partido partido = partidoRepository.findByIdForUpdate(requestDTO.getIdPartido())
+                .orElseThrow(() -> new ResourceNotFoundException("Partido no encontrado con id: " + requestDTO.getIdPartido()));
+        authorization.verificarGestion(partido.getTorneo());
         Gol gol = new Gol();
-        cargarDatosGol(gol, requestDTO);
+        cargarDatosGol(gol, requestDTO, partido);
         return convertirAResponseDTO(golRepository.save(gol));
     }
 
+    @Transactional
     public GolResponseDTO actualizarGol(Long id, GolRequestDTO requestDTO) {
         Gol gol = golRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Gol no encontrado con id: " + id));
         authorization.verificarGestion(gol.getPartido().getTorneo());
 
-        cargarDatosGol(gol, requestDTO);
+        Partido partido = partidoRepository.findByIdForUpdate(requestDTO.getIdPartido())
+                .orElseThrow(() -> new ResourceNotFoundException("Partido no encontrado con id: " + requestDTO.getIdPartido()));
+
+        cargarDatosGol(gol, requestDTO, partido);
         return convertirAResponseDTO(golRepository.save(gol));
     }
 
@@ -98,10 +105,7 @@ public class GolService {
         golRepository.deleteById(id);
     }
 
-    private void cargarDatosGol(Gol gol, GolRequestDTO requestDTO) {
-        Partido partido = partidoRepository.findById(requestDTO.getIdPartido())
-                .orElseThrow(() -> new ResourceNotFoundException("Partido no encontrado con id: " + requestDTO.getIdPartido()));
-
+    private void cargarDatosGol(Gol gol, GolRequestDTO requestDTO, Partido partido) {
         Jugador jugador = jugadorRepository.findById(requestDTO.getIdJugador())
                 .orElseThrow(() -> new ResourceNotFoundException("Jugador no encontrado con id: " + requestDTO.getIdJugador()));
 
@@ -109,6 +113,18 @@ public class GolService {
                 .orElseThrow(() -> new ResourceNotFoundException("Equipo no encontrado con id: " + requestDTO.getIdEquipo()));
 
         validarReglasDeNegocio(requestDTO, partido, jugador, equipo);
+
+        long golesDelEquipo = golRepository.countByPartidoIdPartidoAndEquipoIdEquipo(
+                partido.getIdPartido(), equipo.getIdEquipo());
+        boolean yaContado = gol.getIdGol() != null
+                && gol.getPartido().getIdPartido().equals(partido.getIdPartido())
+                && gol.getEquipo().getIdEquipo().equals(equipo.getIdEquipo());
+        long totalLuegoDeGuardar = golesDelEquipo + (yaContado ? 0 : 1);
+        int marcador = partido.getEquipoLocal().getIdEquipo().equals(equipo.getIdEquipo())
+                ? partido.getGolesLocal() : partido.getGolesVisitante();
+        if (totalLuegoDeGuardar > marcador) {
+            throw new IllegalArgumentException("No podés cargar más goles individuales que los indicados en el resultado");
+        }
 
         gol.setMinuto(requestDTO.getMinuto());
         gol.setTipoGol(requestDTO.getTipoGol());

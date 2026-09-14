@@ -20,6 +20,7 @@ public interface GolRepository extends JpaRepository<Gol, Long> {
 
     boolean existsByJugadorIdJugador(Long idJugador);
     boolean existsByPartidoTorneoIdTorneo(Long idTorneo);
+    long countByPartidoIdPartidoAndEquipoIdEquipo(Long idPartido, Long idEquipo);
 
     @Query("""
         SELECT new com.futapp.dto.GoleadorDTO(

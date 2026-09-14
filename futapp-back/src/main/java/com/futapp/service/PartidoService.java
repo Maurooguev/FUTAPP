@@ -712,9 +712,10 @@ public class PartidoService {
         return convertirAResponseDTO(partidoRepository.save(partido));
     }
 
+    @Transactional
     public PartidoResponseDTO cargarResultado(Long id, ResultadoPartidoDTO dto) {
 
-        Partido partido = partidoRepository.findById(id)
+        Partido partido = partidoRepository.findByIdForUpdate(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Partido no encontrado con id: " + id));
         authorization.verificarGestion(partido.getTorneo());
 
@@ -730,6 +731,14 @@ public class PartidoService {
 
         if (dto.getGolesLocal() < 0 || dto.getGolesVisitante() < 0) {
             throw new IllegalArgumentException("Los goles no pueden ser negativos");
+        }
+
+        long golesLocalesCargados = golRepository.countByPartidoIdPartidoAndEquipoIdEquipo(
+                id, partido.getEquipoLocal().getIdEquipo());
+        long golesVisitantesCargados = golRepository.countByPartidoIdPartidoAndEquipoIdEquipo(
+                id, partido.getEquipoVisitante().getIdEquipo());
+        if (dto.getGolesLocal() < golesLocalesCargados || dto.getGolesVisitante() < golesVisitantesCargados) {
+            throw new IllegalArgumentException("El resultado no puede ser menor que los goles individuales ya cargados");
         }
 
         boolean eliminatorio = esPartidoEliminatorio(partido);
