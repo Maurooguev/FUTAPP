@@ -4,6 +4,7 @@ import com.futapp.dto.TorneoRequestDTO;
 import com.futapp.dto.TorneoResponseDTO;
 import com.futapp.dto.TorneoPanelDTO;
 import com.futapp.dto.EstructuraTorneoDTO;
+import com.futapp.dto.PaginaDTO;
 import com.futapp.service.EstructuraCompetenciaService;
 import com.futapp.service.TorneoService;
 import jakarta.validation.Valid;
@@ -15,7 +16,6 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 
 @RestController
 @RequestMapping("/torneos")
-@CrossOrigin(origins = "http://localhost:5173")
 public class TorneoController {
 
     private final TorneoService torneoService;
@@ -34,6 +34,19 @@ public class TorneoController {
     @GetMapping("/{id}")
     public TorneoResponseDTO obtenerTorneo(@PathVariable Long id) {
         return torneoService.obtenerTorneoPorId(id);
+    }
+
+    @GetMapping("/pagina")
+    public PaginaDTO<TorneoResponseDTO> listarPagina(@RequestParam(defaultValue = "0") int pagina,
+                                                     @RequestParam(defaultValue = "20") int cantidad) {
+        return torneoService.listarTorneosPaginados(pagina, cantidad);
+    }
+
+    @GetMapping("/buscar/pagina")
+    public PaginaDTO<TorneoResponseDTO> buscarPagina(@RequestParam String q,
+                                                     @RequestParam(defaultValue = "0") int pagina,
+                                                     @RequestParam(defaultValue = "20") int cantidad) {
+        return torneoService.buscarPaginado(q, pagina, cantidad);
     }
 
     @GetMapping("/{id}/estructura")

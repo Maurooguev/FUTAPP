@@ -2,6 +2,7 @@ package com.futapp.service;
 
 import com.futapp.dto.EquipoRequestDTO;
 import com.futapp.dto.EquipoResponseDTO;
+import com.futapp.dto.PaginaDTO;
 import com.futapp.exception.ResourceNotFoundException;
 import com.futapp.model.Equipo;
 import com.futapp.model.Torneo;
@@ -22,6 +23,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 
 @Service
 @Transactional
@@ -70,6 +73,11 @@ public class EquipoService {
                 .orElseThrow(() -> new ResourceNotFoundException("Equipo no encontrado con id: " + id));
 
         return convertirAResponseDTO(equipo);
+    }
+
+    public PaginaDTO<EquipoResponseDTO> listarPaginados(int pagina, int cantidad) {
+        var pageable = PageRequest.of(Math.max(pagina, 0), Math.min(Math.max(cantidad, 1), 100), Sort.by("nombre").ascending());
+        return PaginaDTO.desde(equipoRepository.findAll(pageable).map(this::convertirAResponseDTO));
     }
 
     public List<EquipoResponseDTO> listarMisEquipos() {

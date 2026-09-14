@@ -113,9 +113,9 @@ public class FechaService {
             throw new IllegalArgumentException("No se puede cerrar una jornada sin partidos");
         }
         boolean quedanPartidos = partidos.stream()
-                .anyMatch(partido -> !"FINALIZADO".equalsIgnoreCase(partido.getEstado()));
+                .anyMatch(partido -> !java.util.Set.of("FINALIZADO", "CANCELADO").contains(partido.getEstado().toUpperCase()));
         if (quedanPartidos) {
-            throw new IllegalArgumentException("Todos los partidos deben tener un resultado antes de cerrar la jornada");
+            throw new IllegalArgumentException("Todos los partidos deben estar finalizados o cancelados antes de cerrar la jornada");
         }
 
         fecha.setEstado("FINALIZADA");

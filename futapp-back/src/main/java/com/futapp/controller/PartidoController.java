@@ -10,6 +10,7 @@ import com.futapp.dto.MvpPartidoRequestDTO;
 import com.futapp.dto.EstadoPartidoRequestDTO;
 import com.futapp.dto.JugadorPartidoDTO;
 import com.futapp.dto.ResultadoAuditoriaDTO;
+import com.futapp.dto.PaginaDTO;
 import jakarta.validation.Valid;
 
 import java.util.List;
@@ -47,6 +48,13 @@ public class PartidoController {
     @PostMapping
     public PartidoResponseDTO crearPartido(@Valid @RequestBody PartidoRequestDTO requestDTO) {
         return partidoService.crearPartido(requestDTO);
+    }
+
+    @GetMapping("/torneo/{idTorneo}/pagina")
+    public PaginaDTO<PartidoResponseDTO> listarPartidosPorTorneoPagina(@PathVariable Long idTorneo,
+                                                                      @RequestParam(defaultValue = "0") int pagina,
+                                                                      @RequestParam(defaultValue = "30") int cantidad) {
+        return partidoService.listarPartidosPorTorneoPaginados(idTorneo, pagina, cantidad);
     }
 
     @GetMapping("/{id}/jugadores")

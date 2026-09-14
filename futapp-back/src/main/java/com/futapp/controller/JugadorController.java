@@ -2,6 +2,7 @@ package com.futapp.controller;
 
 import com.futapp.dto.JugadorRequestDTO;
 import com.futapp.dto.JugadorResponseDTO;
+import com.futapp.dto.PaginaDTO;
 import com.futapp.service.JugadorService;
 import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
@@ -26,6 +27,12 @@ public class JugadorController {
     @GetMapping("/{id}")
     public JugadorResponseDTO obtenerJugador(@PathVariable Long id) {
         return jugadorService.obtenerJugadorPorId(id);
+    }
+
+    @GetMapping("/pagina")
+    public PaginaDTO<JugadorResponseDTO> listarPagina(@RequestParam(defaultValue = "0") int pagina,
+                                                      @RequestParam(defaultValue = "20") int cantidad) {
+        return jugadorService.listarPaginados(pagina, cantidad);
     }
 
     @GetMapping("/codigo/{codigo}")

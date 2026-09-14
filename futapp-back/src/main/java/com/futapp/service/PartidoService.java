@@ -8,6 +8,7 @@ import com.futapp.dto.MvpPartidoRequestDTO;
 import com.futapp.dto.EstadoPartidoRequestDTO;
 import com.futapp.dto.JugadorPartidoDTO;
 import com.futapp.dto.ResultadoAuditoriaDTO;
+import com.futapp.dto.PaginaDTO;
 import com.futapp.exception.ResourceNotFoundException;
 import com.futapp.model.Equipo;
 import com.futapp.model.Fecha;
@@ -37,6 +38,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 
 @Service
 public class PartidoService {
@@ -133,6 +136,13 @@ public class PartidoService {
         partido = partidoRepository.save(partido);
         notificaciones.avisarPartido(partido, "FINALIZADO".equalsIgnoreCase(partido.getEstado()));
         return convertirAResponseDTO(partido);
+    }
+
+    public PaginaDTO<PartidoResponseDTO> listarPartidosPorTorneoPaginados(Long idTorneo, int pagina, int cantidad) {
+        if (!torneoRepository.existsById(idTorneo)) throw new ResourceNotFoundException("Torneo no encontrado");
+        var pageable = PageRequest.of(Math.max(pagina, 0), Math.min(Math.max(cantidad, 1), 100),
+                Sort.by("fecha.numeroFecha").ascending().and(Sort.by("fechaHora").ascending()));
+        return PaginaDTO.desde(partidoRepository.findByTorneoIdTorneo(idTorneo, pageable).map(this::convertirAResponseDTO));
     }
 
     public List<JugadorPartidoDTO> listarJugadoresDelPartido(Long idPartido) {
@@ -334,7 +344,7 @@ public class PartidoService {
     }
 
     private List<PartidoResponseDTO> generarPlayoffsDesdeClasificacion(Torneo torneo, List<Partido> faseRegular) {
-        if (faseRegular.stream().anyMatch(p -> !"FINALIZADO".equalsIgnoreCase(p.getEstado()))) {
+        if (faseRegular.stream().anyMatch(p -> !partidoResuelto(p))) {
             throw new IllegalArgumentException("Finalizá todos los partidos de la fase clasificatoria antes de generar los playoffs");
         }
         var division = divisiones.findByTorneoIdTorneoOrderByOrden(torneo.getIdTorneo()).stream().findFirst().orElseThrow();
@@ -826,7 +836,7 @@ public class PartidoService {
         }
         for (int vuelta = 0; vuelta < 12; vuelta++) {
             List<Partido> pendientes = partidoRepository.findByTorneoIdTorneo(idTorneo).stream()
-                    .filter(p -> !"FINALIZADO".equalsIgnoreCase(p.getEstado())).toList();
+                    .filter(p -> !partidoResuelto(p)).toList();
             for (Partido partido : pendientes) simularPartido(partido);
             if ("Liga".equalsIgnoreCase(torneo.getFormato())) break;
             try {
@@ -861,6 +871,10 @@ public class PartidoService {
             tarjeta.setTipoTarjeta("AMARILLA"); tarjeta.setMinuto(63); tarjeta.setMotivo("Simulación de prueba");
             tarjetaRepository.save(tarjeta);
         }
+    }
+
+    private boolean partidoResuelto(Partido partido) {
+        return java.util.Set.of("FINALIZADO", "CANCELADO").contains(partido.getEstado().toUpperCase());
     }
 
     private com.futapp.model.Gol golSimulado(Partido partido, com.futapp.model.Jugador jugador, Equipo equipo, int minuto) {

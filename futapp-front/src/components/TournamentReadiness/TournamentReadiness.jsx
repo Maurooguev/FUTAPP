@@ -25,7 +25,7 @@ function TournamentReadiness({ torneoId, torneo, equipos, partidos, onGenerateFi
   const rostersReady = !loading && equipos.length >= 2 && emptyTeams.length === 0;
   const fixtureReady = partidos.length > 0;
   const ready = enoughTeams && rostersReady && fixtureReady;
-  const pendientes = partidos.filter((partido) => partido.estado?.toUpperCase() !== "FINALIZADO").length;
+  const pendientes = partidos.filter((partido) => !["FINALIZADO", "CANCELADO"].includes(partido.estado?.toUpperCase())).length;
   const usaLlave = torneo?.formato?.toLowerCase() === "eliminación directa" || torneo?.formato?.toLowerCase().includes("playoffs");
   const campeonDefinido = partidos.some((partido) => partido.observaciones === "Final" && partido.estado?.toUpperCase() === "FINALIZADO");
   const scrollTo = (id) => document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });

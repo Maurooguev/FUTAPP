@@ -2,6 +2,7 @@ package com.futapp.controller;
 
 import com.futapp.dto.EquipoRequestDTO;
 import com.futapp.dto.EquipoResponseDTO;
+import com.futapp.dto.PaginaDTO;
 import com.futapp.service.EquipoService;
 import com.futapp.service.FusionEquipoService;
 import org.springframework.web.bind.annotation.*;
@@ -25,6 +26,12 @@ public class EquipoController {
     @GetMapping
     public List<EquipoResponseDTO> listarEquipos() {
         return equipoService.listarEquipos();
+    }
+
+    @GetMapping("/pagina")
+    public PaginaDTO<EquipoResponseDTO> listarPagina(@RequestParam(defaultValue = "0") int pagina,
+                                                     @RequestParam(defaultValue = "20") int cantidad) {
+        return equipoService.listarPaginados(pagina, cantidad);
     }
 
     @GetMapping("/mios")

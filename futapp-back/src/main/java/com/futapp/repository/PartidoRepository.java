@@ -11,6 +11,8 @@ import jakarta.persistence.LockModeType;
 import java.util.Optional;
 
 import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 @Repository
 public interface PartidoRepository extends JpaRepository<Partido, Long> {
@@ -20,6 +22,7 @@ public interface PartidoRepository extends JpaRepository<Partido, Long> {
     Optional<Partido> findByIdForUpdate(@Param("id") Long id);
 
     List<Partido> findByTorneoIdTorneo(Long idTorneo);
+    Page<Partido> findByTorneoIdTorneo(Long idTorneo, Pageable pageable);
 
     List<Partido> findByFechaIdFecha(Long idFecha);
     List<Partido> findByEquipoLocalIdEquipoOrEquipoVisitanteIdEquipo(Long idEquipoLocal, Long idEquipoVisitante);

@@ -2,6 +2,7 @@ package com.futapp.service;
 
 import com.futapp.dto.JugadorRequestDTO;
 import com.futapp.dto.JugadorResponseDTO;
+import com.futapp.dto.PaginaDTO;
 import com.futapp.exception.ResourceNotFoundException;
 import com.futapp.model.Equipo;
 import com.futapp.model.Jugador;
@@ -17,6 +18,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 
 @Service
 @Transactional
@@ -148,6 +151,12 @@ public class JugadorService {
                 jugador.getEquipo().getIdEquipo(),
                 jugador.getEquipo().getNombre()
         );
+    }
+
+    public PaginaDTO<JugadorResponseDTO> listarPaginados(int pagina, int cantidad) {
+        var pageable = PageRequest.of(Math.max(pagina, 0), Math.min(Math.max(cantidad, 1), 100),
+                Sort.by("apellido").ascending().and(Sort.by("nombre").ascending()));
+        return PaginaDTO.desde(jugadorRepository.findAll(pageable).map(this::convertirAResponseDTO));
     }
 
     public JugadorResponseDTO buscarPorCodigo(String codigo) {

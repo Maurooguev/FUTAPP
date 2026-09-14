@@ -3,6 +3,7 @@ package com.futapp.service;
 import com.futapp.dto.TorneoRequestDTO;
 import com.futapp.dto.TorneoResponseDTO;
 import com.futapp.dto.TorneoPanelDTO;
+import com.futapp.dto.PaginaDTO;
 import com.futapp.exception.ResourceNotFoundException;
 import com.futapp.model.Torneo;
 import com.futapp.model.Usuario;
@@ -18,6 +19,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.UUID;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 
 @Service
 public class TorneoService {
@@ -56,6 +59,20 @@ public class TorneoService {
                 .collect(Collectors.toList());
     }
 
+    public PaginaDTO<TorneoResponseDTO> listarTorneosPaginados(int pagina, int cantidad) {
+        var pageable = PageRequest.of(Math.max(pagina, 0), limitar(cantidad), Sort.by(Sort.Direction.DESC, "idTorneo"));
+        return PaginaDTO.desde(torneoRepository.findByEstadoNotIgnoreCase("BORRADOR", pageable).map(this::convertirAResponseDTO));
+    }
+
+    public PaginaDTO<TorneoResponseDTO> buscarPaginado(String query, int pagina, int cantidad) {
+        var pageable = PageRequest.of(Math.max(pagina, 0), limitar(cantidad), Sort.by(Sort.Direction.DESC, "idTorneo"));
+        var resultados = torneoRepository.findByNombreContainingIgnoreCaseOrCodigoPublicoContainingIgnoreCase(
+                query.trim(), query.trim(), pageable).map(this::convertirAResponseDTO);
+        return PaginaDTO.desde(resultados);
+    }
+
+    private int limitar(int cantidad) { return Math.min(Math.max(cantidad, 1), 100); }
+
     public List<TorneoResponseDTO> buscar(String query) {
         return torneoRepository.findByNombreContainingIgnoreCaseOrCodigoPublicoContainingIgnoreCase(query, query).stream()
                 .filter(torneo -> !"BORRADOR".equalsIgnoreCase(torneo.getEstado())).map(this::convertirAResponseDTO).toList();
@@ -88,9 +105,9 @@ public class TorneoService {
         var partidosTorneo = partidos.findByTorneoIdTorneo(torneo.getIdTorneo());
         int jugados = (int) partidosTorneo.stream()
                 .filter(item -> "FINALIZADO".equalsIgnoreCase(item.getEstado())).count();
-        int pendientes = partidosTorneo.size() - jugados;
+        int pendientes = (int) partidosTorneo.stream().filter(item -> !partidoResuelto(item)).count();
         Integer proximaJornada = partidosTorneo.stream()
-                .filter(item -> !"FINALIZADO".equalsIgnoreCase(item.getEstado()))
+                .filter(item -> !partidoResuelto(item))
                 .map(item -> item.getFecha().getNumeroFecha())
                 .min(Integer::compareTo).orElse(null);
 
@@ -207,7 +224,7 @@ public class TorneoService {
         authorization.verificarGestion(torneo);
         var partidosTorneo = partidos.findByTorneoIdTorneo(id);
         if (partidosTorneo.isEmpty()) throw new IllegalArgumentException("El torneo todavía no tiene partidos");
-        long pendientes = partidosTorneo.stream().filter(partido -> !"FINALIZADO".equalsIgnoreCase(partido.getEstado())).count();
+        long pendientes = partidosTorneo.stream().filter(partido -> !partidoResuelto(partido)).count();
         if (pendientes > 0) throw new IllegalArgumentException("Todavía quedan " + pendientes + " partidos sin finalizar");
         torneo.setCampeon(determinarCampeon(torneo, partidosTorneo));
         torneo.setEstado("FINALIZADO");
@@ -257,10 +274,17 @@ public class TorneoService {
             return finalPartido.getPenalesLocal() > finalPartido.getPenalesVisitante()
                     ? finalPartido.getEquipoLocal() : finalPartido.getEquipoVisitante();
         }
+        if (partidosTorneo.stream().noneMatch(partido -> "FINALIZADO".equalsIgnoreCase(partido.getEstado()))) {
+            throw new IllegalArgumentException("Debe existir al menos un partido con resultado para definir al campeón");
+        }
         var tabla = tablaPosiciones.obtenerTablaPorTorneo(torneo.getIdTorneo());
         if (tabla.isEmpty()) throw new IllegalArgumentException("No se pudo determinar el campeón desde la tabla");
         return equipos.findById(tabla.get(0).getIdEquipo())
                 .orElseThrow(() -> new ResourceNotFoundException("No se encontró el equipo campeón"));
+    }
+
+    private boolean partidoResuelto(com.futapp.model.Partido partido) {
+        return java.util.Set.of("FINALIZADO", "CANCELADO").contains(partido.getEstado().toUpperCase());
     }
 
     private void cargarReglas(Torneo torneo, TorneoRequestDTO request) {

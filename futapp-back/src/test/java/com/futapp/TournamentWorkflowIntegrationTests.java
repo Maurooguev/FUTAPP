@@ -313,6 +313,45 @@ class TournamentWorkflowIntegrationTests {
     }
 
     @Test
+    void permiteCerrarUnaLigaConPartidosFinalizadosYCancelados() throws Exception {
+        String token = registrarOrganizador();
+        Map<String, Object> request = new LinkedHashMap<>(torneo());
+        request.put("cantidadEquipos", 2);
+        request.put("generarEquiposPrueba", true);
+        request.put("jugadoresPorEquipoPrueba", 1);
+        request.put("idaVuelta", true);
+        long torneoId = postJson("/torneos", token, request).get("idTorneo").asLong();
+        JsonNode fixture = postJson("/partidos/torneo/" + torneoId + "/generar-fixture", token, Map.of(
+                "fechaInicio", "2026-09-05", "horaInicio", "14:00", "diasEntreJornadas", 7,
+                "minutosEntrePartidos", 60, "cancha", "Cancha principal"));
+        org.junit.jupiter.api.Assertions.assertEquals(2, fixture.size());
+
+        putJson("/partidos/" + fixture.get(0).get("idPartido").asLong() + "/resultado", token,
+                Map.of("golesLocal", 2, "golesVisitante", 0)).andExpect(status().isOk());
+        putJson("/partidos/" + fixture.get(1).get("idPartido").asLong() + "/estado", token,
+                Map.of("estado", "CANCELADO", "motivo", "No se disputará"))
+                .andExpect(status().isOk());
+
+        putJson("/fechas/" + fixture.get(0).get("idFecha").asLong() + "/cerrar", token, null)
+                .andExpect(status().isOk());
+        putJson("/fechas/" + fixture.get(1).get("idFecha").asLong() + "/cerrar", token, null)
+                .andExpect(status().isOk());
+        putJson("/torneos/" + torneoId + "/finalizar", token, null)
+                .andExpect(status().isOk()).andExpect(jsonPath("$.idCampeon").isNumber());
+
+        mockMvc.perform(get("/torneos/pagina").param("cantidad", "1"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.content", org.hamcrest.Matchers.hasSize(1)))
+                .andExpect(jsonPath("$.cantidad").value(1)).andExpect(jsonPath("$.totalElementos").isNumber());
+        mockMvc.perform(get("/partidos/torneo/{id}/pagina", torneoId).param("cantidad", "1"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.content", org.hamcrest.Matchers.hasSize(1)))
+                .andExpect(jsonPath("$.totalElementos").value(2));
+        mockMvc.perform(get("/equipos/pagina").param("cantidad", "1"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.content", org.hamcrest.Matchers.hasSize(1)));
+        mockMvc.perform(get("/jugadores/pagina").param("cantidad", "1"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.content", org.hamcrest.Matchers.hasSize(1)));
+    }
+
+    @Test
     void conservaPasesLibresConSeisEquipos() throws Exception {
         String token = registrarOrganizador();
         Map<String, Object> request = new LinkedHashMap<>(torneo());

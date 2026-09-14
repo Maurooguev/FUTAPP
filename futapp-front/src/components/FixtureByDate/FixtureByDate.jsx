@@ -51,8 +51,9 @@ function FixtureByDate({ fechas, partidos, onSelectPartido, canManage, onEditDat
   }, [partidos, fechaActual]);
 
   const partidosFinalizados = partidosDeFecha.filter((partido) => partido.estado?.toUpperCase() === "FINALIZADO");
-  const partidosPendientes = partidosDeFecha.filter((partido) => partido.estado?.toUpperCase() !== "FINALIZADO");
-  const progreso = partidosDeFecha.length === 0 ? 0 : Math.round((partidosFinalizados.length / partidosDeFecha.length) * 100);
+  const partidosResueltos = partidosDeFecha.filter((partido) => ["FINALIZADO", "CANCELADO"].includes(partido.estado?.toUpperCase()));
+  const partidosPendientes = partidosDeFecha.filter((partido) => !["FINALIZADO", "CANCELADO"].includes(partido.estado?.toUpperCase()));
+  const progreso = partidosDeFecha.length === 0 ? 0 : Math.round((partidosResueltos.length / partidosDeFecha.length) * 100);
 
   if (fechasOrdenadas.length === 0) {
     return (
@@ -86,14 +87,14 @@ function FixtureByDate({ fechas, partidos, onSelectPartido, canManage, onEditDat
             onClick={() => setFechaSeleccionadaId(fecha.idFecha)}
           >
             Fecha {fecha.numeroFecha}
-            <small>{partidos.filter((partido) => partido.idFecha === fecha.idFecha && partido.estado?.toUpperCase() === "FINALIZADO").length}/{partidos.filter((partido) => partido.idFecha === fecha.idFecha).length}</small>
+            <small>{partidos.filter((partido) => partido.idFecha === fecha.idFecha && ["FINALIZADO", "CANCELADO"].includes(partido.estado?.toUpperCase())).length}/{partidos.filter((partido) => partido.idFecha === fecha.idFecha).length}</small>
           </button>
         ))}
       </div>
 
       <div className="fixture-current">
         <div className="fixture-current-copy"><h3>Fecha {fechaActual.numeroFecha}</h3><span>{fechaActual.estado}</span></div>
-        <div className="fixture-progress"><div><strong>{partidosFinalizados.length} de {partidosDeFecha.length}</strong><span> resultados cargados</span></div><div className="fixture-progress-track"><i style={{ width: `${progreso}%` }} /></div></div>
+        <div className="fixture-progress"><div><strong>{partidosResueltos.length} de {partidosDeFecha.length}</strong><span> partidos resueltos</span></div><div className="fixture-progress-track"><i style={{ width: `${progreso}%` }} /></div></div>
         {canManage && <div className="fixture-admin-actions">
           {partidosPendientes.length > 0 && <button className="next-result" onClick={() => onLoadResult(partidosPendientes[0])}>Cargar próximo resultado</button>}
           {fechaActual.estado?.toUpperCase() !== "FINALIZADA" && <button className="close-date" disabled={partidosDeFecha.length === 0 || partidosPendientes.length > 0} title={partidosPendientes.length > 0 ? "Primero cargá todos los resultados" : "Cerrar jornada"} onClick={() => onCloseDate(fechaActual)}>Cerrar jornada</button>}
