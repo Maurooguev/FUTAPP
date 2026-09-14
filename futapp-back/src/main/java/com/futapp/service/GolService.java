@@ -89,6 +89,9 @@ public class GolService {
         Gol gol = golRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Gol no encontrado con id: " + id));
         authorization.verificarGestion(gol.getPartido().getTorneo());
+        if (!gol.getPartido().getIdPartido().equals(requestDTO.getIdPartido())) {
+            throw new IllegalArgumentException("Un gol no se puede mover a otro partido");
+        }
 
         Partido partido = partidoRepository.findByIdForUpdate(requestDTO.getIdPartido())
                 .orElseThrow(() -> new ResourceNotFoundException("Partido no encontrado con id: " + requestDTO.getIdPartido()));
@@ -97,11 +100,13 @@ public class GolService {
         return convertirAResponseDTO(golRepository.save(gol));
     }
 
+    @Transactional
     public void eliminarGol(Long id) {
-        if (!golRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Gol no encontrado con id: " + id);
-        }
-        authorization.verificarGestion(golRepository.findById(id).orElseThrow().getPartido().getTorneo());
+        Gol gol = golRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Gol no encontrado con id: " + id));
+        partidoRepository.findByIdForUpdate(gol.getPartido().getIdPartido())
+                .orElseThrow(() -> new ResourceNotFoundException("Partido no encontrado"));
+        authorization.verificarGestion(gol.getPartido().getTorneo());
         golRepository.deleteById(id);
     }
 

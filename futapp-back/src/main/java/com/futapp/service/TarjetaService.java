@@ -13,6 +13,7 @@ import com.futapp.repository.TarjetaRepository;
 import com.futapp.repository.EquipoRepository;
 import com.futapp.repository.InscripcionJugadorRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -67,35 +68,42 @@ public class TarjetaService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional
     public TarjetaResponseDTO crearTarjeta(TarjetaRequestDTO requestDTO) {
-        authorization.verificarGestion(partidoRepository.findById(requestDTO.getIdPartido())
-                .orElseThrow(() -> new ResourceNotFoundException("Partido no encontrado con id: " + requestDTO.getIdPartido())).getTorneo());
+        Partido partido = partidoRepository.findByIdForUpdate(requestDTO.getIdPartido())
+                .orElseThrow(() -> new ResourceNotFoundException("Partido no encontrado con id: " + requestDTO.getIdPartido()));
+        authorization.verificarGestion(partido.getTorneo());
         Tarjeta tarjeta = new Tarjeta();
-        cargarDatosTarjeta(tarjeta, requestDTO);
+        cargarDatosTarjeta(tarjeta, requestDTO, partido);
         return convertirAResponseDTO(tarjetaRepository.save(tarjeta));
     }
 
+    @Transactional
     public TarjetaResponseDTO actualizarTarjeta(Long id, TarjetaRequestDTO requestDTO) {
         Tarjeta tarjeta = tarjetaRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Tarjeta no encontrada con id: " + id));
         authorization.verificarGestion(tarjeta.getPartido().getTorneo());
+        if (!tarjeta.getPartido().getIdPartido().equals(requestDTO.getIdPartido())) {
+            throw new IllegalArgumentException("Una tarjeta no se puede mover a otro partido");
+        }
+        Partido partido = partidoRepository.findByIdForUpdate(requestDTO.getIdPartido())
+                .orElseThrow(() -> new ResourceNotFoundException("Partido no encontrado"));
 
-        cargarDatosTarjeta(tarjeta, requestDTO);
+        cargarDatosTarjeta(tarjeta, requestDTO, partido);
         return convertirAResponseDTO(tarjetaRepository.save(tarjeta));
     }
 
+    @Transactional
     public void eliminarTarjeta(Long id) {
-        if (!tarjetaRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Tarjeta no encontrada con id: " + id);
-        }
-        authorization.verificarGestion(tarjetaRepository.findById(id).orElseThrow().getPartido().getTorneo());
+        Tarjeta tarjeta = tarjetaRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Tarjeta no encontrada con id: " + id));
+        partidoRepository.findByIdForUpdate(tarjeta.getPartido().getIdPartido())
+                .orElseThrow(() -> new ResourceNotFoundException("Partido no encontrado"));
+        authorization.verificarGestion(tarjeta.getPartido().getTorneo());
         tarjetaRepository.deleteById(id);
     }
 
-    private void cargarDatosTarjeta(Tarjeta tarjeta, TarjetaRequestDTO requestDTO) {
-        Partido partido = partidoRepository.findById(requestDTO.getIdPartido())
-                .orElseThrow(() -> new ResourceNotFoundException("Partido no encontrado con id: " + requestDTO.getIdPartido()));
-
+    private void cargarDatosTarjeta(Tarjeta tarjeta, TarjetaRequestDTO requestDTO, Partido partido) {
         Jugador jugador = jugadorRepository.findById(requestDTO.getIdJugador())
                 .orElseThrow(() -> new ResourceNotFoundException("Jugador no encontrado con id: " + requestDTO.getIdJugador()));
 

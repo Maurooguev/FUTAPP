@@ -15,6 +15,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -100,6 +101,10 @@ class TournamentWorkflowIntegrationTests {
                 .andExpect(jsonPath("$.message").value("El resultado no puede ser menor que los goles individuales ya cargados"));
         postJson("/tarjetas", token, Map.of("minuto", 31, "tipoTarjeta", "AMARILLA", "idPartido", partidoId,
                 "idJugador", jugadorVisitante.get("idJugador").asLong(), "idEquipo", visitante.get("idEquipo").asLong()));
+
+        mockMvc.perform(delete("/partidos/{id}", partidoId).header("Authorization", "Bearer " + token))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("No se puede eliminar un partido que ya tiene resultado"));
 
         mockMvc.perform(post("/goles").header("Authorization", "Bearer " + token)
                         .contentType(MediaType.APPLICATION_JSON)

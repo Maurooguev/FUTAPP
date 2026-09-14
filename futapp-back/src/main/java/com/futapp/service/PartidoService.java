@@ -484,10 +484,14 @@ public class PartidoService {
         return "Primera ronda eliminatoria";
     }
 
+    @Transactional
     public PartidoResponseDTO actualizarPartido(Long id, PartidoRequestDTO requestDTO) {
-        Partido partido = partidoRepository.findById(id)
+        Partido partido = partidoRepository.findByIdForUpdate(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Partido no encontrado con id: " + id));
         authorization.verificarGestion(partido.getTorneo());
+        if (!partido.getTorneo().getIdTorneo().equals(requestDTO.getIdTorneo())) {
+            throw new IllegalArgumentException("Un partido no se puede mover a otro torneo");
+        }
 
         String estadoAnterior = partido.getEstado();
         validarTransicion(estadoAnterior, requestDTO.getEstado(), false);
@@ -508,11 +512,14 @@ public class PartidoService {
         return convertirAResponseDTO(partido);
     }
 
+    @Transactional
     public void eliminarPartido(Long id) {
-        if (!partidoRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Partido no encontrado con id: " + id);
+        Partido partido = partidoRepository.findByIdForUpdate(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Partido no encontrado con id: " + id));
+        authorization.verificarGestion(partido.getTorneo());
+        if ("FINALIZADO".equalsIgnoreCase(partido.getEstado())) {
+            throw new IllegalArgumentException("No se puede eliminar un partido que ya tiene resultado");
         }
-        authorization.verificarGestion(partidoRepository.findById(id).orElseThrow().getTorneo());
         if (golRepository.existsByPartidoIdPartido(id) || tarjetaRepository.existsByPartidoIdPartido(id)) {
             throw new IllegalArgumentException("No se puede eliminar el partido porque tiene goles o tarjetas cargados");
         }
@@ -671,7 +678,7 @@ public class PartidoService {
 
     @Transactional
     public PartidoResponseDTO cambiarEstado(Long id, EstadoPartidoRequestDTO request) {
-        Partido partido = partidoRepository.findById(id)
+        Partido partido = partidoRepository.findByIdForUpdate(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Partido no encontrado con id: " + id));
         authorization.verificarGestion(partido.getTorneo());
         String destino = normalizarEstado(request.estado());
@@ -692,7 +699,7 @@ public class PartidoService {
 
     @Transactional
     public PartidoResponseDTO elegirMvp(Long idPartido, MvpPartidoRequestDTO request) {
-        Partido partido = partidoRepository.findById(idPartido)
+        Partido partido = partidoRepository.findByIdForUpdate(idPartido)
                 .orElseThrow(() -> new ResourceNotFoundException("Partido no encontrado con id: " + idPartido));
         authorization.verificarGestion(partido.getTorneo());
         if (!"FINALIZADO".equalsIgnoreCase(partido.getEstado())) {
