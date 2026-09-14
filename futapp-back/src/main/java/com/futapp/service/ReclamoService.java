@@ -45,7 +45,7 @@ public class ReclamoService {
     @Transactional(readOnly=true) public List<ReclamoResponseDTO> mios() { return reclamos.findBySolicitanteIdUsuarioOrderByFechaSolicitudDesc(actual().getIdUsuario()).stream().map(this::dto).toList(); }
 
     public ReclamoResponseDTO resolver(Long id, boolean aprobar, String motivo) {
-        Usuario user=actual(); SolicitudReclamo item=reclamos.findById(id).orElseThrow(() -> new ResourceNotFoundException("Solicitud no encontrada"));
+        Usuario user=actual(); SolicitudReclamo item=reclamos.findByIdForUpdate(id).orElseThrow(() -> new ResourceNotFoundException("Solicitud no encontrada"));
         if (!"PENDIENTE".equals(item.getEstado())) throw new IllegalArgumentException("La solicitud ya fue resuelta");
         if (!puedeRevisar(user,item)) throw new AccessDeniedException("No tenés permiso para resolver esta solicitud");
         if (!aprobar && normalizar(motivo) == null) throw new IllegalArgumentException("Indicá el motivo del rechazo");
