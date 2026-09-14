@@ -156,6 +156,33 @@ class TournamentWorkflowIntegrationTests {
     }
 
     @Test
+    void protegeElTorneoYLosEquiposDeUsuariosAjenos() throws Exception {
+        String propietario = registrarUsuario("ORGANIZADOR");
+        String otroOrganizador = registrarUsuario("ORGANIZADOR");
+        String directorSinAprobar = registrarUsuario("DIRECTOR_EQUIPO");
+        String jugador = registrarUsuario("JUGADOR");
+
+        long torneoId = postJson("/torneos", propietario, torneo()).get("idTorneo").asLong();
+        long equipoId = postJson("/equipos", propietario, equipo("Club protegido", "Azul", torneoId))
+                .get("idEquipo").asLong();
+
+        mockMvc.perform(get("/torneos/{id}", torneoId)).andExpect(status().isOk());
+
+        putJson("/torneos/" + torneoId, otroOrganizador, torneo())
+                .andExpect(status().isForbidden());
+        putJson("/equipos/" + equipoId, directorSinAprobar, equipo("Intento director", "Rojo", torneoId))
+                .andExpect(status().isForbidden());
+        mockMvc.perform(post("/equipos").header("Authorization", "Bearer " + jugador)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonMapper.writeValueAsString(equipo("Intento jugador", "Negro", torneoId))))
+                .andExpect(status().isForbidden());
+
+        mockMvc.perform(get("/equipos/{id}", equipoId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.nombre").value("Club protegido"));
+    }
+
+    @Test
     void creaLaEstructuraDeZonasYPlayoffsConCuposVacios() throws Exception {
         String token = registrarOrganizador();
         Map<String, Object> request = new LinkedHashMap<>(torneo());
@@ -297,11 +324,15 @@ class TournamentWorkflowIntegrationTests {
     }
 
     private String registrarOrganizador() throws Exception {
+        return registrarUsuario("ORGANIZADOR");
+    }
+
+    private String registrarUsuario(String rol) throws Exception {
         String email = "workflow-" + System.nanoTime() + "@test.local";
         String response = mockMvc.perform(post("/auth/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonMapper.writeValueAsString(new RegisterRequestDTO(
-                                "Organizador Workflow", email, "password123", "ORGANIZADOR"))))
+                                "Usuario Workflow", email, "password123", rol))))
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
         return jsonMapper.readTree(response).get("token").asString();
