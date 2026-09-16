@@ -176,9 +176,16 @@
 .match-score > div { padding: 10px; border-radius: 5px; box-shadow: none; }
 .match-score h3 { margin-bottom: 4px; font-size: 13px; }
 .match-score strong { font-size: 30px; color: #0877a7; }
+.match-score small { display: block; margin-top: 2px; color: #64748b; font-size: 9px; font-weight: 700; }
 .match-modal-grid { padding: 0 16px 16px; gap: 10px; }
 .match-modal-grid section { padding: 12px; border-radius: 5px; box-shadow: none; }
 .match-modal-grid section h3 { margin-bottom: 8px; font-size: 17px; }
+.match-section-title { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.match-section-title h3 { margin: 0 !important; }
+.match-section-title span { padding: 3px 6px; border-radius: 999px; font-size: 8px; font-weight: 900; }
+.match-section-title span.complete { background: #dcfce7; color: #166534; }
+.match-section-title span.pending { background: #fef3c7; color: #92400e; }
+.match-assignment-ok { margin: 7px 0; color: #166534 !important; font-size: 9px; font-weight: 800; }
 .match-event { grid-template-columns: 38px 1fr auto; gap: 7px; padding: 8px 0; }
 .match-event strong { font-size: 13px; }
 .match-event h4 { font-size: 12px; }

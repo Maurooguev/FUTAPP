@@ -40,6 +40,11 @@ function MatchModal({ partido, onClose, canManage, onChanged }) {
 
   if (!partido) return null;
   const isFinalized = partido.estado?.toUpperCase() === "FINALIZADO";
+  const golesLocalAsignados = goles.filter((gol) => gol.idEquipo === partido.idEquipoLocal).length;
+  const golesVisitanteAsignados = goles.filter((gol) => gol.idEquipo === partido.idEquipoVisitante).length;
+  const golesTotales = Number(partido.golesLocal || 0) + Number(partido.golesVisitante || 0);
+  const golesAsignados = golesLocalAsignados + golesVisitanteAsignados;
+  const golesCompletos = isFinalized && golesAsignados === golesTotales;
 
   return (
     <div className="match-modal-backdrop" onClick={onClose}>
@@ -60,6 +65,7 @@ function MatchModal({ partido, onClose, canManage, onChanged }) {
           <div>
             <h3><Link to={`/equipo/${partido.idEquipoLocal}`} onClick={onClose}>{partido.nombreEquipoLocal}</Link></h3>
             <strong>{partido.golesLocal}</strong>
+            {isFinalized && <small>{golesLocalAsignados} asignados</small>}
           </div>
 
           <span>VS</span>
@@ -67,14 +73,16 @@ function MatchModal({ partido, onClose, canManage, onChanged }) {
           <div>
             <h3><Link to={`/equipo/${partido.idEquipoVisitante}`} onClick={onClose}>{partido.nombreEquipoVisitante}</Link></h3>
             <strong>{partido.golesVisitante}</strong>
+            {isFinalized && <small>{golesVisitanteAsignados} asignados</small>}
           </div>
         </div>
 
         <div className="match-modal-grid">
           <section>
-            <h3>Goles</h3>
-            {canManage && isFinalized && !formType && <button className="match-add-event" onClick={() => setFormType("goal")}>+ Agregar gol</button>}
-            {formType === "goal" && <MatchIncidentForm partido={partido} type="goal" onCancel={() => setFormType(null)} onSaved={(goal) => { setGoles((current) => [...current, goal]); onChanged?.(); }} />}
+            <div className="match-section-title"><h3>Goles</h3>{isFinalized && <span className={golesCompletos ? "complete" : "pending"}>{golesAsignados}/{golesTotales} asignados</span>}</div>
+            {canManage && isFinalized && !formType && !golesCompletos && <button className="match-add-event" onClick={() => setFormType("goal")}>+ Asignar gol a un jugador</button>}
+            {golesCompletos && <p className="match-assignment-ok">✓ El marcador coincide con los goles individuales.</p>}
+            {formType === "goal" && <MatchIncidentForm partido={partido} type="goal" onCancel={() => setFormType(null)} onSaved={(goal) => { setGoles((current) => { const updated = [...current, goal]; if (updated.length >= golesTotales) setFormType(null); return updated; }); onChanged?.(); }} />}
 
             {goles.length === 0 ? (
               <p className="match-empty">No hay goles cargados.</p>

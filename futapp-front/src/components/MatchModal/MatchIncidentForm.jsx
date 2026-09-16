@@ -22,7 +22,8 @@ function MatchIncidentForm({ partido, type, onSaved, onCancel }) {
     try {
       const response = await apiFetch(`${API_URL}/${endpoint}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
       if (!response.ok) { const body = await response.json().catch(() => null); throw new Error(body?.message || "No se pudo guardar la incidencia"); }
-      onSaved(await response.json()); onCancel();
+      onSaved(await response.json());
+      setForm((current) => ({ ...current, idJugador: "", minuto: "", detail: "" }));
     } catch (requestError) { setError(requestError.message); } finally { setSaving(false); }
   };
 
