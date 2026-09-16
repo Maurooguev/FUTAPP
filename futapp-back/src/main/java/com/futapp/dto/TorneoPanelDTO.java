@@ -7,5 +7,8 @@ public record TorneoPanelDTO(
         int partidosJugados,
         int partidosPendientes,
         Integer proximaJornada,
-        String accionRecomendada
+        String accionRecomendada,
+        Long idProximoPartido,
+        String proximoPartidoLocal,
+        String proximoPartidoVisitante
 ) {}

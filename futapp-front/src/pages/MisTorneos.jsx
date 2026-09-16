@@ -59,7 +59,7 @@ function MisTorneos() {
         <div className="organizer-progress">
           <div><span>Equipos</span><strong>{item.equiposInscriptos}/{item.torneo.cantidadEquipos}</strong></div><div><span>Sin plantel</span><strong>{item.equiposSinPlantel}</strong></div><div><span>Jugados</span><strong>{item.partidosJugados}</strong></div><div><span>Pendientes</span><strong>{item.partidosPendientes}</strong></div><div><span>Próxima jornada</span><strong>{item.proximaJornada ? `Fecha ${item.proximaJornada}` : "—"}</strong></div>
         </div>
-        <footer><div><span>Siguiente paso</span><strong>{item.accionRecomendada}</strong></div><button onClick={() => navigate(`/torneo/${item.torneo.idTorneo}`)}>Administrar →</button></footer>
+        <footer><div><span>Siguiente paso</span><strong>{item.accionRecomendada}</strong>{item.idProximoPartido && <small>{item.proximoPartidoLocal} vs {item.proximoPartidoVisitante}</small>}</div><div className="organizer-tournament-actions">{item.idProximoPartido && <button className="result" onClick={() => navigate(`/torneo/${item.torneo.idTorneo}?partido=${item.idProximoPartido}&accion=resultado`)}>Cargar resultado</button>}<button onClick={() => navigate(`/torneo/${item.torneo.idTorneo}`)}>Administrar →</button></div></footer>
       </article>)}
     </section>}
   </div></main>;

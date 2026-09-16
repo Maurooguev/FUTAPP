@@ -25,8 +25,11 @@
 .organizer-progress strong { display: block; margin-top: 2px; font-size: 13px; }
 .organizer-tournament footer { display: flex; align-items: center; justify-content: space-between; gap: 15px; padding: 10px 17px; background: #f7fafb; }
 .organizer-tournament footer strong { font-size: 11px; }
+.organizer-tournament footer small { display: block; margin-top: 3px; color: #64748b; font-size: 9px; }
 .organizer-tournament footer button { padding: 8px 12px; border: 0; border-radius: 4px; background: #0877a7; color: #fff; font-size: 10px; font-weight: 800; }
+.organizer-tournament-actions { display: flex; gap: 7px; }
+.organizer-tournament-actions button.result { background: #18a957; }
 .organizer-message,.organizer-empty { margin-top: 18px; padding: 28px; border: 1px solid #dbe3e8; background: #fff; text-align: center; }
 .organizer-message.error { color: #b42318; }
 .organizer-empty h2 { margin: 0; }.organizer-empty p { color: #64748b; font-size: 12px; }
-@media (max-width: 800px) { .organizer-totals { grid-template-columns: repeat(2,1fr); }.organizer-progress { grid-template-columns: repeat(2,1fr); row-gap: 7px; }.organizer-progress div:nth-child(odd) { border-left: 0; padding-left: 0; }.organizer-heading { align-items: start; }.organizer-tournament footer { align-items: start; flex-direction: column; } }
+@media (max-width: 800px) { .organizer-totals { grid-template-columns: repeat(2,1fr); }.organizer-progress { grid-template-columns: repeat(2,1fr); row-gap: 7px; }.organizer-progress div:nth-child(odd) { border-left: 0; padding-left: 0; }.organizer-heading { align-items: start; }.organizer-tournament footer { align-items: start; flex-direction: column; }.organizer-tournament-actions { width: 100%; }.organizer-tournament-actions button { flex: 1; } }

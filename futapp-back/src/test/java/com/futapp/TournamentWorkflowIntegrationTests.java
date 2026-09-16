@@ -61,6 +61,12 @@ class TournamentWorkflowIntegrationTests {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.estado").value("ACTIVO"));
 
+        mockMvc.perform(get("/torneos/mios/panel").header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].idProximoPartido").value(partidoId))
+                .andExpect(jsonPath("$[0].proximoPartidoLocal").value("Barrio Norte"))
+                .andExpect(jsonPath("$[0].proximoPartidoVisitante").value("Deportivo Sur"));
+
         putJson("/partidos/" + partidoId + "/estado", token, Map.of("estado", "FINALIZADO"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("Para finalizar el partido cargá el resultado"));

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useSearchParams } from "react-router-dom";
 
 import useAuth from "../context/useAuth";
 import { puedeAdministrarTorneo } from "../utils/roles";
@@ -24,6 +24,7 @@ import KnockoutBracket from "../components/KnockoutBracket/KnockoutBracket";
 
 function TorneoDetalle() {
   const { id } = useParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { usuario } = useAuth();
 
   const [torneo, setTorneo] = useState(null);
@@ -49,6 +50,15 @@ function TorneoDetalle() {
   const [perfilOrganizador, setPerfilOrganizador] = useState(null);
   const [loadError, setLoadError] = useState("");
   const [reloadKey, setReloadKey] = useState(0);
+
+  useEffect(() => {
+    if (searchParams.get("accion") !== "resultado" || partidos.length === 0) return;
+    const partido = partidos.find((item) => item.idPartido === Number(searchParams.get("partido")));
+    if (!partido) return;
+    setPartidoResultado(partido);
+    setMostrarResultado(true);
+    setSearchParams({}, { replace: true });
+  }, [partidos, searchParams, setSearchParams]);
 
   const eliminarRecurso = async (url, message, onSuccess) => {
     if (!window.confirm(message)) return;

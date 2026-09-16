@@ -7,6 +7,7 @@ import com.futapp.dto.PaginaDTO;
 import com.futapp.exception.ResourceNotFoundException;
 import com.futapp.model.Torneo;
 import com.futapp.model.Usuario;
+import com.futapp.model.Partido;
 import com.futapp.repository.TorneoRepository;
 import com.futapp.repository.PartidoRepository;
 import com.futapp.repository.InscripcionEquipoRepository;
@@ -110,6 +111,11 @@ public class TorneoService {
                 .filter(item -> !partidoResuelto(item))
                 .map(item -> item.getFecha().getNumeroFecha())
                 .min(Integer::compareTo).orElse(null);
+        var proximoPartido = partidosTorneo.stream()
+                .filter(item -> !partidoResuelto(item))
+                .min(java.util.Comparator.comparingInt(
+                        (Partido item) -> item.getFecha().getNumeroFecha()))
+                .orElse(null);
 
         String accion;
         if (equipos.size() < 2) accion = "Agregá al menos 2 equipos";
@@ -120,7 +126,10 @@ public class TorneoService {
         else accion = "Torneo completo";
 
         return new TorneoPanelDTO(convertirAResponseDTO(torneo), equipos.size(), sinPlantel,
-                jugados, pendientes, proximaJornada, accion);
+                jugados, pendientes, proximaJornada, accion,
+                proximoPartido == null ? null : proximoPartido.getIdPartido(),
+                proximoPartido == null ? null : proximoPartido.getEquipoLocal().getNombre(),
+                proximoPartido == null ? null : proximoPartido.getEquipoVisitante().getNombre());
     }
 
     @Transactional
