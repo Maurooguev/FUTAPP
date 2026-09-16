@@ -26,8 +26,10 @@ El script inicia PostgreSQL, abre el backend en otra terminal y ejecuta el
 frontend en la terminal actual.
 
 - Frontend: http://localhost:5173
-- Backend: http://localhost:8080
-- Estado del backend: http://localhost:8080/status
+- Backend API v1: http://localhost:8080/api/v1
+- Estado del backend: http://localhost:8080/api/v1/status
+- Swagger UI: http://localhost:8080/api/v1/swagger-ui.html
+- OpenAPI JSON: http://localhost:8080/api/v1/openapi
 
 Para detener cada servidor, presionar `Ctrl + C` en su terminal.
 
@@ -55,7 +57,7 @@ npm --prefix .\futapp-front run dev
 
 ## Configuracion del frontend
 
-La API utiliza `http://localhost:8080` por defecto. Para cambiarla, copiar
+La API utiliza `http://localhost:8080/api/v1` por defecto. Para cambiarla, copiar
 `futapp-front/.env.example` como `futapp-front/.env.local` y modificar
 `VITE_API_URL`.
 
@@ -134,7 +136,7 @@ nacionalidad, biografía e Instagram. No puede modificar equipos, dorsales,
 partidos, goles, tarjetas ni estadísticas oficiales.
 
 Los clientes pueden validar y recuperar la sesion guardada mediante
-`GET /auth/me` enviando `Authorization: Bearer <token>`. Esto permite compartir
+`GET /api/v1/auth/me` enviando `Authorization: Bearer <token>`. Esto permite compartir
 el mismo flujo de acceso entre la web y futuras aplicaciones Android/iOS.
 
 El DNI de los jugadores es opcional. Cuando se informa, debe ser único. El
@@ -165,6 +167,7 @@ propietario permanecen publicos en modo consulta.
 
 ```powershell
 .\futapp-back\mvnw.cmd -f .\futapp-back\pom.xml test
+.\futapp-back\mvnw.cmd -f .\futapp-back\pom.xml verify
 .\futapp-back\mvnw.cmd -f .\futapp-back\pom.xml -Ph2-migration -DskipTests compile
 npm --prefix .\futapp-front run lint
 npm --prefix .\futapp-front run build

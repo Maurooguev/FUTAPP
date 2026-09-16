@@ -4,11 +4,12 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
+import java.time.LocalDateTime;
 
 public class PartidoRequestDTO {
 
-    @NotBlank(message = "La fecha y hora son obligatorias")
-    private String fechaHora;
+    @NotNull(message = "La fecha y hora son obligatorias")
+    private LocalDateTime fechaHora;
 
     @NotBlank(message = "El estado es obligatorio")
     private String estado;
@@ -40,11 +41,11 @@ public class PartidoRequestDTO {
     public PartidoRequestDTO() {
     }
 
-    public String getFechaHora() {
+    public LocalDateTime getFechaHora() {
         return fechaHora;
     }
 
-    public void setFechaHora(String fechaHora) {
+    public void setFechaHora(LocalDateTime fechaHora) {
         this.fechaHora = fechaHora;
     }
 

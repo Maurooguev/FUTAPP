@@ -1,6 +1,7 @@
 package com.futapp.model;
 
 import jakarta.persistence.*;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "partido")
@@ -12,7 +13,7 @@ public class Partido {
     private Long idPartido;
 
     @Column(name = "fecha_hora")
-    private String fechaHora;
+    private LocalDateTime fechaHora;
 
     private String estado;
 
@@ -60,11 +61,11 @@ public class Partido {
         this.idPartido = idPartido;
     }
 
-    public String getFechaHora() {
+    public LocalDateTime getFechaHora() {
         return fechaHora;
     }
 
-    public void setFechaHora(String fechaHora) {
+    public void setFechaHora(LocalDateTime fechaHora) {
         this.fechaHora = fechaHora;
     }
 

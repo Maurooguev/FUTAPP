@@ -37,7 +37,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 
@@ -201,7 +200,6 @@ public class PartidoService {
                 .orElse(0) + 1;
 
         int totalFechas = cantidadFechas * (Boolean.TRUE.equals(torneo.getIdaVuelta()) ? 2 : 1);
-        DateTimeFormatter formatoFechaHora = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
         for (int ronda = 0; ronda < totalFechas; ronda++) {
             int rondaBase = ronda % cantidadFechas;
             boolean vuelta = ronda >= cantidadFechas;
@@ -235,7 +233,7 @@ public class PartidoService {
                 LocalDateTime fechaHora = LocalDateTime.of(
                         request.fechaInicio().plusDays((long) ronda * request.diasEntreJornadas()),
                         request.horaInicio()).plusMinutes((long) indiceHorario * request.minutosEntrePartidos());
-                partido.setFechaHora(fechaHora.format(formatoFechaHora));
+                partido.setFechaHora(fechaHora);
                 partido.setEstado("PROGRAMADO");
                 partido.setGolesLocal(0);
                 partido.setGolesVisitante(0);
@@ -257,12 +255,11 @@ public class PartidoService {
         boolean potenciaDeDos = (equipos.size() & (equipos.size() - 1)) == 0;
         String ronda = potenciaDeDos ? nombreRonda(equipos.size()) : "Primera ronda eliminatoria";
         Fecha fecha = crearFecha(torneo, 1, ronda, true);
-        DateTimeFormatter formato = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
         int partidos = potenciaDeDos ? equipos.size() / 2 : equipos.size() - Integer.highestOneBit(equipos.size());
         for (int i = 0; i < partidos; i++) {
             generados.add(crearPartidoAutomatico(torneo, fecha, equipos.get(i), equipos.get(equipos.size() - 1 - i),
                     LocalDateTime.of(request.fechaInicio(), request.horaInicio())
-                            .plusMinutes((long) i * request.minutosEntrePartidos()).format(formato),
+                            .plusMinutes((long) i * request.minutosEntrePartidos()),
                     request.cancha(), ronda));
         }
         return generados.stream().map(this::convertirAResponseDTO).toList();
@@ -331,14 +328,13 @@ public class PartidoService {
 
         String nombre = nombreRonda(ganadores.size());
         Fecha fecha = crearFecha(torneo, ultimaRonda + 1, nombre, true);
-        DateTimeFormatter formato = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
         LocalDateTime inicio = ronda.stream().map(Partido::getFechaHora).filter(java.util.Objects::nonNull)
-                .map(valor -> LocalDateTime.parse(valor, formato)).max(LocalDateTime::compareTo)
+                .max(LocalDateTime::compareTo)
                 .orElse(LocalDateTime.now()).plusDays(7);
         List<Partido> generados = new ArrayList<>();
         for (int i = 0; i < ganadores.size() / 2; i++) {
             generados.add(crearPartidoAutomatico(torneo, fecha, ganadores.get(i * 2), ganadores.get(i * 2 + 1),
-                    inicio.plusMinutes(i * 90L).format(formato), ronda.get(0).getCancha(), nombre));
+                    inicio.plusMinutes(i * 90L), ronda.get(0).getCancha(), nombre));
         }
         return generados.stream().map(this::convertirAResponseDTO).toList();
     }
@@ -384,15 +380,14 @@ public class PartidoService {
         boolean potenciaDeDos = (equipos.size() & (equipos.size() - 1)) == 0;
         String nombre = potenciaDeDos ? nombreRonda(equipos.size()) : "Primera ronda eliminatoria";
         Fecha fecha = crearFecha(torneo, numero, nombre, true);
-        DateTimeFormatter formato = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
         LocalDateTime inicio = anteriores.stream().map(Partido::getFechaHora).filter(java.util.Objects::nonNull)
-                .map(v -> LocalDateTime.parse(v, formato)).max(LocalDateTime::compareTo).orElse(LocalDateTime.now()).plusDays(7);
+                .max(LocalDateTime::compareTo).orElse(LocalDateTime.now()).plusDays(7);
         String cancha = anteriores.stream().map(Partido::getCancha).filter(java.util.Objects::nonNull).findFirst().orElse(null);
         List<Partido> creados = new ArrayList<>();
         int partidos = potenciaDeDos ? equipos.size() / 2 : equipos.size() - Integer.highestOneBit(equipos.size());
         for (int i = 0; i < partidos; i++) {
             creados.add(crearPartidoAutomatico(torneo, fecha, equipos.get(i), equipos.get(equipos.size() - 1 - i),
-                    inicio.plusMinutes(i * 90L).format(formato), cancha, nombre));
+                    inicio.plusMinutes(i * 90L), cancha, nombre));
         }
         return creados.stream().map(this::convertirAResponseDTO).toList();
     }
@@ -432,7 +427,6 @@ public class PartidoService {
             maxRondas = Math.max(maxRondas, calendario.size());
         }
         List<Partido> generados = new ArrayList<>();
-        DateTimeFormatter formato = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
         for (int ronda = 0; ronda < maxRondas; ronda++) {
             Fecha fecha = crearFecha(torneo, ronda + 1, "Fecha " + (ronda + 1) + " · Zonas", ronda == 0);
             int horario = 0;
@@ -443,7 +437,7 @@ public class PartidoService {
                     for (Equipo[] cruce : calendario.get(ronda)) {
                         generados.add(crearPartidoAutomatico(torneo, fecha, cruce[0], cruce[1],
                                 LocalDateTime.of(request.fechaInicio().plusDays((long) ronda * request.diasEntreJornadas()), request.horaInicio())
-                                        .plusMinutes((long) horario++ * request.minutosEntrePartidos()).format(formato),
+                                        .plusMinutes((long) horario++ * request.minutosEntrePartidos()),
                                 request.cancha(), zonaNombre));
                     }
                 }
@@ -478,7 +472,7 @@ public class PartidoService {
     }
 
     private Partido crearPartidoAutomatico(Torneo torneo, Fecha fecha, Equipo local, Equipo visitante,
-                                            String fechaHora, String cancha, String detalle) {
+                                            LocalDateTime fechaHora, String cancha, String detalle) {
         Partido partido = new Partido();
         partido.setTorneo(torneo); partido.setFecha(fecha); partido.setEquipoLocal(local); partido.setEquipoVisitante(visitante);
         partido.setFechaHora(fechaHora); partido.setEstado("PROGRAMADO"); partido.setGolesLocal(0); partido.setGolesVisitante(0);

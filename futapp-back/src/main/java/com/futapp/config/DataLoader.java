@@ -314,7 +314,7 @@ public class DataLoader {
             int golesVisitante = cruce[3];
 
             Partido partido = new Partido();
-            partido.setFechaHora("2026-04-" + (10 + fecha.getNumeroFecha()) + " 18:00");
+            partido.setFechaHora(java.time.LocalDateTime.of(2026, 4, 10 + fecha.getNumeroFecha(), 18, 0));
             partido.setEstado("FINALIZADO");
             partido.setGolesLocal(golesLocal);
             partido.setGolesVisitante(golesVisitante);

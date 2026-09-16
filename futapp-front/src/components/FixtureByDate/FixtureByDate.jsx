@@ -50,7 +50,6 @@ function FixtureByDate({ fechas, partidos, onSelectPartido, canManage, onEditDat
     );
   }, [partidos, fechaActual]);
 
-  const partidosFinalizados = partidosDeFecha.filter((partido) => partido.estado?.toUpperCase() === "FINALIZADO");
   const partidosResueltos = partidosDeFecha.filter((partido) => ["FINALIZADO", "CANCELADO"].includes(partido.estado?.toUpperCase()));
   const partidosPendientes = partidosDeFecha.filter((partido) => !["FINALIZADO", "CANCELADO"].includes(partido.estado?.toUpperCase()));
   const progreso = partidosDeFecha.length === 0 ? 0 : Math.round((partidosResueltos.length / partidosDeFecha.length) * 100);

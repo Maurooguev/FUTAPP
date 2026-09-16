@@ -1,9 +1,11 @@
 package com.futapp.dto;
 
+import java.time.LocalDateTime;
+
 public class PartidoResponseDTO {
 
     private Long idPartido;
-    private String fechaHora;
+    private LocalDateTime fechaHora;
     private String estado;
     private Integer golesLocal;
     private Integer golesVisitante;
@@ -30,7 +32,7 @@ public class PartidoResponseDTO {
     public PartidoResponseDTO() {
     }
 
-    public PartidoResponseDTO(Long idPartido, String fechaHora, String estado,
+    public PartidoResponseDTO(Long idPartido, LocalDateTime fechaHora, String estado,
                               Integer golesLocal, Integer golesVisitante, String observaciones, String cancha,
                               Long idMvp, String nombreMvp, String fotoMvp,
                               Long idTorneo, String nombreTorneo,
@@ -65,11 +67,11 @@ public class PartidoResponseDTO {
         this.idPartido = idPartido;
     }
 
-    public String getFechaHora() {
+    public LocalDateTime getFechaHora() {
         return fechaHora;
     }
 
-    public void setFechaHora(String fechaHora) {
+    public void setFechaHora(LocalDateTime fechaHora) {
         this.fechaHora = fechaHora;
     }
 
