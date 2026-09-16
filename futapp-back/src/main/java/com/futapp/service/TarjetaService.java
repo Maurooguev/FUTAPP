@@ -68,6 +68,13 @@ public class TarjetaService {
                 .collect(Collectors.toList());
     }
 
+    public List<TarjetaResponseDTO> listarTarjetasPorTorneo(Long idTorneo) {
+        return tarjetaRepository.findByPartidoTorneoIdTorneo(idTorneo)
+                .stream()
+                .map(this::convertirAResponseDTO)
+                .toList();
+    }
+
     @Transactional
     public TarjetaResponseDTO crearTarjeta(TarjetaRequestDTO requestDTO) {
         Partido partido = partidoRepository.findByIdForUpdate(requestDTO.getIdPartido())

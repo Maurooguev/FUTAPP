@@ -82,7 +82,7 @@ function TorneoDetalle() {
     Promise.all([
       getJson(`/torneos/${id}`), getJson(`/torneos/${id}/tabla`),
       getJson(`/goles/torneo/${id}/goleadores`), getJson(`/fechas/torneo/${id}`),
-      getJson(`/partidos/torneo/${id}`), getJson("/tarjetas"),
+      getJson(`/partidos/torneo/${id}`), getJson(`/tarjetas/torneo/${id}`),
       getJson(`/equipos/torneo/${id}`), getJson(`/torneos/${id}/estructura`),
     ]).then(([tournament, standings, scorers, dates, matches, cards, teams, structure]) => {
       if (!active) return;
@@ -199,7 +199,7 @@ const recargarDatosTorneo = () => {
     .then((res) => res.json())
     .then((data) => setGoleadores(data));
 
-  apiFetch(`${API_URL}/tarjetas`)
+  apiFetch(`${API_URL}/tarjetas/torneo/${id}`)
     .then((res) => res.json())
     .then((data) => setTarjetas(data));
 };

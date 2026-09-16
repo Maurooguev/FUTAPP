@@ -38,6 +38,11 @@ public class TarjetaController {
         return tarjetaService.listarTarjetasPorJugador(idJugador);
     }
 
+    @GetMapping("/torneo/{idTorneo}")
+    public List<TarjetaResponseDTO> listarTarjetasPorTorneo(@PathVariable Long idTorneo) {
+        return tarjetaService.listarTarjetasPorTorneo(idTorneo);
+    }
+
     @PostMapping
     public TarjetaResponseDTO crearTarjeta(@Valid @RequestBody TarjetaRequestDTO requestDTO) {
         return tarjetaService.crearTarjeta(requestDTO);
