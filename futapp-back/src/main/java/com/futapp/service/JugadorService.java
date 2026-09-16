@@ -135,7 +135,7 @@ public class JugadorService {
     }
 
     private JugadorResponseDTO convertirAResponseDTO(Jugador jugador) {
-        return new JugadorResponseDTO(
+        JugadorResponseDTO dto = new JugadorResponseDTO(
                 jugador.getIdJugador(),
                 jugador.getNombre(),
                 jugador.getApellido(),
@@ -151,6 +151,8 @@ public class JugadorService {
                 jugador.getEquipo().getIdEquipo(),
                 jugador.getEquipo().getNombre()
         );
+        dto.setVerificado(jugador.getUsuario() != null);
+        return dto;
     }
 
     public PaginaDTO<JugadorResponseDTO> listarPaginados(int pagina, int cantidad) {

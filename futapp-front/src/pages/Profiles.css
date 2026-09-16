@@ -36,6 +36,8 @@
 .profile-owner-actions { display: flex; align-items: center; gap: 7px; margin-left: auto; }
 .profile-owner-actions button { padding: 8px 11px; border: 1px solid #0877a7; background: #0877a7; color: #fff; font-size: 10px; }
 .profile-owner-badge { padding: 6px 9px; border-radius: 999px; background: #e8f7ef; color: #17603a; font-size: 10px; font-weight: 800; }
+.verified-badge { display: inline-flex; align-items: center; vertical-align: middle; padding: 4px 8px; border-radius: 999px; background: #e0f2fe; color: #0369a1; font-size: 10px; font-weight: 900; white-space: nowrap; }
+.verified-badge.compact { padding: 2px 5px; font-size: 9px; }
 .profile-action-message { margin: 8px 0; padding: 10px; background: #e8f7ef; color: #17603a; font-size: 12px; text-align: center; }
 .personal-profile-form { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
 .personal-profile-form label { display: grid; gap: 4px; font-size: 11px; }

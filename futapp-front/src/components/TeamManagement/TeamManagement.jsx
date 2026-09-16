@@ -36,7 +36,7 @@ function TeamManagement({ torneoId, equipos, canManage, onTeamSaved, onTeamDelet
         <div className="team-grid">{equipos.map((team) => (
           <article className="team-card" key={team.idEquipo}>
             <Link className="team-avatar" to={`/equipo/${team.idEquipo}`}>{team.escudo ? <img src={assetUrl(team.escudo)} alt="" /> : team.nombre.slice(0, 2).toUpperCase()}</Link>
-            <Link className="team-card-copy team-card-profile" to={`/equipo/${team.idEquipo}`}><h3>{team.nombre}</h3><p>{team.barrio} · {team.colorCamiseta}</p><small>Responsable: {team.responsable}</small></Link>
+            <Link className="team-card-copy team-card-profile" to={`/equipo/${team.idEquipo}`}><h3>{team.nombre} {team.verificado && <span className="verified-badge compact" title="Equipo administrado por un director aprobado">✓</span>}</h3><p>{team.barrio} · {team.colorCamiseta}</p><small>Responsable: {team.responsable}</small></Link>
             <div className="team-card-actions"><Link className="team-profile-link" to={`/equipo/${team.idEquipo}`}>Ver perfil</Link><button type="button" onClick={() => setRosterTeam(team)}>Ver plantel</button>{canManage && <><button type="button" className="team-edit" onClick={() => openEditTeam(team)}>Editar</button><button type="button" className="team-delete" onClick={() => removeTeam(team)}>Quitar del torneo</button></>}</div>
           </article>
         ))}</div>

@@ -83,11 +83,11 @@ function EquipoPerfil() {
     </section>
     <section className="profile-identity">
       <div className="profile-avatar club-avatar">{equipo.escudo ? <img src={assetUrl(equipo.escudo)} alt={`Escudo de ${equipo.nombre}`} /> : equipo.nombre.slice(0, 2).toUpperCase()}</div>
-      <div><span className="profile-code">{equipo.codigoPublico}</span><h1>{equipo.nombre} {titulos.length > 0 && <span className="club-stars" title={`${titulos.length} título${titulos.length === 1 ? "" : "s"}`}>{"★".repeat(titulos.length)}</span>}</h1><p>{equipo.barrio || "Barrio sin informar"}</p></div>
+      <div><span className="profile-code">{equipo.codigoPublico}</span><h1>{equipo.nombre} {equipo.verificado && <span className="verified-badge" title="Equipo administrado por un director aprobado">✓ Verificado</span>} {titulos.length > 0 && <span className="club-stars" title={`${titulos.length} título${titulos.length === 1 ? "" : "s"}`}>{"★".repeat(titulos.length)}</span>}</h1><p>{equipo.barrio || "Barrio sin informar"}</p></div>
       <div className="profile-owner-actions">
         <FavoriteButton type="equipos" id={equipo.idEquipo} />
         {hasManageAccess && <><span className="profile-owner-badge">Administrás este club</span><button onClick={() => setShowEdit(true)}>Editar perfil</button><button onClick={() => setShowRoster(true)}>Gestionar plantel</button></>}
-        {!hasManageAccess && tieneRol(usuario, "DIRECTOR_EQUIPO") && <button className="profile-claim-button" onClick={claimTeam}>Reclamar equipo</button>}
+        {!hasManageAccess && !equipo.verificado && tieneRol(usuario, "DIRECTOR_EQUIPO") && <button className="profile-claim-button" onClick={claimTeam}>Reclamar equipo</button>}
       </div>
     </section>
     {claimMessage && <p className="profile-action-message">{claimMessage}</p>}

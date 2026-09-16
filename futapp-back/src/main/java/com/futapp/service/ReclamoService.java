@@ -25,6 +25,7 @@ public class ReclamoService {
         Torneo torneo = torneos.findById(request.idTorneo()).orElseThrow(() -> new ResourceNotFoundException("Torneo no encontrado"));
         if (!inscripciones.existsByEquipoIdEquipoAndTorneoIdTorneo(idEquipo, torneo.getIdTorneo())) throw new IllegalArgumentException("El equipo no participa en ese torneo");
         if (administradores.existsByEquipoIdEquipoAndUsuarioIdUsuarioAndEstado(idEquipo, user.getIdUsuario(), "ACTIVO")) throw new IllegalArgumentException("Ya administrás este equipo");
+        if (administradores.existsByEquipoIdEquipoAndEstado(idEquipo, "ACTIVO")) throw new IllegalArgumentException("Este equipo ya tiene un director verificado");
         if (reclamos.existsBySolicitanteIdUsuarioAndEquipoIdEquipoAndEstado(user.getIdUsuario(), idEquipo, "PENDIENTE")) throw new IllegalArgumentException("Ya tenés una solicitud pendiente");
         SolicitudReclamo item = base(user, torneo, request.mensaje()); item.setTipo("EQUIPO"); item.setEquipo(equipo); item=reclamos.save(item); notificaciones.avisarResponsablesReclamo(item); return dto(item);
     }
@@ -49,8 +50,15 @@ public class ReclamoService {
         if (!"PENDIENTE".equals(item.getEstado())) throw new IllegalArgumentException("La solicitud ya fue resuelta");
         if (!puedeRevisar(user,item)) throw new AccessDeniedException("No tenés permiso para resolver esta solicitud");
         if (!aprobar && normalizar(motivo) == null) throw new IllegalArgumentException("Indicá el motivo del rechazo");
-        if (aprobar && "EQUIPO".equals(item.getTipo())) { EquipoAdministrador link=new EquipoAdministrador(); link.setEquipo(item.getEquipo()); link.setUsuario(item.getSolicitante()); link.setAprobadoPor(user); administradores.save(link); }
-        if (aprobar && "JUGADOR".equals(item.getTipo())) { item.getJugador().setUsuario(item.getSolicitante()); jugadores.save(item.getJugador()); }
+        if (aprobar && "EQUIPO".equals(item.getTipo())) {
+            if (administradores.existsByEquipoIdEquipoAndEstado(item.getEquipo().getIdEquipo(), "ACTIVO"))
+                throw new IllegalArgumentException("Este equipo ya tiene un director verificado");
+            EquipoAdministrador link=new EquipoAdministrador(); link.setEquipo(item.getEquipo()); link.setUsuario(item.getSolicitante()); link.setAprobadoPor(user); administradores.save(link);
+        }
+        if (aprobar && "JUGADOR".equals(item.getTipo())) {
+            if (item.getJugador().getUsuario() != null) throw new IllegalArgumentException("Este jugador ya tiene una cuenta verificada");
+            item.getJugador().setUsuario(item.getSolicitante()); jugadores.save(item.getJugador());
+        }
         item.setEstado(aprobar ? "APROBADA" : "RECHAZADA"); item.setRevisor(user); item.setMotivoResolucion(normalizar(motivo)); item.setFechaResolucion(LocalDateTime.now()); item=reclamos.save(item);
         String objetivo = "EQUIPO".equals(item.getTipo()) ? item.getEquipo().getNombre() : item.getJugador().getNombre()+" "+item.getJugador().getApellido();
         notificaciones.enviar(item.getSolicitante(), "SOLICITUD", aprobar ? "Solicitud aprobada" : "Solicitud rechazada",

@@ -16,6 +16,7 @@ public class JugadorResponseDTO {
     private String estado;
     private Long idEquipo;
     private String nombreEquipo;
+    private boolean verificado;
 
     public JugadorResponseDTO() {
     }
@@ -134,4 +135,7 @@ public class JugadorResponseDTO {
     public void setNombreEquipo(String nombreEquipo) {
         this.nombreEquipo = nombreEquipo;
     }
+
+    public boolean isVerificado() { return verificado; }
+    public void setVerificado(boolean verificado) { this.verificado = verificado; }
 }

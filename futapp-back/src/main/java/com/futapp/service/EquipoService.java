@@ -186,7 +186,7 @@ public class EquipoService {
     }
 
     private EquipoResponseDTO convertirAResponseDTO(Equipo equipo, Torneo torneo) {
-        return new EquipoResponseDTO(
+        EquipoResponseDTO dto = new EquipoResponseDTO(
                 equipo.getIdEquipo(),
                 equipo.getNombre(),
                 equipo.getEscudo(),
@@ -202,6 +202,8 @@ public class EquipoService {
                 torneo.getIdTorneo(),
                 torneo.getNombre()
         );
+        dto.setVerificado(administradores.existsByEquipoIdEquipoAndEstado(equipo.getIdEquipo(), "ACTIVO"));
+        return dto;
     }
 
     private String normalizarOpcional(String valor) {
