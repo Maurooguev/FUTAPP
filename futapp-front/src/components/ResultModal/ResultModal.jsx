@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import "./ResultModal.css";
 import { API_URL, apiFetch } from "../../config/api";
 
-function ResultModal({ partidos, partidoInicial, onClose, onResultadoGuardado }) {
+function ResultModal({ partidos, partidoInicial, onClose, onResultadoGuardado, onFechaCerrada }) {
   const partidosDisponibles = partidos.filter((partido) => ["PROGRAMADO", "EN_JUEGO", "FINALIZADO"].includes(partido.estado?.toUpperCase()));
 
   const [idPartido, setIdPartido] = useState(partidoInicial?.idPartido ?? "");
@@ -21,15 +21,19 @@ function ResultModal({ partidos, partidoInicial, onClose, onResultadoGuardado })
   const necesitaPenales = esEliminatorio && Number(golesLocal) === Number(golesVisitante);
   const siguientePendiente = [...partidos]
     .filter((partido) => partido.idPartido !== partidoSeleccionado?.idPartido
+      && partido.idFecha === partidoSeleccionado?.idFecha
       && ["PROGRAMADO", "EN_JUEGO"].includes(partido.estado?.toUpperCase()))
     .sort((a, b) => (a.numeroFecha ?? 0) - (b.numeroFecha ?? 0) || a.idPartido - b.idPartido)[0];
+  const puedeCerrarFecha = Boolean(partidoSeleccionado?.idFecha
+    && ["PROGRAMADO", "EN_JUEGO"].includes(partidoSeleccionado.estado?.toUpperCase())
+    && !siguientePendiente);
   useEffect(() => {
     if (!partidoSeleccionado?.idPartido) { setHistorial([]); return; }
     apiFetch(`${API_URL}/partidos/${partidoSeleccionado.idPartido}/historial-resultado`)
       .then((response) => response.ok ? response.json() : []).then(setHistorial).catch(() => setHistorial([]));
   }, [partidoSeleccionado?.idPartido]);
 
-const guardarResultado = async (e, continuar = false) => {
+const guardarResultado = async (e, accion = "CERRAR") => {
   e.preventDefault();
 
   if (!partidoSeleccionado || saving) return;
@@ -59,12 +63,18 @@ const guardarResultado = async (e, continuar = false) => {
 
     const partidoActualizado = await res.json();
     onResultadoGuardado(partidoActualizado);
-    if (continuar && siguientePendiente) {
+    if (accion === "SIGUIENTE" && siguientePendiente) {
       setIdPartido(siguientePendiente.idPartido);
       setGolesLocal(siguientePendiente.golesLocal ?? 0);
       setGolesVisitante(siguientePendiente.golesVisitante ?? 0);
       setPenalesLocal(siguientePendiente.penalesLocal ?? 0);
       setPenalesVisitante(siguientePendiente.penalesVisitante ?? 0);
+    } else if (accion === "CERRAR_FECHA") {
+      const cierre = await apiFetch(`${API_URL}/fechas/${partidoSeleccionado.idFecha}/cerrar`, { method: "PUT" });
+      const fecha = await cierre.json().catch(() => null);
+      if (!cierre.ok) throw new Error(fecha?.message || "El resultado se guardó, pero no se pudo cerrar la jornada");
+      onFechaCerrada?.(fecha);
+      onClose();
     } else {
       onClose();
     }
@@ -136,7 +146,8 @@ const guardarResultado = async (e, continuar = false) => {
           {error && <p className="result-error">{error}</p>}
           <div className="result-actions">
             <button type="submit" className="result-save-btn" disabled={saving}>{saving ? "Guardando…" : "Guardar resultado"}</button>
-            {siguientePendiente && <button type="button" className="result-next-btn" disabled={saving} onClick={(event) => guardarResultado(event, true)}>Guardar y cargar siguiente</button>}
+            {siguientePendiente && <button type="button" className="result-next-btn" disabled={saving} onClick={(event) => guardarResultado(event, "SIGUIENTE")}>Guardar y cargar siguiente</button>}
+            {puedeCerrarFecha && <button type="button" className="result-next-btn close-date" disabled={saving} onClick={(event) => guardarResultado(event, "CERRAR_FECHA")}>Guardar y cerrar jornada</button>}
           </div>
           {historial.length > 0 && <div className="result-history"><strong>Historial de cambios</strong>{historial.slice(0, 5).map((item) => <p key={item.id}><span>{item.usuario} · {new Date(item.fechaCambio).toLocaleString("es-AR")}</span><b>{item.golesLocalAnterior ?? "–"}-{item.golesVisitanteAnterior ?? "–"} → {item.golesLocalNuevo}-{item.golesVisitanteNuevo}</b></p>)}</div>}
         </form>

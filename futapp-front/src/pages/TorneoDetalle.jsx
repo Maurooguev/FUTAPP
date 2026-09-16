@@ -408,6 +408,7 @@ const recargarDatosTorneo = () => {
                 recargarDatosTorneo();
                 setPartidoSeleccionado(partidoActualizado);
               }}
+              onFechaCerrada={(fechaActualizada) => setFechas((current) => current.map((fecha) => fecha.idFecha === fechaActualizada.idFecha ? fechaActualizada : fecha))}
           />
 )}
           {mostrarEdicion && (
