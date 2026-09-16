@@ -35,9 +35,20 @@ function TeamManagement({ torneoId, equipos, canManage, onTeamSaved, onTeamDelet
       {equipos.length === 0 ? <div className="team-empty"><h3>Este torneo todavía no tiene equipos</h3><p>Agregá al menos dos para poder programar partidos.</p></div> : (
         <div className="team-grid">{equipos.map((team) => (
           <article className="team-card" key={team.idEquipo}>
-            <Link className="team-avatar" to={`/equipo/${team.idEquipo}`}>{team.escudo ? <img src={assetUrl(team.escudo)} alt="" /> : team.nombre.slice(0, 2).toUpperCase()}</Link>
-            <Link className="team-card-copy team-card-profile" to={`/equipo/${team.idEquipo}`}><h3>{team.nombre} {team.verificado && <span className="verified-badge compact" title="Equipo administrado por un director aprobado">✓</span>}</h3><p>{team.barrio} · {team.colorCamiseta}</p><small>Responsable: {team.responsable}</small></Link>
-            <div className="team-card-actions"><Link className="team-profile-link" to={`/equipo/${team.idEquipo}`}>Ver perfil</Link><button type="button" onClick={() => setRosterTeam(team)}>Ver plantel</button>{canManage && <><button type="button" className="team-edit" onClick={() => openEditTeam(team)}>Editar</button><button type="button" className="team-delete" onClick={() => removeTeam(team)}>Quitar del torneo</button></>}</div>
+            <Link className="team-card-link" to={`/equipo/${team.idEquipo}`} aria-label={`Abrir perfil de ${team.nombre}`}>
+              <span className="team-avatar">
+                {team.nombre.slice(0, 2).toUpperCase()}
+                {team.escudo && <img src={assetUrl(team.escudo)} alt="" onError={(event) => event.currentTarget.remove()} />}
+              </span>
+              <span className="team-card-name">{team.nombre}</span>
+              {team.verificado && <span className="team-verified" title="Equipo verificado" aria-label="Equipo verificado">✓</span>}
+              <span className="team-card-arrow" aria-hidden="true">›</span>
+            </Link>
+            {canManage && <div className="team-card-actions" aria-label={`Acciones de ${team.nombre}`}>
+              <button type="button" onClick={() => setRosterTeam(team)} title="Administrar plantel" aria-label={`Administrar plantel de ${team.nombre}`}>☷</button>
+              <button type="button" className="team-edit" onClick={() => openEditTeam(team)} title="Editar equipo" aria-label={`Editar ${team.nombre}`}>✎</button>
+              <button type="button" className="team-delete" onClick={() => removeTeam(team)} title="Quitar del torneo" aria-label={`Quitar a ${team.nombre} del torneo`}>×</button>
+            </div>}
           </article>
         ))}</div>
       )}

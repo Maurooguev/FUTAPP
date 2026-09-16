@@ -5,7 +5,7 @@ function TopScorersTable({ goleadores }) {
   return (
     <div className="top-table-card">
       <div className="top-table-header">
-        <h2>Top 5 goleadores</h2>
+        <h2>Goleadores</h2>
       </div>
 
       <table className="top-table">

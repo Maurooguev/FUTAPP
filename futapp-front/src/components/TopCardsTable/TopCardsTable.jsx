@@ -5,7 +5,7 @@ function TopCardsTable({ jugadores }) {
   return (
     <div className="cards-table-card">
       <div className="cards-table-header">
-        <h2>Top 5 amarillas</h2>
+        <h2>Amarillas</h2>
       </div>
 
       <table className="cards-table">
