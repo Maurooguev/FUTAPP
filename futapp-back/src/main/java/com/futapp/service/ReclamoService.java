@@ -59,7 +59,21 @@ public class ReclamoService {
         return dto(item);
     }
 
-    private boolean puedeRevisar(Usuario u, SolicitudReclamo r) { if (u.tieneRol("ADMIN")) return true; if (r.getTorneo().getPropietario()!=null && r.getTorneo().getPropietario().getIdUsuario().equals(u.getIdUsuario())) return true; return "JUGADOR".equals(r.getTipo()) && administradores.existsByEquipoIdEquipoAndUsuarioIdUsuarioAndEstado(r.getJugador().getEquipo().getIdEquipo(),u.getIdUsuario(),"ACTIVO"); }
+    private boolean puedeRevisar(Usuario usuario, SolicitudReclamo reclamo) {
+        if (usuario.tieneRol("ADMIN")) return true;
+
+        boolean esPropietarioDelTorneo = reclamo.getTorneo().getPropietario() != null
+                && reclamo.getTorneo().getPropietario().getIdUsuario().equals(usuario.getIdUsuario());
+        if ("EQUIPO".equals(reclamo.getTipo())) return esPropietarioDelTorneo;
+
+        Long idEquipo = reclamo.getJugador().getEquipo().getIdEquipo();
+        boolean esDirector = administradores.existsByEquipoIdEquipoAndUsuarioIdUsuarioAndEstado(
+                idEquipo, usuario.getIdUsuario(), "ACTIVO");
+        if (esDirector) return true;
+
+        boolean tieneDirector = administradores.existsByEquipoIdEquipoAndEstado(idEquipo, "ACTIVO");
+        return !tieneDirector && esPropietarioDelTorneo;
+    }
     private SolicitudReclamo base(Usuario u,Torneo t,String m){SolicitudReclamo r=new SolicitudReclamo();r.setSolicitante(u);r.setTorneo(t);r.setMensaje(normalizar(m));return r;}
     private Usuario actual(){Object p=SecurityContextHolder.getContext().getAuthentication().getPrincipal();if(p instanceof Usuario u)return u;throw new AccessDeniedException("Debés iniciar sesión");}
     private void exigirRol(Usuario u,String rol){if(!u.tieneRol(rol)&&!u.tieneRol("ADMIN"))throw new AccessDeniedException("Tu cuenta no puede realizar este reclamo");}

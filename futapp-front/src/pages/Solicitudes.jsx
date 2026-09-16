@@ -1,13 +1,15 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { API_URL, apiFetch, assetUrl } from "../config/api";
+import useAuth from "../context/useAuth";
+import { tieneRol } from "../utils/roles";
 import "./Profiles.css";
 
 const formatDate = (value) => value
   ? new Intl.DateTimeFormat("es-AR", { dateStyle: "short", timeStyle: "short" }).format(new Date(value))
   : "—";
 
-function SolicitudCard({ item, onResolve, rejecting, onReject, onCancelReject }) {
+function SolicitudCard({ item, onResolve, rejecting, onReject, onCancelReject, canResolve = false }) {
   const [reason, setReason] = useState("");
   const targetUrl = item.tipo === "EQUIPO" ? `/equipo/${item.idEquipo}` : `/jugador/${item.idJugador}`;
   const targetName = item.tipo === "EQUIPO" ? item.nombreEquipo : item.nombreJugador;
@@ -17,35 +19,50 @@ function SolicitudCard({ item, onResolve, rejecting, onReject, onCancelReject })
     <div className="request-content">
       <div className="request-title"><div><span>{item.tipo === "EQUIPO" ? "Reclamo de equipo" : "Reclamo de jugador"}</span><h2>{item.nombreSolicitante}</h2></div><strong className={`request-status ${item.estado.toLowerCase()}`}>{item.estado}</strong></div>
       <div className="request-meta"><span>{item.rolSolicitante?.replaceAll("_", " ")}</span><a href={`mailto:${item.emailSolicitante}`}>{item.emailSolicitante}</a><span>{formatDate(item.fechaSolicitud)}</span></div>
-      <p>Solicita administrar <Link to={targetUrl}>{targetName}</Link> en <Link to={`/torneo/${item.idTorneo}`}>{item.nombreTorneo}</Link>.</p>
+      <p>{item.tipo === "EQUIPO" ? "Solicita administrar" : "Solicita vincular su cuenta con"} <Link to={targetUrl}>{targetName}</Link> en <Link to={`/torneo/${item.idTorneo}`}>{item.nombreTorneo}</Link>.</p>
       <p className="request-team">Equipo: <Link to={`/equipo/${item.idEquipo}`}>{item.nombreEquipo}</Link></p>
       {item.mensaje && <blockquote>“{item.mensaje}”</blockquote>}
       {item.estado !== "PENDIENTE" && <div className="request-resolution"><strong>{item.nombreRevisor || "Revisor"}</strong> · {formatDate(item.fechaResolucion)}{item.motivoResolucion && <p>Motivo: {item.motivoResolucion}</p>}</div>}
-      {item.estado === "PENDIENTE" && !rejecting && <div className="request-actions"><button onClick={() => onResolve(item.idSolicitud, true)}>Aprobar</button><button className="danger" onClick={() => onReject(item.idSolicitud)}>Rechazar</button></div>}
-      {rejecting && <div className="request-reject-form"><label>Motivo del rechazo<textarea value={reason} onChange={(event) => setReason(event.target.value)} placeholder="Explicá brevemente por qué se rechaza…" autoFocus /></label><div><button onClick={onCancelReject}>Cancelar</button><button className="danger" disabled={!reason.trim()} onClick={() => onResolve(item.idSolicitud, false, reason)}>Confirmar rechazo</button></div></div>}
+      {item.estado === "PENDIENTE" && !canResolve && <div className="request-resolution">Esperando revisión.</div>}
+      {item.estado === "PENDIENTE" && canResolve && !rejecting && <div className="request-actions"><button onClick={() => onResolve(item.idSolicitud, true)}>Aprobar</button><button className="danger" onClick={() => onReject(item.idSolicitud)}>Rechazar</button></div>}
+      {canResolve && rejecting && <div className="request-reject-form"><label>Motivo del rechazo<textarea value={reason} onChange={(event) => setReason(event.target.value)} placeholder="Explicá brevemente por qué se rechaza…" autoFocus /></label><div><button onClick={onCancelReject}>Cancelar</button><button className="danger" disabled={!reason.trim()} onClick={() => onResolve(item.idSolicitud, false, reason)}>Confirmar rechazo</button></div></div>}
     </div>
   </article>;
 }
 
 function Solicitudes() {
-  const [items, setItems] = useState([]);
+  const { usuario } = useAuth();
+  const canReview = tieneRol(usuario, "ADMIN") || tieneRol(usuario, "ORGANIZADOR") || tieneRol(usuario, "DIRECTOR_EQUIPO");
+  const [reviewItems, setReviewItems] = useState([]);
+  const [myItems, setMyItems] = useState([]);
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState("PENDIENTE");
+  const [tab, setTab] = useState(canReview ? "REVISAR" : "ENVIADAS");
   const [rejectingId, setRejectingId] = useState(null);
   const [resolving, setResolving] = useState(false);
   const load = useCallback(async () => {
     try {
-      const response = await apiFetch(`${API_URL}/reclamos/revisables`);
-      const data = await response.json().catch(() => null);
-      if (!response.ok) throw new Error(data?.message || "No se pudieron cargar las solicitudes");
-      setItems(Array.isArray(data) ? data : []);
+      const [mineResponse, reviewResponse] = await Promise.all([
+        apiFetch(`${API_URL}/reclamos/mios`),
+        canReview ? apiFetch(`${API_URL}/reclamos/revisables`) : Promise.resolve(null),
+      ]);
+      const mine = await mineResponse.json().catch(() => null);
+      if (!mineResponse.ok) throw new Error(mine?.message || "No se pudieron cargar tus solicitudes");
+      const review = reviewResponse ? await reviewResponse.json().catch(() => null) : [];
+      if (reviewResponse && !reviewResponse.ok) throw new Error(review?.message || "No se pudieron cargar las solicitudes pendientes");
+      setMyItems(Array.isArray(mine) ? mine : []);
+      setReviewItems(Array.isArray(review) ? review : []);
     } catch (requestError) { setMessage(requestError.message); }
     finally { setLoading(false); }
-  }, []);
+  }, [canReview]);
   useEffect(() => { load(); }, [load]);
-  const pendingCount = items.filter((item) => item.estado === "PENDIENTE").length;
-  const visibleItems = useMemo(() => items.filter((item) => tab === "PENDIENTE" ? item.estado === "PENDIENTE" : item.estado !== "PENDIENTE"), [items, tab]);
+  const pendingCount = reviewItems.filter((item) => item.estado === "PENDIENTE").length;
+  const sentPendingCount = myItems.filter((item) => item.estado === "PENDIENTE").length;
+  const visibleItems = useMemo(() => {
+    if (tab === "REVISAR") return reviewItems.filter((item) => item.estado === "PENDIENTE");
+    if (tab === "ENVIADAS") return myItems;
+    return reviewItems.filter((item) => item.estado !== "PENDIENTE");
+  }, [myItems, reviewItems, tab]);
   const resolve = async (id, approve, reason = "") => {
     if (resolving) return;
     setResolving(true);
@@ -56,10 +73,10 @@ function Solicitudes() {
     setResolving(false);
   };
   return <main className="profile-page requests-page">
-    <div className="requests-heading"><div><span>Gestión de accesos</span><h1>Solicitudes</h1><p>Revisá quién quiere administrar equipos o vincularse con un jugador.</p></div><div className="requests-count"><strong>{pendingCount}</strong><span>pendientes</span></div></div>
+    <div className="requests-heading"><div><span>Gestión de accesos</span><h1>Solicitudes</h1><p>Seguí tus reclamos y, si administrás un torneo o equipo, revisá los accesos pendientes.</p></div><div className="requests-count"><strong>{canReview ? pendingCount : sentPendingCount}</strong><span>pendientes</span></div></div>
     {message && <p className="profile-action-message">{message}</p>}
-    <div className="requests-tabs"><button className={tab === "PENDIENTE" ? "active" : ""} onClick={() => setTab("PENDIENTE")}>Pendientes <span>{pendingCount}</span></button><button className={tab === "HISTORIAL" ? "active" : ""} onClick={() => setTab("HISTORIAL")}>Historial <span>{items.length - pendingCount}</span></button></div>
-    <section className="requests-list">{loading ? <div className="profile-message">Cargando solicitudes...</div> : visibleItems.length === 0 ? <div className="profile-message">{tab === "PENDIENTE" ? "No tenés solicitudes pendientes." : "Todavía no hay solicitudes resueltas."}</div> : visibleItems.map((item) => <SolicitudCard key={item.idSolicitud} item={item} rejecting={rejectingId === item.idSolicitud} onReject={setRejectingId} onCancelReject={() => setRejectingId(null)} onResolve={resolve} />)}</section>
+    <div className="requests-tabs">{canReview && <button className={tab === "REVISAR" ? "active" : ""} onClick={() => setTab("REVISAR")}>Para revisar <span>{pendingCount}</span></button>}<button className={tab === "ENVIADAS" ? "active" : ""} onClick={() => setTab("ENVIADAS")}>Enviadas <span>{myItems.length}</span></button>{canReview && <button className={tab === "HISTORIAL" ? "active" : ""} onClick={() => setTab("HISTORIAL")}>Historial <span>{reviewItems.length - pendingCount}</span></button>}</div>
+    <section className="requests-list">{loading ? <div className="profile-message">Cargando solicitudes...</div> : visibleItems.length === 0 ? <div className="profile-message">{tab === "REVISAR" ? "No tenés solicitudes para revisar." : tab === "ENVIADAS" ? "Todavía no enviaste solicitudes." : "Todavía no hay solicitudes resueltas."}</div> : visibleItems.map((item) => <SolicitudCard key={item.idSolicitud} item={item} canResolve={tab === "REVISAR"} rejecting={rejectingId === item.idSolicitud} onReject={setRejectingId} onCancelReject={() => setRejectingId(null)} onResolve={resolve} />)}</section>
   </main>;
 }
 export default Solicitudes;

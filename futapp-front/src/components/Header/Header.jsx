@@ -50,7 +50,7 @@ function Header() {
             <Link to="/mis-torneos">Mis torneos</Link>
           )}
           {(tieneRol(usuario, "ADMIN") || tieneRol(usuario, "DIRECTOR_EQUIPO")) && <Link to="/mis-equipos">Mis equipos</Link>}
-          {canReview && <Link className="requests-nav-link" to="/solicitudes">Solicitudes{pendingRequests > 0 && <span>{pendingRequests > 99 ? "99+" : pendingRequests}</span>}</Link>}
+          {usuario && <Link className="requests-nav-link" to="/solicitudes">Solicitudes{pendingRequests > 0 && <span>{pendingRequests > 99 ? "99+" : pendingRequests}</span>}</Link>}
           {(tieneRol(usuario, "JUGADOR") || tieneRol(usuario, "ORGANIZADOR")) && <Link to={usuario?.rol === "ORGANIZADOR" || !tieneRol(usuario, "JUGADOR") ? "/mi-perfil-organizador" : "/mi-perfil-jugador"}>Mi perfil</Link>}
         </nav>
 
