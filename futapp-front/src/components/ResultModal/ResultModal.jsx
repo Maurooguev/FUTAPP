@@ -11,22 +11,30 @@ function ResultModal({ partidos, partidoInicial, onClose, onResultadoGuardado })
   const [penalesLocal, setPenalesLocal] = useState(partidoInicial?.penalesLocal ?? 0);
   const [penalesVisitante, setPenalesVisitante] = useState(partidoInicial?.penalesVisitante ?? 0);
   const [historial, setHistorial] = useState([]);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
 
   const partidoSeleccionado = partidos.find(
     (partido) => partido.idPartido === Number(idPartido)
   );
   const esEliminatorio = ["Final", "Semifinales", "Cuartos de final", "Octavos de final", "Primera ronda eliminatoria"].includes(partidoSeleccionado?.observaciones);
   const necesitaPenales = esEliminatorio && Number(golesLocal) === Number(golesVisitante);
+  const siguientePendiente = [...partidos]
+    .filter((partido) => partido.idPartido !== partidoSeleccionado?.idPartido
+      && ["PROGRAMADO", "EN_JUEGO"].includes(partido.estado?.toUpperCase()))
+    .sort((a, b) => (a.numeroFecha ?? 0) - (b.numeroFecha ?? 0) || a.idPartido - b.idPartido)[0];
   useEffect(() => {
     if (!partidoSeleccionado?.idPartido) { setHistorial([]); return; }
     apiFetch(`${API_URL}/partidos/${partidoSeleccionado.idPartido}/historial-resultado`)
       .then((response) => response.ok ? response.json() : []).then(setHistorial).catch(() => setHistorial([]));
   }, [partidoSeleccionado?.idPartido]);
 
-const guardarResultado = async (e) => {
+const guardarResultado = async (e, continuar = false) => {
   e.preventDefault();
 
-  if (!partidoSeleccionado) return;
+  if (!partidoSeleccionado || saving) return;
+  setSaving(true);
+  setError("");
 
   const resultado = {
     golesLocal: Number(golesLocal),
@@ -51,10 +59,20 @@ const guardarResultado = async (e) => {
 
     const partidoActualizado = await res.json();
     onResultadoGuardado(partidoActualizado);
-    onClose();
+    if (continuar && siguientePendiente) {
+      setIdPartido(siguientePendiente.idPartido);
+      setGolesLocal(siguientePendiente.golesLocal ?? 0);
+      setGolesVisitante(siguientePendiente.golesVisitante ?? 0);
+      setPenalesLocal(siguientePendiente.penalesLocal ?? 0);
+      setPenalesVisitante(siguientePendiente.penalesVisitante ?? 0);
+    } else {
+      onClose();
+    }
   } catch (error) {
     console.error(error);
-    alert(error.message || "No se pudo guardar el resultado");
+    setError(error.message || "No se pudo guardar el resultado");
+  } finally {
+    setSaving(false);
   }
 };
 
@@ -72,9 +90,9 @@ const guardarResultado = async (e) => {
           <label>Partido</label>
           {partidoInicial ? (
             <div className="result-selected-match">
-              <strong>{partidoInicial.nombreEquipoLocal}</strong>
+              <strong>{partidoSeleccionado?.nombreEquipoLocal}</strong>
               <span>vs</span>
-              <strong>{partidoInicial.nombreEquipoVisitante}</strong>
+              <strong>{partidoSeleccionado?.nombreEquipoVisitante}</strong>
             </div>
           ) : <select
             value={idPartido}
@@ -115,9 +133,11 @@ const guardarResultado = async (e) => {
 
           {necesitaPenales && <div className="result-penalties"><strong>Definición por penales</strong><div className="result-score-inputs"><div><label>Penales local</label><input type="number" min="0" value={penalesLocal} onChange={(e) => setPenalesLocal(e.target.value)} /></div><div><label>Penales visitante</label><input type="number" min="0" value={penalesVisitante} onChange={(e) => setPenalesVisitante(e.target.value)} /></div></div></div>}
 
-          <button type="submit" className="result-save-btn">
-            Guardar resultado
-          </button>
+          {error && <p className="result-error">{error}</p>}
+          <div className="result-actions">
+            <button type="submit" className="result-save-btn" disabled={saving}>{saving ? "Guardando…" : "Guardar resultado"}</button>
+            {siguientePendiente && <button type="button" className="result-next-btn" disabled={saving} onClick={(event) => guardarResultado(event, true)}>Guardar y cargar siguiente</button>}
+          </div>
           {historial.length > 0 && <div className="result-history"><strong>Historial de cambios</strong>{historial.slice(0, 5).map((item) => <p key={item.id}><span>{item.usuario} · {new Date(item.fechaCambio).toLocaleString("es-AR")}</span><b>{item.golesLocalAnterior ?? "–"}-{item.golesVisitanteAnterior ?? "–"} → {item.golesLocalNuevo}-{item.golesVisitanteNuevo}</b></p>)}</div>}
         </form>
       </div>
