@@ -1,6 +1,7 @@
 package com.futapp.repository;
 
 import com.futapp.dto.GoleadorDTO;
+import com.futapp.dto.GolResponseDTO;
 import com.futapp.model.Gol;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -21,6 +22,36 @@ public interface GolRepository extends JpaRepository<Gol, Long> {
     boolean existsByJugadorIdJugador(Long idJugador);
     boolean existsByPartidoTorneoIdTorneo(Long idTorneo);
     long countByPartidoIdPartidoAndEquipoIdEquipo(Long idPartido, Long idEquipo);
+
+    @Query("""
+        SELECT new com.futapp.dto.GolResponseDTO(
+            g.idGol, g.minuto, g.tipoGol, g.observacion,
+            p.idPartido, j.idJugador, CONCAT(j.nombre, ' ', j.apellido),
+            e.idEquipo, e.nombre
+        )
+        FROM Gol g
+        JOIN g.partido p
+        JOIN g.jugador j
+        JOIN g.equipo e
+        WHERE p.idPartido = :idPartido
+        ORDER BY g.minuto, g.idGol
+    """)
+    List<GolResponseDTO> obtenerDetallePorPartido(Long idPartido);
+
+    @Query("""
+        SELECT new com.futapp.dto.GolResponseDTO(
+            g.idGol, g.minuto, g.tipoGol, g.observacion,
+            p.idPartido, j.idJugador, CONCAT(j.nombre, ' ', j.apellido),
+            e.idEquipo, e.nombre
+        )
+        FROM Gol g
+        JOIN g.partido p
+        JOIN g.jugador j
+        JOIN g.equipo e
+        WHERE j.idJugador = :idJugador
+        ORDER BY p.fechaHora DESC, g.minuto, g.idGol
+    """)
+    List<GolResponseDTO> obtenerDetallePorJugador(Long idJugador);
 
     @Query("""
         SELECT new com.futapp.dto.GoleadorDTO(

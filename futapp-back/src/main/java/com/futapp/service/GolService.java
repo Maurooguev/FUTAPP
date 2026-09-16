@@ -57,17 +57,11 @@ public class GolService {
     }
 
     public List<GolResponseDTO> listarGolesPorPartido(Long idPartido) {
-        return golRepository.findByPartidoIdPartido(idPartido)
-                .stream()
-                .map(this::convertirAResponseDTO)
-                .collect(Collectors.toList());
+        return golRepository.obtenerDetallePorPartido(idPartido);
     }
 
     public List<GolResponseDTO> listarGolesPorJugador(Long idJugador) {
-        return golRepository.findByJugadorIdJugador(idJugador)
-                .stream()
-                .map(this::convertirAResponseDTO)
-                .collect(Collectors.toList());
+        return golRepository.obtenerDetallePorJugador(idJugador);
     }
 
     public List<GoleadorDTO> obtenerGoleadoresPorTorneo(Long idTorneo) {

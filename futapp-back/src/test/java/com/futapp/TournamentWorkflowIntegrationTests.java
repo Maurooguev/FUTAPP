@@ -87,6 +87,17 @@ class TournamentWorkflowIntegrationTests {
         postJson("/goles", token, Map.of("minuto", 52, "tipoGol", "Jugada", "idPartido", partidoId,
                 "idJugador", jugadorLocal.get("idJugador").asLong(), "idEquipo", local.get("idEquipo").asLong()));
 
+        mockMvc.perform(get("/goles/partido/{id}", partidoId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", org.hamcrest.Matchers.hasSize(3)))
+                .andExpect(jsonPath("$[0].idPartido").value(partidoId))
+                .andExpect(jsonPath("$[0].nombreJugador").value("Juan Norte"))
+                .andExpect(jsonPath("$[0].nombreEquipo").value("Barrio Norte"));
+        mockMvc.perform(get("/goles/jugador/{id}", jugadorLocal.get("idJugador").asLong()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", org.hamcrest.Matchers.hasSize(3)))
+                .andExpect(jsonPath("$[0].idJugador").value(jugadorLocal.get("idJugador").asLong()));
+
         mockMvc.perform(post("/goles").header("Authorization", "Bearer " + token)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonMapper.writeValueAsString(Map.of("minuto", 70, "tipoGol", "Jugada",
