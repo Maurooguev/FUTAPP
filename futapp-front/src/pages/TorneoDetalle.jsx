@@ -47,6 +47,8 @@ function TorneoDetalle() {
   const [generandoFixture, setGenerandoFixture] = useState(false);
   const [mostrarGeneradorFixture, setMostrarGeneradorFixture] = useState(false);
   const [perfilOrganizador, setPerfilOrganizador] = useState(null);
+  const [loadError, setLoadError] = useState("");
+  const [reloadKey, setReloadKey] = useState(0);
 
   const eliminarRecurso = async (url, message, onSuccess) => {
     if (!window.confirm(message)) return;
@@ -71,48 +73,31 @@ function TorneoDetalle() {
   };
   
   useEffect(() => {
-    fetch(`${API_URL}/torneos/${id}`)
-      .then((res) => res.json())
-      .then((data) => setTorneo(data))
-      .catch((err) => console.error("Torneo:", err));
-
-    fetch(`${API_URL}/torneos/${id}/tabla`)
-      .then((res) => res.json())
-      .then((data) => setTabla(data))
-      .catch((err) => console.error("Tabla:", err));
-
-    fetch(`${API_URL}/goles/torneo/${id}/goleadores`)
-      .then((res) => res.json())
-      .then((data) => setGoleadores(data))
-      .catch((err) => console.error("Goleadores:", err));
-
-    fetch(`${API_URL}/fechas/torneo/${id}`)
-      .then((res) => res.json())
-      .then((data) => setFechas(data))
-      .catch((err) => console.error("Fechas:", err));
-
-    fetch(`${API_URL}/partidos/torneo/${id}`)
-      .then((res) => res.json())
-      .then((data) => setPartidos(data))
-      .catch((err) => console.error("Partidos:", err));
-
-    fetch(`${API_URL}/tarjetas`)
-      .then((res) => res.json())
-      .then((data) => setTarjetas(data))
-      .catch((err) => console.error("Tarjetas:", err));
-
-    fetch(`${API_URL}/equipos/torneo/${id}`)
-      .then((res) => res.json())
-      .then((data) => setEquipos(data))
-      .catch((err) => console.error("Equipos:", err));
-    fetch(`${API_URL}/torneos/${id}/estructura`)
-      .then((res) => res.json()).then(setEstructura)
-      .catch((err) => console.error("Estructura:", err));
-  }, [id]);
+    let active = true;
+    const getJson = async (path) => {
+      const response = await apiFetch(`${API_URL}${path}`);
+      if (!response.ok) throw new Error(`Error ${response.status}`);
+      return response.json();
+    };
+    Promise.all([
+      getJson(`/torneos/${id}`), getJson(`/torneos/${id}/tabla`),
+      getJson(`/goles/torneo/${id}/goleadores`), getJson(`/fechas/torneo/${id}`),
+      getJson(`/partidos/torneo/${id}`), getJson("/tarjetas"),
+      getJson(`/equipos/torneo/${id}`), getJson(`/torneos/${id}/estructura`),
+    ]).then(([tournament, standings, scorers, dates, matches, cards, teams, structure]) => {
+      if (!active) return;
+      setTorneo(tournament); setTabla(standings); setGoleadores(scorers); setFechas(dates);
+      setPartidos(matches); setTarjetas(cards); setEquipos(teams); setEstructura(structure);
+      setLoadError("");
+    }).catch(() => {
+      if (active) setLoadError("No pudimos cargar el torneo. Verificá que el backend esté iniciado.");
+    });
+    return () => { active = false; };
+  }, [id, reloadKey]);
 
   useEffect(() => {
     if (!torneo?.idPropietario) { setPerfilOrganizador(null); return; }
-    fetch(`${API_URL}/perfiles-organizador/${torneo.idPropietario}`)
+    apiFetch(`${API_URL}/perfiles-organizador/${torneo.idPropietario}`)
       .then((response) => response.ok ? response.json() : null)
       .then(setPerfilOrganizador)
       .catch(() => setPerfilOrganizador(null));
@@ -197,23 +182,24 @@ function TorneoDetalle() {
     : null;
 
   if (!torneo) {
+    if (loadError) return <div className="empty-state" role="alert"><h3>No se pudo cargar el torneo</h3><p>{loadError}</p><button type="button" onClick={() => setReloadKey((value) => value + 1)}>Reintentar</button></div>;
     return <p style={{ padding: "20px" }}>Cargando...</p>;
   }
 
 const recargarDatosTorneo = () => {
-  fetch(`${API_URL}/torneos/${id}/tabla`)
+  apiFetch(`${API_URL}/torneos/${id}/tabla`)
     .then((res) => res.json())
     .then((data) => setTabla(data));
 
-  fetch(`${API_URL}/partidos/torneo/${id}`)
+  apiFetch(`${API_URL}/partidos/torneo/${id}`)
     .then((res) => res.json())
     .then((data) => setPartidos(data));
 
-  fetch(`${API_URL}/goles/torneo/${id}/goleadores`)
+  apiFetch(`${API_URL}/goles/torneo/${id}/goleadores`)
     .then((res) => res.json())
     .then((data) => setGoleadores(data));
 
-  fetch(`${API_URL}/tarjetas`)
+  apiFetch(`${API_URL}/tarjetas`)
     .then((res) => res.json())
     .then((data) => setTarjetas(data));
 };

@@ -4,7 +4,7 @@ import HeroHome from "../components/HeroHome/HeroHome";
 import SectionTitle from "../components/SectionTitle/SectionTitle";
 import TournamentCard from "../components/TournamentCard/TournamentCard";
 import TournamentFormModal from "../components/TournamentFormModal/TournamentFormModal";
-import { API_URL } from "../config/api";
+import { API_URL, apiFetch } from "../config/api";
 import useAuth from "../context/useAuth";
 import { tieneRol } from "../utils/roles";
 
@@ -12,18 +12,20 @@ function Home() {
   const [torneos, setTorneos] = useState([]);
   const [busqueda, setBusqueda] = useState("");
   const [showTournamentForm, setShowTournamentForm] = useState(false);
+  const [loadError, setLoadError] = useState("");
+  const [reloadKey, setReloadKey] = useState(0);
   const navigate = useNavigate();
   const { usuario, refreshSession } = useAuth();
 
   useEffect(() => {
-    fetch(`${API_URL}/torneos`)
+    apiFetch(`${API_URL}/torneos`)
       .then((res) => {
         if (!res.ok) throw new Error("Error al cargar torneos");
         return res.json();
       })
-      .then((data) => setTorneos(data))
-      .catch((error) => console.error("Torneos:", error));
-  }, []);
+      .then((data) => { setTorneos(data); setLoadError(""); })
+      .catch(() => setLoadError("No pudimos conectar con el backend. Verificá que FUTAPP esté iniciado."));
+  }, [reloadKey]);
 
   const torneosFiltrados = useMemo(() => {
     return torneos.filter((torneo) => {
@@ -70,6 +72,14 @@ function Home() {
         primaryLabel={primaryLabel}
       />
 
+      {loadError && (
+        <div className="empty-state" role="alert">
+          <h3>FUTAPP todavía no está disponible</h3>
+          <p>{loadError}</p>
+          <button type="button" className="home-btn-primary" onClick={() => setReloadKey((value) => value + 1)}>Reintentar</button>
+        </div>
+      )}
+
       <section className="stats-section">
         <div className="stat-card">
           <span className="stat-number">{torneos.length}</span>
@@ -113,7 +123,7 @@ function Home() {
           description="Filtrá rápidamente y encontrá el torneo que estás buscando."
         />
 
-        {torneosFiltrados.length === 0 ? (
+        {!loadError && torneosFiltrados.length === 0 ? (
           <div className="empty-state">
             <h3>No encontramos torneos</h3>
             <p>Probá con otro nombre, estado o ubicación.</p>

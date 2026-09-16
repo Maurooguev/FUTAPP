@@ -19,9 +19,34 @@ if ($LASTEXITCODE -ne 0) {
 
 $backendCommand = "Set-Location -LiteralPath '$backendPath'; .\mvnw.cmd spring-boot:run"
 
-Start-Process powershell `
+$backendProcess = Start-Process powershell `
     -WorkingDirectory $backendPath `
-    -ArgumentList "-NoExit", "-Command", $backendCommand
+    -ArgumentList "-NoExit", "-Command", $backendCommand `
+    -PassThru
+
+$healthUrl = "http://localhost:8080/api/v1/status"
+$backendReady = $false
+Write-Host "Esperando a que el backend quede listo..."
+for ($attempt = 1; $attempt -le 90; $attempt++) {
+    if ($backendProcess.HasExited) {
+        throw "El backend se cerro durante el inicio. Revisa la terminal del backend."
+    }
+    try {
+        $health = Invoke-RestMethod -Uri $healthUrl -TimeoutSec 2
+        if ($health.status -eq "UP" -and $health.database -eq "UP") {
+            $backendReady = $true
+            break
+        }
+    } catch {
+        Start-Sleep -Seconds 1
+    }
+}
+
+if (-not $backendReady) {
+    throw "El backend no quedo listo en 90 segundos. Revisa la terminal del backend."
+}
+
+Write-Host "Backend y PostgreSQL listos. Iniciando frontend..."
 
 Set-Location -LiteralPath $frontendPath
 npm run dev
