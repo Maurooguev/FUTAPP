@@ -80,6 +80,7 @@
 .result-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 5px; }
 .result-actions .result-save-btn { margin-top: 0; }
 .result-next-btn { padding: 8px; border-radius: 4px; background: #0877a7; color: #fff; font-size: 11px; font-weight: 800; }
+.result-details-btn { grid-column: 1 / -1; padding: 8px; border-radius: 4px; background: #fef3c7; color: #92400e; font-size: 11px; font-weight: 800; }
 .result-next-btn.close-date { background: #0f766e; }
 .result-actions button:disabled { cursor: wait; opacity: .65; }
 .result-error { margin: 0 !important; border-radius: 4px; padding: 8px; background: #fee2e2; color: #b91c1c !important; font-size: 10px !important; }

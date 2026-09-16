@@ -403,10 +403,10 @@ const recargarDatosTorneo = () => {
               partidos={partidos}
               partidoInicial={partidoResultado}
               onClose={() => { setMostrarResultado(false); setPartidoResultado(null); }}
-              onResultadoGuardado={(partidoActualizado) => {
+              onResultadoGuardado={(partidoActualizado, abrirDetalles = false) => {
                 setPartidos((current) => current.map((partido) => partido.idPartido === partidoActualizado.idPartido ? partidoActualizado : partido));
                 recargarDatosTorneo();
-                setPartidoSeleccionado(partidoActualizado);
+                if (abrirDetalles) setPartidoSeleccionado(partidoActualizado);
               }}
               onFechaCerrada={(fechaActualizada) => setFechas((current) => current.map((fecha) => fecha.idFecha === fechaActualizada.idFecha ? fechaActualizada : fecha))}
           />

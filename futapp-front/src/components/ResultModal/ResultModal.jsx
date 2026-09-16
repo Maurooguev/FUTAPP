@@ -62,7 +62,7 @@ const guardarResultado = async (e, accion = "CERRAR") => {
     if (!res.ok) { const payload = await res.json().catch(() => null); throw new Error(payload?.message || "Error al guardar resultado"); }
 
     const partidoActualizado = await res.json();
-    onResultadoGuardado(partidoActualizado);
+    onResultadoGuardado(partidoActualizado, accion === "DETALLES");
     if (accion === "SIGUIENTE" && siguientePendiente) {
       setIdPartido(siguientePendiente.idPartido);
       setGolesLocal(siguientePendiente.golesLocal ?? 0);
@@ -146,6 +146,7 @@ const guardarResultado = async (e, accion = "CERRAR") => {
           {error && <p className="result-error">{error}</p>}
           <div className="result-actions">
             <button type="submit" className="result-save-btn" disabled={saving}>{saving ? "Guardando…" : "Guardar resultado"}</button>
+            <button type="button" className="result-details-btn" disabled={saving} onClick={(event) => guardarResultado(event, "DETALLES")}>Guardar y cargar goles, tarjetas o MVP</button>
             {siguientePendiente && <button type="button" className="result-next-btn" disabled={saving} onClick={(event) => guardarResultado(event, "SIGUIENTE")}>Guardar y cargar siguiente</button>}
             {puedeCerrarFecha && <button type="button" className="result-next-btn close-date" disabled={saving} onClick={(event) => guardarResultado(event, "CERRAR_FECHA")}>Guardar y cerrar jornada</button>}
           </div>
