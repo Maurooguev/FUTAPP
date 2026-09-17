@@ -34,7 +34,11 @@ function Home() {
     });
   }, [torneos, busqueda]);
 
-  const destacados = torneos.slice(0, 3);
+  const destacados = useMemo(() => [...torneos]
+    .sort((a, b) => (b.visitas || 0) - (a.visitas || 0)
+      || Number(b.estado?.toUpperCase() === "ACTIVO") - Number(a.estado?.toUpperCase() === "ACTIVO")
+      || (b.idTorneo || 0) - (a.idTorneo || 0))
+    .slice(0, 3), [torneos]);
 
   const torneosActivos = torneos.filter(
     (torneo) => torneo.estado?.toUpperCase() === "ACTIVO"
