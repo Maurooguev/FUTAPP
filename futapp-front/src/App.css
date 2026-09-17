@@ -1644,11 +1644,41 @@ button {
 .tournament-overview-actions span { color: #7b8a95; font-size: 9px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; }
 .tournament-overview-actions strong { overflow: hidden; font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
 .tournament-overview-actions b { margin-top: 5px; color: #0877a7; font-size: 9px; }
+.tournament-admin-bar { position: relative; z-index: 20; border-bottom: 1px solid #dbe3e8; background: #fff; }
+.tournament-admin-main { display: flex; width: min(920px, calc(100% - 32px)); min-height: 62px; margin: 0 auto; align-items: center; gap: 12px; }
+.admin-primary-action { display: flex; flex: 0 0 auto; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 5px; background: #0877a7; color: #fff; text-align: left; }
+.admin-primary-action > span:first-child { font-size: 16px; }
+.admin-primary-action small, .admin-primary-action strong { display: block; }
+.admin-primary-action small { margin-bottom: 1px; color: #c9effb; font-size: 8px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; }
+.admin-primary-action strong { font-size: 11px; }
+.admin-primary-action:disabled { background: #94a3b8; cursor: default; }
+.admin-context-actions { display: flex; flex: 1; align-items: center; gap: 6px; }
+.admin-context-actions button, .admin-more-toggle { padding: 7px 9px; border: 1px solid #dbe3e8; border-radius: 4px; background: #f7f9fa; color: #334155; font-size: 10px; }
+.admin-context-actions > span { color: #71808b; font-size: 10px; }
+.admin-more-wrap { position: relative; margin-left: auto; }
+.admin-more-toggle { display: flex; align-items: center; gap: 5px; background: #fff; }
+.admin-more-toggle span { font-size: 16px; line-height: .5; }
+.admin-more-menu { position: absolute; top: calc(100% + 6px); right: 0; z-index: 50; display: grid; width: 210px; padding: 5px; border: 1px solid #dbe3e8; border-radius: 6px; background: #fff; box-shadow: 0 12px 28px rgba(15,23,42,.16); }
+.admin-more-menu > button { padding: 9px 10px; border: 0; border-radius: 3px; background: transparent; color: #334155; font-size: 10px; text-align: left; }
+.admin-more-menu > button:hover { background: #eef6f9; color: #0877a7; }
+.tournament-admin-bar > .tournament-form-error { width: min(920px, calc(100% - 32px)); margin: 0 auto 8px; }
+.tournament-mobile-actions { display: none; }
 
 @media (max-width: 700px) {
   .torneo-page .admin-actions { position: sticky; top: 44px; z-index: 30; overflow-x: auto; flex-wrap: nowrap; padding: 7px 10px; background: rgba(255,255,255,.96); box-shadow: 0 4px 12px rgba(15,23,42,.12); }
   .torneo-page .admin-actions button { flex: 0 0 auto; min-height: 38px; }
   .tournament-overview-actions { grid-template-columns: 1fr; }
+  .torneo-page { padding-bottom: 64px; }
+  .tournament-admin-main { width: calc(100% - 24px); min-height: 56px; gap: 7px; }
+  .admin-primary-action { flex: 1; }
+  .admin-context-actions { display: none; }
+  .admin-more-toggle { min-height: 38px; }
+  .tournament-mobile-actions { position: fixed; right: 0; bottom: 0; left: 0; z-index: 80; display: grid; grid-template-columns: repeat(4, 1fr); padding: 5px max(8px, env(safe-area-inset-right)) calc(5px + env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left)); border-top: 1px solid #d4dde3; background: rgba(255,255,255,.98); box-shadow: 0 -5px 18px rgba(15,23,42,.12); backdrop-filter: blur(8px); }
+  .tournament-mobile-actions button { display: grid; min-height: 46px; place-items: center; gap: 1px; padding: 3px; border-radius: 5px; background: transparent; color: #64748b; font-size: 8px; font-weight: 800; }
+  .tournament-mobile-actions button span { font-size: 17px; line-height: 1; }
+  .tournament-mobile-actions button.active { background: #eaf6fa; color: #0877a7; }
+  .tournament-mobile-actions button.result { background: #0877a7; color: #fff; }
+  .tournament-mobile-actions button:disabled { background: #cbd5e1; opacity: .7; }
 }
 .torneo-page .torneo-dobles { gap: 12px; }
 .partido-content { padding-bottom: 40px; }

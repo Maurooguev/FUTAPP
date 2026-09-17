@@ -52,6 +52,7 @@ function TorneoDetalle() {
   const [perfilOrganizador, setPerfilOrganizador] = useState(null);
   const [loadError, setLoadError] = useState("");
   const [reloadKey, setReloadKey] = useState(0);
+  const [showMoreActions, setShowMoreActions] = useState(false);
   const [activeTab, setActiveTab] = useState(() => {
     const requested = window.location.hash.replace("#", "");
     return TOURNAMENT_TABS.has(requested) ? requested : "resumen";
@@ -200,6 +201,9 @@ function TorneoDetalle() {
       (partido) => partido.estado?.toUpperCase() === "FINALIZADO"
     ).length;
   }, [partidos]);
+  const siguientePartidoPendiente = useMemo(() => [...partidos]
+    .filter((partido) => ["PROGRAMADO", "EN_JUEGO"].includes(partido.estado?.toUpperCase()))
+    .sort((a, b) => (a.fechaHora || "").localeCompare(b.fechaHora || ""))[0] || null, [partidos]);
   const cantidadEquiposLlave = estructura?.divisiones?.[0]?.fases?.find((fase) => fase.tipo === "ELIMINACION_DIRECTA")?.clasificados || equipos.length;
   const usaLlave = torneo?.formato?.toLowerCase() === "eliminación directa" || torneo?.formato?.toLowerCase().includes("playoffs");
   const filaCampeon = tabla.find((fila) => fila.idEquipo === torneo?.idCampeon) || tabla[0];
@@ -241,6 +245,11 @@ const recargarDatosTorneo = () => {
     }
     setAdminError("");
     setMostrarGeneradorFixture(true);
+  };
+
+  const abrirProximoResultado = () => {
+    setPartidoResultado(siguientePartidoPendiente);
+    setMostrarResultado(true);
   };
 
   const rehacerFixture = async () => {
@@ -314,24 +323,29 @@ const recargarDatosTorneo = () => {
     <div className="torneo-page">
       <TournamentHero torneo={torneo} fechaActual={fechaActual} perfilOrganizador={perfilOrganizador} activeTab={activeTab} onTabChange={changeTab} />
 
-      {puedeEditar && (
-        <div className="admin-actions">
-          <button onClick={() => setMostrarEdicion(true)}>Editar torneo</button>
-          <TournamentExports torneo={torneo} tabla={tabla} fechas={fechas} partidos={partidos} goleadores={goleadores} />
-          {torneo.estado?.toUpperCase() === "BORRADOR" && <button onClick={() => cambiarEstadoTorneo("publicar")}>Publicar torneo</button>}
-          {torneo.estado?.toUpperCase() === "BORRADOR" && <button onClick={() => cambiarEstadoTorneo("iniciar")}>Iniciar torneo</button>}
-          {torneo.estado?.toUpperCase() === "PUBLICADO" && <button onClick={() => cambiarEstadoTorneo("iniciar")}>Iniciar torneo</button>}
-          {torneo.estado?.toUpperCase() === "ACTIVO" && <button onClick={() => cambiarEstadoTorneo("finalizar")}>Finalizar torneo</button>}
-          <button onClick={() => { setPartidoResultado(null); setMostrarResultado(true); }}>Cargar resultado</button>
-          <button onClick={() => setMostrarFecha(true)}>Agregar jornada</button>
-          <button onClick={() => setMostrarPartido(true)}>Agregar partido</button>
-          {partidos.length > 0 && <button className="simulation-button" onClick={simularTorneo} disabled={generandoFixture}>Simular torneo</button>}
-          <button onClick={partidos.length > 0 ? rehacerFixture : abrirGeneradorFixture} disabled={generandoFixture}>
-            {generandoFixture ? "Procesando..." : partidos.length > 0 ? "Rehacer fixture" : torneo.formato?.toLowerCase().includes("eliminación") ? "Generar llaves" : "Generar fixture automático"}
+      {puedeEditar && <div className="tournament-admin-bar">
+        <div className="tournament-admin-main">
+          <button className="admin-primary-action" type="button" onClick={abrirProximoResultado} disabled={!siguientePartidoPendiente}>
+            <span>⚽</span><span><small>Siguiente acción</small><strong>{siguientePartidoPendiente ? "Cargar próximo resultado" : "No hay partidos pendientes"}</strong></span>
           </button>
+          <div className="admin-context-actions">
+            {activeTab === "resumen" && <><button type="button" onClick={() => setMostrarEdicion(true)}>Editar torneo</button>{torneo.estado?.toUpperCase() === "BORRADOR" && <button type="button" onClick={() => cambiarEstadoTorneo("publicar")}>Publicar</button>}{["BORRADOR", "PUBLICADO"].includes(torneo.estado?.toUpperCase()) && <button type="button" onClick={() => cambiarEstadoTorneo("iniciar")}>Iniciar</button>}{torneo.estado?.toUpperCase() === "ACTIVO" && <button type="button" onClick={() => cambiarEstadoTorneo("finalizar")}>Finalizar</button>}</>}
+            {activeTab === "fixture" && <><button type="button" onClick={() => setMostrarFecha(true)}>+ Jornada</button><button type="button" onClick={() => setMostrarPartido(true)}>+ Partido</button><button type="button" onClick={partidos.length > 0 ? rehacerFixture : abrirGeneradorFixture} disabled={generandoFixture}>{partidos.length > 0 ? "Rehacer fixture" : "Generar fixture"}</button></>}
+            {activeTab === "equipos" && <span>Administrá los clubes desde esta sección</span>}
+            {activeTab === "stats" && <span>Goles y tarjetas se cargan desde cada partido</span>}
+          </div>
+          <div className="admin-more-wrap">
+            <button className="admin-more-toggle" type="button" aria-expanded={showMoreActions} onClick={() => setShowMoreActions((value) => !value)}>Más <span>⋯</span></button>
+            {showMoreActions && <div className="admin-more-menu">
+              <button type="button" onClick={() => { setPartidoResultado(null); setMostrarResultado(true); setShowMoreActions(false); }}>Elegir partido para resultado</button>
+              <button type="button" onClick={() => { setMostrarEdicion(true); setShowMoreActions(false); }}>Editar torneo</button>
+              <TournamentExports torneo={torneo} tabla={tabla} fechas={fechas} partidos={partidos} goleadores={goleadores} />
+              {partidos.length > 0 && <button type="button" className="simulation-button" onClick={() => { setShowMoreActions(false); simularTorneo(); }} disabled={generandoFixture}>Simular torneo</button>}
+            </div>}
+          </div>
         </div>
-      )}
-      {adminError && <div className="admin-actions"><p className="tournament-form-error">{adminError}</p></div>}
+        {adminError && <p className="tournament-form-error">{adminError}</p>}
+      </div>}
 
       <main className="torneo-content">
         <div className="torneo-shell">
@@ -463,6 +477,12 @@ const recargarDatosTorneo = () => {
           {mostrarGeneradorFixture && <FixtureGeneratorModal torneo={torneo} equipos={equipos} fechas={fechas} onClose={() => setMostrarGeneradorFixture(false)} onGenerated={async (generatedMatches) => { setGenerandoFixture(false); setPartidos(generatedMatches); const response = await fetch(`${API_URL}/fechas/torneo/${id}`); setFechas(await response.json()); }} />}
         </div>
       </main>
+      {puedeEditar && <nav className="tournament-mobile-actions" aria-label="Acciones rápidas del organizador">
+        <button type="button" className={activeTab === "resumen" ? "active" : ""} onClick={() => changeTab("resumen")}><span>⌂</span>Resumen</button>
+        <button type="button" className={activeTab === "equipos" ? "active" : ""} onClick={() => changeTab("equipos")}><span>♙</span>Equipos</button>
+        <button type="button" className={activeTab === "fixture" ? "active" : ""} onClick={() => changeTab("fixture")}><span>▦</span>Fixture</button>
+        <button type="button" className="result" onClick={abrirProximoResultado} disabled={!siguientePartidoPendiente}><span>＋</span>Resultado</button>
+      </nav>}
     </div>
   );
 }
