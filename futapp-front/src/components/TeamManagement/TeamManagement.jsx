@@ -33,7 +33,7 @@ function TeamManagement({ torneoId, equipos, canManage, onTeamSaved, onTeamDelet
       </div>
       {error && <p className="tournament-form-error">{error}</p>}
       {equipos.length === 0 ? <div className="team-empty"><h3>Este torneo todavía no tiene equipos</h3><p>Agregá al menos dos para poder programar partidos.</p></div> : (
-        <div className="team-grid">{equipos.map((team) => (
+        <div className={`team-grid ${canManage ? "manageable" : ""}`}>{equipos.map((team) => (
           <article className="team-card" key={team.idEquipo}>
             <Link className="team-card-link" to={`/equipo/${team.idEquipo}`} aria-label={`Abrir perfil de ${team.nombre}`}>
               <span className="team-avatar">
