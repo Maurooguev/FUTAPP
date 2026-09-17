@@ -191,7 +191,7 @@ function TorneoDetalle() {
       .filter((partido) => partido.estado?.toUpperCase() === "PROGRAMADO")
       .sort((a, b) => {
         if (a.idFecha !== b.idFecha) return a.idFecha - b.idFecha;
-        return a.fechaHora.localeCompare(b.fechaHora);
+        return (a.fechaHora || "9999-12-31T23:59").localeCompare(b.fechaHora || "9999-12-31T23:59");
       })
       .slice(0, 6);
   }, [partidos]);
@@ -203,7 +203,7 @@ function TorneoDetalle() {
   }, [partidos]);
   const siguientePartidoPendiente = useMemo(() => [...partidos]
     .filter((partido) => ["PROGRAMADO", "EN_JUEGO"].includes(partido.estado?.toUpperCase()))
-    .sort((a, b) => (a.fechaHora || "").localeCompare(b.fechaHora || ""))[0] || null, [partidos]);
+    .sort((a, b) => (a.fechaHora || "9999-12-31T23:59").localeCompare(b.fechaHora || "9999-12-31T23:59"))[0] || null, [partidos]);
   const cantidadEquiposLlave = estructura?.divisiones?.[0]?.fases?.find((fase) => fase.tipo === "ELIMINACION_DIRECTA")?.clasificados || equipos.length;
   const usaLlave = torneo?.formato?.toLowerCase() === "eliminación directa" || torneo?.formato?.toLowerCase().includes("playoffs");
   const filaCampeon = tabla.find((fila) => fila.idEquipo === torneo?.idCampeon) || tabla[0];
