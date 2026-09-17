@@ -2,10 +2,14 @@ import { Link } from "react-router-dom";
 import "./TournamentHero.css";
 import FavoriteButton from "../FavoriteButton/FavoriteButton";
 
-function TournamentHero({ torneo, fechaActual, perfilOrganizador }) {
+const TABS = [["resumen", "Resumen"], ["tabla", "Tabla"], ["equipos", "Equipos"], ["stats", "Estadísticas"], ["fixture", "Fixture"]];
+
+function TournamentHero({ torneo, fechaActual, perfilOrganizador, activeTab = "resumen", onTabChange }) {
   const inicial = torneo.nombre?.trim().charAt(0).toUpperCase() || "T";
+  const tabs = torneo.formato?.toLowerCase() === "eliminación directa" ? TABS.filter(([id]) => id !== "tabla") : TABS;
 
   return (
+    <>
     <section className="tournament-hero">
       <div className="tournament-shell">
         <Link to="/" className="tournament-back">
@@ -34,12 +38,13 @@ function TournamentHero({ torneo, fechaActual, perfilOrganizador }) {
         </div>
       </div>
 
-      <nav className="tournament-tabs" aria-label="Secciones del torneo">
-        <div className="tournament-shell">
-          <a href="#resumen">Resumen</a><a href="#tabla">Tabla</a><a href="#equipos">Equipos</a><a href="#stats">Estadísticas</a><a href="#fixture">Fixture</a>
-        </div>
-      </nav>
     </section>
+    <nav className="tournament-tabs" aria-label="Secciones del torneo">
+      <div className="tournament-shell">
+        {tabs.map(([id, label]) => <button key={id} type="button" className={activeTab === id ? "active" : ""} aria-current={activeTab === id ? "page" : undefined} onClick={() => onTabChange?.(id)}>{label}</button>)}
+      </div>
+    </nav>
+    </>
   );
 }
 

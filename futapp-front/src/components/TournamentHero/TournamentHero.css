@@ -17,10 +17,10 @@
 .tournament-meta small, .tournament-meta strong { display: block; }
 .tournament-meta small { margin-bottom: 2px; color: #89959d; font-size: 11px; text-transform: uppercase; }
 .tournament-meta strong { color: #26343e; font-size: 14px; }
-.tournament-tabs { border-top: 1px solid #e3e8eb; background: #f8f9fa; }
+.tournament-tabs { position: sticky; top: 0; z-index: 35; border-top: 1px solid #e3e8eb; border-bottom: 1px solid #d9e0e5; background: rgba(248,249,250,.97); backdrop-filter: blur(8px); }
 .tournament-tabs .tournament-shell { display: flex; overflow-x: auto; }
-.tournament-tabs a { padding: 13px 18px 11px; border-bottom: 3px solid transparent; color: #50616d; font-size: 13px; font-weight: 700; white-space: nowrap; }
-.tournament-tabs a:first-child, .tournament-tabs a:hover { border-bottom-color: #08a4d6; color: #0877a7; }
+.tournament-tabs button { flex: 0 0 auto; padding: 13px 18px 11px; border: 0; border-bottom: 3px solid transparent; border-radius: 0; background: transparent; color: #50616d; font-size: 13px; font-weight: 700; white-space: nowrap; }
+.tournament-tabs button.active, .tournament-tabs button:hover { border-bottom-color: #08a4d6; color: #0877a7; }
 
 @media (max-width: 768px) {
   .tournament-summary { align-items: flex-start; gap: 13px; }
@@ -29,5 +29,5 @@
   .tournament-creator { flex-wrap: wrap; }
   .tournament-meta { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
   .tournament-meta > span { min-width: 0; padding: 0; border: 0; }
-  .tournament-tabs a { padding-inline: 14px; }
+  .tournament-tabs button { min-height: 44px; padding-inline: 14px; }
 }

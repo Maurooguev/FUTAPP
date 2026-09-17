@@ -22,6 +22,8 @@ import TournamentReadiness from "../components/TournamentReadiness/TournamentRea
 import TournamentExports from "../components/TournamentExports/TournamentExports";
 import KnockoutBracket from "../components/KnockoutBracket/KnockoutBracket";
 
+const TOURNAMENT_TABS = new Set(["resumen", "tabla", "equipos", "stats", "fixture"]);
+
 function TorneoDetalle() {
   const { id } = useParams();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -50,6 +52,16 @@ function TorneoDetalle() {
   const [perfilOrganizador, setPerfilOrganizador] = useState(null);
   const [loadError, setLoadError] = useState("");
   const [reloadKey, setReloadKey] = useState(0);
+  const [activeTab, setActiveTab] = useState(() => {
+    const requested = window.location.hash.replace("#", "");
+    return TOURNAMENT_TABS.has(requested) ? requested : "resumen";
+  });
+
+  const changeTab = (tab) => {
+    setActiveTab(tab);
+    window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}#${tab}`);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   useEffect(() => {
     if (searchParams.get("accion") !== "resultado" || partidos.length === 0) return;
@@ -59,6 +71,10 @@ function TorneoDetalle() {
     setMostrarResultado(true);
     setSearchParams({}, { replace: true });
   }, [partidos, searchParams, setSearchParams]);
+
+  useEffect(() => {
+    if (activeTab === "tabla" && torneo?.formato?.toLowerCase() === "eliminación directa") setActiveTab("resumen");
+  }, [activeTab, torneo?.formato]);
 
   const eliminarRecurso = async (url, message, onSuccess) => {
     if (!window.confirm(message)) return;
@@ -296,7 +312,7 @@ const recargarDatosTorneo = () => {
 
   return (
     <div className="torneo-page">
-      <TournamentHero torneo={torneo} fechaActual={fechaActual} perfilOrganizador={perfilOrganizador} />
+      <TournamentHero torneo={torneo} fechaActual={fechaActual} perfilOrganizador={perfilOrganizador} activeTab={activeTab} onTabChange={changeTab} />
 
       {puedeEditar && (
         <div className="admin-actions">
@@ -319,12 +335,12 @@ const recargarDatosTorneo = () => {
 
       <main className="torneo-content">
         <div className="torneo-shell">
-          {puedeEditar && <TournamentReadiness torneoId={id} torneo={torneo} equipos={equipos} partidos={partidos} onGenerateFixture={abrirGeneradorFixture} onNextRound={generarSiguienteLlave} />}
-          {campeonLiga && <div className="league-champion">
+          {activeTab === "resumen" && puedeEditar && <TournamentReadiness torneoId={id} torneo={torneo} equipos={equipos} partidos={partidos} onGenerateFixture={abrirGeneradorFixture} onNextRound={generarSiguienteLlave} onNavigate={changeTab} />}
+          {activeTab === "resumen" && campeonLiga && <div className="league-champion">
             <span className="league-champion-trophy">🏆</span>
             <div><small>Campeón del torneo</small><Link to={`/equipo/${campeonLiga.idEquipo}`}>{campeonLiga.nombreEquipo}</Link><p>{campeonLiga.puntos} puntos · {campeonLiga.ganados} partidos ganados</p></div>
           </div>}
-          <div className="torneo-stats-grid" id="resumen">
+          {activeTab === "resumen" && <div className="torneo-stats-grid" id="resumen">
             <StatsCard label="Torneo" value={torneo.nombre} />
             <StatsCard label="Partidos jugados" value={partidosJugados} />
             <StatsCard label="Próximos partidos" value={proximosPartidos.length} />
@@ -336,15 +352,20 @@ const recargarDatosTorneo = () => {
                   : "Sin datos"
               }
             />
-          </div>
+          </div>}
+          {activeTab === "resumen" && <div className="tournament-overview-actions" aria-label="Accesos rápidos del torneo">
+            <button type="button" onClick={() => changeTab("fixture")}><span>Próximo partido</span><strong>{proximosPartidos[0] ? `${proximosPartidos[0].nombreEquipoLocal} vs ${proximosPartidos[0].nombreEquipoVisitante}` : "Ver fixture"}</strong><b>Ir al fixture ›</b></button>
+            <button type="button" onClick={() => changeTab("equipos")}><span>Participantes</span><strong>{equipos.length} equipos</strong><b>Ver equipos ›</b></button>
+            <button type="button" onClick={() => changeTab("stats")}><span>Rendimiento</span><strong>{topGoleadores[0]?.nombreJugador || "Sin estadísticas"}</strong><b>Ver estadísticas ›</b></button>
+          </div>}
 
-          {torneo.formato?.toLowerCase() !== "eliminación directa" && torneo.formato?.toLowerCase() !== "zonas + playoffs" && <StandingsTable tabla={tabla} />}
-          {torneo.formato?.toLowerCase() === "zonas + playoffs" && estructura?.divisiones?.[0]?.fases?.[0]?.zonas?.map((zona) => {
+          {activeTab === "tabla" && torneo.formato?.toLowerCase() !== "eliminación directa" && torneo.formato?.toLowerCase() !== "zonas + playoffs" && <StandingsTable tabla={tabla} />}
+          {activeTab === "tabla" && torneo.formato?.toLowerCase() === "zonas + playoffs" && estructura?.divisiones?.[0]?.fases?.[0]?.zonas?.map((zona) => {
             const ids = new Set(estructura.divisiones[0].cupos.filter((cupo) => cupo.idZona === zona.id).map((cupo) => cupo.idEquipo));
             return <StandingsTable key={zona.id} title={`Tabla ${zona.nombre}`} tabla={tabla.filter((fila) => ids.has(fila.idEquipo))} />;
           })}
 
-          <TeamManagement
+          {activeTab === "equipos" && <TeamManagement
             torneoId={id}
             equipos={equipos}
             canManage={puedeEditar}
@@ -357,16 +378,16 @@ const recargarDatosTorneo = () => {
                   : [...current, savedTeam];
               });
             }}
-          />
+          />}
 
-          <div className="torneo-dobles" id="stats">
+          {activeTab === "stats" && <div className="torneo-dobles" id="stats">
             <TopScorersTable goleadores={topGoleadores} />
             <TopCardsTable jugadores={topAmarillas} />
-          </div>
+          </div>}
 
-          {(torneo.formato?.toLowerCase() === "eliminación directa" || torneo.formato?.toLowerCase().includes("playoffs")) && <KnockoutBracket equipos={equipos} teamCount={cantidadEquiposLlave} partidos={partidos} canManage={puedeEditar} onNextRound={generarSiguienteLlave} loading={generandoFixture} />}
+          {activeTab === "fixture" && (torneo.formato?.toLowerCase() === "eliminación directa" || torneo.formato?.toLowerCase().includes("playoffs")) && <KnockoutBracket equipos={equipos} teamCount={cantidadEquiposLlave} partidos={partidos} canManage={puedeEditar} onNextRound={generarSiguienteLlave} loading={generandoFixture} />}
 
-          <FixtureByDate
+          {activeTab === "fixture" && <FixtureByDate
             fechas={fechas}
             partidos={partidos}
             onSelectPartido={setPartidoSeleccionado}
@@ -389,7 +410,7 @@ const recargarDatosTorneo = () => {
             onDeleteMatch={(partido) => eliminarRecurso(`${API_URL}/partidos/${partido.idPartido}`, `¿Eliminar ${partido.nombreEquipoLocal} vs ${partido.nombreEquipoVisitante}?`, () => setPartidos((current) => current.filter((item) => item.idPartido !== partido.idPartido)))}
             onLoadResult={(partido) => { setPartidoResultado(partido); setMostrarResultado(true); }}
             onQuickResult={guardarResultadoRapido}
-          />
+          />}
 
           <MatchModal
             key={partidoSeleccionado?.idPartido ?? "closed-match"}

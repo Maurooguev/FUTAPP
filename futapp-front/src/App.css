@@ -1637,10 +1637,18 @@ button {
 .torneo-page .admin-actions { padding: 0; }
 .torneo-page .admin-actions .simulation-button { background: #7c3aed; color: #fff; }
 .torneo-page .admin-actions + .torneo-content .torneo-stats-grid { margin-top: 8px; }
+.torneo-page .torneo-shell { min-height: 360px; }
+.tournament-overview-actions { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 10px 0 22px; }
+.tournament-overview-actions button { display: grid; min-width: 0; gap: 2px; padding: 12px; border: 1px solid #dbe3e8; border-radius: 6px; background: #fff; color: #17212b; text-align: left; transition: border-color .15s ease, transform .15s ease; }
+.tournament-overview-actions button:hover { border-color: #71bad2; transform: translateY(-1px); }
+.tournament-overview-actions span { color: #7b8a95; font-size: 9px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; }
+.tournament-overview-actions strong { overflow: hidden; font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+.tournament-overview-actions b { margin-top: 5px; color: #0877a7; font-size: 9px; }
 
 @media (max-width: 700px) {
-  .torneo-page .admin-actions { position: sticky; top: 0; z-index: 30; overflow-x: auto; flex-wrap: nowrap; padding: 7px 10px; background: rgba(255,255,255,.96); box-shadow: 0 4px 12px rgba(15,23,42,.12); }
+  .torneo-page .admin-actions { position: sticky; top: 44px; z-index: 30; overflow-x: auto; flex-wrap: nowrap; padding: 7px 10px; background: rgba(255,255,255,.96); box-shadow: 0 4px 12px rgba(15,23,42,.12); }
   .torneo-page .admin-actions button { flex: 0 0 auto; min-height: 38px; }
+  .tournament-overview-actions { grid-template-columns: 1fr; }
 }
 .torneo-page .torneo-dobles { gap: 12px; }
 .partido-content { padding-bottom: 40px; }

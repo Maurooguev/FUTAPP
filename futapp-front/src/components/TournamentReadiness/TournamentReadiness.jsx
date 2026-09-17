@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { API_URL } from "../../config/api";
 import "./TournamentReadiness.css";
 
-function TournamentReadiness({ torneoId, torneo, equipos, partidos, onGenerateFixture, onNextRound }) {
+function TournamentReadiness({ torneoId, torneo, equipos, partidos, onGenerateFixture, onNextRound, onNavigate }) {
   const [rosters, setRosters] = useState({});
 
   useEffect(() => {
@@ -28,18 +28,18 @@ function TournamentReadiness({ torneoId, torneo, equipos, partidos, onGenerateFi
   const pendientes = partidos.filter((partido) => !["FINALIZADO", "CANCELADO"].includes(partido.estado?.toUpperCase())).length;
   const usaLlave = torneo?.formato?.toLowerCase() === "eliminación directa" || torneo?.formato?.toLowerCase().includes("playoffs");
   const campeonDefinido = partidos.some((partido) => partido.observaciones === "Final" && partido.estado?.toUpperCase() === "FINALIZADO");
-  const scrollTo = (id) => document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+  const navigateTo = (id) => onNavigate ? onNavigate(id) : document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
 
   return <section className={`tournament-readiness ${ready ? "ready" : ""}`}>
     <div className="readiness-heading"><div><span>Preparación del torneo</span><h2>{ready ? "Todo listo para jugar" : "Próximos pasos"}</h2></div><strong>{[enoughTeams, rostersReady, fixtureReady].filter(Boolean).length}/3 completos</strong></div>
     <div className="readiness-steps">
-      <button className={enoughTeams ? "done" : "pending"} onClick={() => scrollTo("equipos")}><i>{enoughTeams ? "✓" : "1"}</i><span><b>Equipos</b><small>{equipos.length} inscriptos</small></span></button>
-      <button className={rostersReady ? "done" : "pending"} onClick={() => scrollTo("equipos")}><i>{rostersReady ? "✓" : "2"}</i><span><b>Planteles</b><small>{loading ? "Revisando…" : emptyTeams.length ? `${emptyTeams.length} sin jugadores` : "Todos iniciados"}</small></span></button>
-      <button className={fixtureReady ? "done" : "pending"} onClick={fixtureReady ? () => scrollTo("fixture") : onGenerateFixture}><i>{fixtureReady ? "✓" : "3"}</i><span><b>Fixture</b><small>{fixtureReady ? `${partidos.length} partidos` : "Generar calendario"}</small></span></button>
+      <button className={enoughTeams ? "done" : "pending"} onClick={() => navigateTo("equipos")}><i>{enoughTeams ? "✓" : "1"}</i><span><b>Equipos</b><small>{equipos.length} inscriptos</small></span></button>
+      <button className={rostersReady ? "done" : "pending"} onClick={() => navigateTo("equipos")}><i>{rostersReady ? "✓" : "2"}</i><span><b>Planteles</b><small>{loading ? "Revisando…" : emptyTeams.length ? `${emptyTeams.length} sin jugadores` : "Todos iniciados"}</small></span></button>
+      <button className={fixtureReady ? "done" : "pending"} onClick={fixtureReady ? () => navigateTo("fixture") : onGenerateFixture}><i>{fixtureReady ? "✓" : "3"}</i><span><b>Fixture</b><small>{fixtureReady ? `${partidos.length} partidos` : "Generar calendario"}</small></span></button>
     </div>
     {!loading && emptyTeams.length > 0 && <p className="readiness-warning"><strong>Sin jugadores:</strong> {emptyTeams.map((team) => team.nombre).join(", ")}.</p>}
     {!loading && emptyTeams.length === 0 && shortTeams.length > 0 && <p className="readiness-note">Planteles con menos de 5 jugadores: {shortTeams.map((team) => team.nombre).join(", ")}. Podés continuar, pero conviene completarlos.</p>}
-    <button className="readiness-primary" disabled={campeonDefinido} onClick={!fixtureReady ? onGenerateFixture : pendientes > 0 ? () => scrollTo("fixture") : usaLlave ? onNextRound : () => scrollTo("fixture")}>{!fixtureReady ? "Generar fixture" : pendientes > 0 ? `Cargar resultados pendientes (${pendientes})` : campeonDefinido ? "Torneo con campeón definido" : usaLlave ? "Generar próxima fase" : "Revisar torneo completo"}</button>
+    <button className="readiness-primary" disabled={campeonDefinido} onClick={!fixtureReady ? onGenerateFixture : pendientes > 0 ? () => navigateTo("fixture") : usaLlave ? onNextRound : () => navigateTo("fixture")}>{!fixtureReady ? "Generar fixture" : pendientes > 0 ? `Cargar resultados pendientes (${pendientes})` : campeonDefinido ? "Torneo con campeón definido" : usaLlave ? "Generar próxima fase" : "Revisar torneo completo"}</button>
   </section>;
 }
 
