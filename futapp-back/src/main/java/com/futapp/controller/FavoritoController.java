@@ -15,4 +15,6 @@ public class FavoritoController {
     @DeleteMapping("/equipos/{id}") public EstadoFavoritoDTO quitarEquipo(@PathVariable Long id) { return favoritos.quitarEquipo(id); }
     @PutMapping("/torneos/{id}") public EstadoFavoritoDTO agregarTorneo(@PathVariable Long id) { return favoritos.agregarTorneo(id); }
     @DeleteMapping("/torneos/{id}") public EstadoFavoritoDTO quitarTorneo(@PathVariable Long id) { return favoritos.quitarTorneo(id); }
+    @PutMapping("/jugadores/{id}") public EstadoFavoritoDTO agregarJugador(@PathVariable Long id) { return favoritos.agregarJugador(id); }
+    @DeleteMapping("/jugadores/{id}") public EstadoFavoritoDTO quitarJugador(@PathVariable Long id) { return favoritos.quitarJugador(id); }
 }

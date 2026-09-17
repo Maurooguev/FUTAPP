@@ -1,0 +1,19 @@
+.favorites-page { width: min(920px, calc(100% - 32px)); min-height: 65vh; margin: 28px auto 56px; color: #17212b; }
+.favorites-page > header span { color: #0877a7; font-size: 10px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; }
+.favorites-page > header h1 { margin: 4px 0; font-size: 28px; }
+.favorites-page > header p { margin: 0; color: #64748b; font-size: 12px; }
+.favorites-section { margin-top: 24px; }
+.favorites-section > div:first-child { display: flex; align-items: center; gap: 7px; margin-bottom: 8px; }
+.favorites-section h2 { margin: 0; font-size: 17px; }
+.favorites-section > div:first-child span { display: grid; min-width: 20px; height: 20px; place-items: center; border-radius: 50%; background: #dff2f8; color: #0877a7; font-size: 9px; font-weight: 900; }
+.favorites-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.favorite-card { display: flex; min-width: 0; align-items: center; padding: 7px; border: 1px solid #dbe3e8; border-radius: 6px; background: #fff; }
+.favorite-card > a { display: grid; flex: 1; min-width: 0; grid-template-columns: auto 1fr auto; align-items: center; gap: 10px; color: #17212b; text-decoration: none; }
+.favorite-card-avatar,.favorite-card-icon { display: grid; width: 38px; height: 38px; place-items: center; overflow: hidden; border-radius: 50%; background: #e5f2f7; color: #0877a7; font-size: 11px; font-weight: 900; text-transform: uppercase; }
+.favorite-card-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.favorite-card strong,.favorite-card small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.favorite-card strong { font-size: 12px; }.favorite-card small { margin-top: 2px; color: #64748b; font-size: 9px; }
+.favorite-card a > b { color: #0877a7; font-size: 9px; }
+.favorite-card > button { width: 30px; height: 30px; margin-left: 6px; padding: 0; border-radius: 50%; background: #fff8df; color: #e6a400; font-size: 17px; }
+.favorites-message { margin-top: 22px; padding: 28px; border: 1px dashed #aab8c2; background: #fff; color: #64748b; text-align: center; }.favorites-message h2 { color: #17212b; }.favorites-message a { color: #0877a7; font-weight: 800; }
+@media (max-width: 700px) { .favorites-grid { grid-template-columns: 1fr; }.favorite-card a > b { display: none; } }

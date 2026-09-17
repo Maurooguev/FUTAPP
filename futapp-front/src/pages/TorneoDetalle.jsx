@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 
 import useAuth from "../context/useAuth";
@@ -53,6 +53,7 @@ function TorneoDetalle() {
   const [loadError, setLoadError] = useState("");
   const [reloadKey, setReloadKey] = useState(0);
   const [showMoreActions, setShowMoreActions] = useState(false);
+  const visitedTournament = useRef(null);
   const [activeTab, setActiveTab] = useState(() => {
     const requested = window.location.hash.replace("#", "");
     return TOURNAMENT_TABS.has(requested) ? requested : "resumen";
@@ -121,6 +122,13 @@ function TorneoDetalle() {
     });
     return () => { active = false; };
   }, [id, reloadKey]);
+
+  useEffect(() => {
+    if (!torneo?.idTorneo || visitedTournament.current === id) return;
+    visitedTournament.current = id;
+    fetch(`${API_URL}/torneos/${id}/visitas`, { method: "POST" }).then((response) => response.ok ? response.json() : null)
+      .then((data) => { if (data) setTorneo((current) => current ? { ...current, visitas: data.visitas } : current); }).catch(() => null);
+  }, [id, torneo?.idTorneo]);
 
   useEffect(() => {
     if (!torneo?.idPropietario) { setPerfilOrganizador(null); return; }

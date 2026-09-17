@@ -35,6 +35,7 @@ public class Torneo {
     @ManyToOne
     @JoinColumn(name = "id_campeon")
     private Equipo campeon;
+    @Column(nullable = false) private Long visitas = 0L;
 
     public Torneo() {
     }
@@ -106,4 +107,6 @@ public class Torneo {
     public void setPropietario(Usuario propietario) { this.propietario = propietario; }
     public Equipo getCampeon() { return campeon; }
     public void setCampeon(Equipo campeon) { this.campeon = campeon; }
+    public Long getVisitas() { return visitas; }
+    public void setVisitas(Long visitas) { this.visitas = visitas; }
 }

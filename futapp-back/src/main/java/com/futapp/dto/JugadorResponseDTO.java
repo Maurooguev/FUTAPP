@@ -17,6 +17,7 @@ public class JugadorResponseDTO {
     private Long idEquipo;
     private String nombreEquipo;
     private boolean verificado;
+    private Long visitas;
 
     public JugadorResponseDTO() {
     }
@@ -138,4 +139,6 @@ public class JugadorResponseDTO {
 
     public boolean isVerificado() { return verificado; }
     public void setVerificado(boolean verificado) { this.verificado = verificado; }
+    public Long getVisitas() { return visitas; }
+    public void setVisitas(Long visitas) { this.visitas = visitas; }
 }

@@ -1,9 +1,10 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { API_URL, apiFetch, assetUrl } from "../config/api";
 import useAuth from "../context/useAuth";
 import { tieneRol } from "../utils/roles";
 import "./Profiles.css";
+import FavoriteButton from "../components/FavoriteButton/FavoriteButton";
 
 async function fetchJson(url, message) {
   const response = await fetch(url);
@@ -34,6 +35,7 @@ function JugadorPerfil() {
   const [claimMessage, setClaimMessage] = useState("");
   const [ownPlayerId, setOwnPlayerId] = useState(null);
   const [organizerProfileExists, setOrganizerProfileExists] = useState(false);
+  const visitedPlayer = useRef(null);
 
   const claimPlayer = async () => {
     const response = await apiFetch(`${API_URL}/reclamos/jugadores/${id}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ idTorneo: equipo.idTorneo, mensaje: "Este perfil soy yo" }) });
@@ -62,6 +64,13 @@ function JugadorPerfil() {
       })
       .catch((requestError) => setError(`${requestError.message}. Actualizá la página para reintentar.`));
   }, [id]);
+
+  useEffect(() => {
+    if (!jugador?.idJugador || visitedPlayer.current === id) return;
+    visitedPlayer.current = id;
+    fetch(`${API_URL}/jugadores/${id}/visitas`, { method: "POST" }).then((response) => response.ok ? response.json() : null)
+      .then((data) => { if (data) setJugador((current) => current ? { ...current, visitas: data.visitas } : current); }).catch(() => null);
+  }, [id, jugador?.idJugador]);
 
   useEffect(() => {
     if (!tieneRol(usuario, "JUGADOR")) return;
@@ -93,7 +102,7 @@ function JugadorPerfil() {
     <section className="player-hero">
       <div className="profile-avatar player-avatar">{jugador.foto ? <img src={assetUrl(jugador.foto)} alt={`${jugador.nombre} ${jugador.apellido}`} /> : jugador.numeroCamiseta}</div>
       <div><span className="profile-code">{jugador.codigoPublico}</span><h1>{jugador.nombre} {jugador.apellido} {jugador.verificado && <span className="verified-badge" title="Perfil vinculado con la cuenta del jugador">✓ Verificado</span>}</h1>{jugador.apodo && <p className="player-nickname">“{jugador.apodo}”</p>}<Link to={`/equipo/${equipo.idEquipo}`}>{equipo.nombre}</Link></div>
-      <strong className="shirt-number">#{jugador.numeroCamiseta}</strong>
+      <div className="player-hero-side"><strong className="shirt-number">#{jugador.numeroCamiseta}</strong><FavoriteButton type="jugadores" id={jugador.idJugador} /><span className="profile-views">👁 {jugador.visitas || 0} visitas</span></div>
       {isOwnProfile ? <div className="player-profile-actions"><Link className="profile-edit-link" to="/mi-perfil-jugador/editar">Editar perfil de jugador</Link>{(tieneRol(usuario, "ORGANIZADOR") || tieneRol(usuario, "ADMIN")) && <Link className="profile-organizer-link" to={organizerProfileExists ? "/mi-perfil-organizador" : "/mi-perfil-organizador/editar"}>{organizerProfileExists ? "Ver perfil de organizador" : "Generar perfil de organizador"}</Link>}</div> : tieneRol(usuario, "JUGADOR") && !jugador.verificado && <button className="profile-claim-button" onClick={claimPlayer}>Este jugador soy yo</button>}
     </section>
     {claimMessage && <p className="profile-action-message">{claimMessage}</p>}

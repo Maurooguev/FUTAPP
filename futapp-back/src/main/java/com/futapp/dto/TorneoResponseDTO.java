@@ -19,6 +19,7 @@ public class TorneoResponseDTO {
     private String criterioDesempate;
     private Long idCampeon;
     private String nombreCampeon;
+    private Long visitas;
 
     public TorneoResponseDTO() {
     }
@@ -112,4 +113,6 @@ public class TorneoResponseDTO {
     public void setIdCampeon(Long idCampeon) { this.idCampeon = idCampeon; }
     public String getNombreCampeon() { return nombreCampeon; }
     public void setNombreCampeon(String nombreCampeon) { this.nombreCampeon = nombreCampeon; }
+    public Long getVisitas() { return visitas; }
+    public void setVisitas(Long visitas) { this.visitas = visitas; }
 }

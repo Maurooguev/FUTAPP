@@ -152,7 +152,13 @@ public class JugadorService {
                 jugador.getEquipo().getNombre()
         );
         dto.setVerificado(jugador.getUsuario() != null);
+        dto.setVisitas(jugador.getVisitas());
         return dto;
+    }
+
+    public long registrarVisita(Long id) {
+        if (jugadorRepository.incrementarVisitas(id) == 0) throw new ResourceNotFoundException("Jugador no encontrado con id: " + id);
+        return jugadorRepository.findById(id).map(Jugador::getVisitas).orElse(0L);
     }
 
     public PaginaDTO<JugadorResponseDTO> listarPaginados(int pagina, int cantidad) {

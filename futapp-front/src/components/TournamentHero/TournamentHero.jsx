@@ -35,6 +35,7 @@ function TournamentHero({ torneo, fechaActual, perfilOrganizador, activeTab = "r
           <span><small>Ubicación</small><strong>{torneo.ubicacion}</strong></span>
           <span><small>Equipos</small><strong>{torneo.cantidadEquipos}</strong></span>
           <span><small>Jornada</small><strong>{fechaActual ? `Fecha ${fechaActual.numeroFecha}` : "Sin fechas"}</strong></span>
+          <span><small>Visitas</small><strong>👁 {torneo.visitas || 0}</strong></span>
         </div>
       </div>
 

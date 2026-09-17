@@ -6,6 +6,7 @@ import com.futapp.exception.ResourceNotFoundException;
 import com.futapp.model.Usuario;
 import com.futapp.model.UsuarioEquipoFavorito;
 import com.futapp.model.UsuarioTorneoFavorito;
+import com.futapp.model.UsuarioJugadorFavorito;
 import com.futapp.repository.*;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -18,16 +19,21 @@ import java.util.stream.Collectors;
 public class FavoritoService {
     private final UsuarioEquipoFavoritoRepository equiposFavoritos;
     private final UsuarioTorneoFavoritoRepository torneosFavoritos;
+    private final UsuarioJugadorFavoritoRepository jugadoresFavoritos;
     private final EquipoRepository equipos;
     private final TorneoRepository torneos;
+    private final JugadorRepository jugadores;
 
     public FavoritoService(UsuarioEquipoFavoritoRepository equiposFavoritos,
                            UsuarioTorneoFavoritoRepository torneosFavoritos,
-                           EquipoRepository equipos, TorneoRepository torneos) {
+                           UsuarioJugadorFavoritoRepository jugadoresFavoritos,
+                           EquipoRepository equipos, TorneoRepository torneos, JugadorRepository jugadores) {
         this.equiposFavoritos = equiposFavoritos;
         this.torneosFavoritos = torneosFavoritos;
+        this.jugadoresFavoritos = jugadoresFavoritos;
         this.equipos = equipos;
         this.torneos = torneos;
+        this.jugadores = jugadores;
     }
 
     @Transactional(readOnly = true)
@@ -37,7 +43,9 @@ public class FavoritoService {
                 equiposFavoritos.findByUsuarioIdUsuario(usuario.getIdUsuario()).stream()
                         .map(item -> item.getEquipo().getIdEquipo()).collect(Collectors.toSet()),
                 torneosFavoritos.findByUsuarioIdUsuario(usuario.getIdUsuario()).stream()
-                        .map(item -> item.getTorneo().getIdTorneo()).collect(Collectors.toSet()));
+                        .map(item -> item.getTorneo().getIdTorneo()).collect(Collectors.toSet()),
+                jugadoresFavoritos.findByUsuarioIdUsuario(usuario.getIdUsuario()).stream()
+                        .map(item -> item.getJugador().getIdJugador()).collect(Collectors.toSet()));
     }
 
     public EstadoFavoritoDTO agregarEquipo(Long idEquipo) {
@@ -71,6 +79,23 @@ public class FavoritoService {
 
     public EstadoFavoritoDTO quitarTorneo(Long idTorneo) {
         torneosFavoritos.deleteByUsuarioIdUsuarioAndTorneoIdTorneo(actual().getIdUsuario(), idTorneo);
+        return new EstadoFavoritoDTO(false);
+    }
+
+    public EstadoFavoritoDTO agregarJugador(Long idJugador) {
+        Usuario usuario = actual();
+        if (!jugadoresFavoritos.existsByUsuarioIdUsuarioAndJugadorIdJugador(usuario.getIdUsuario(), idJugador)) {
+            var favorito = new UsuarioJugadorFavorito();
+            favorito.setUsuario(usuario);
+            favorito.setJugador(jugadores.findById(idJugador)
+                    .orElseThrow(() -> new ResourceNotFoundException("Jugador no encontrado con id: " + idJugador)));
+            jugadoresFavoritos.save(favorito);
+        }
+        return new EstadoFavoritoDTO(true);
+    }
+
+    public EstadoFavoritoDTO quitarJugador(Long idJugador) {
+        jugadoresFavoritos.deleteByUsuarioIdUsuarioAndJugadorIdJugador(actual().getIdUsuario(), idJugador);
         return new EstadoFavoritoDTO(false);
     }
 

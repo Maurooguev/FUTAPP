@@ -3,6 +3,7 @@ package com.futapp.controller;
 import com.futapp.dto.JugadorRequestDTO;
 import com.futapp.dto.JugadorResponseDTO;
 import com.futapp.dto.PaginaDTO;
+import com.futapp.dto.ContadorVisitasDTO;
 import com.futapp.service.JugadorService;
 import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
@@ -27,6 +28,11 @@ public class JugadorController {
     @GetMapping("/{id}")
     public JugadorResponseDTO obtenerJugador(@PathVariable Long id) {
         return jugadorService.obtenerJugadorPorId(id);
+    }
+
+    @PostMapping("/{id}/visitas")
+    public ContadorVisitasDTO registrarVisita(@PathVariable Long id) {
+        return new ContadorVisitasDTO(jugadorService.registrarVisita(id));
     }
 
     @GetMapping("/pagina")

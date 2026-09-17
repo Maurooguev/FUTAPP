@@ -47,6 +47,15 @@ class TournamentWorkflowIntegrationTests {
 
         JsonNode jugadorLocal = postJson("/jugadores", token, jugador("Juan", "Norte", 10, local.get("idEquipo").asLong()));
         JsonNode jugadorVisitante = postJson("/jugadores", token, jugador("Pedro", "Sur", 9, visitante.get("idEquipo").asLong()));
+        putJson("/favoritos/jugadores/" + jugadorLocal.get("idJugador").asLong(), token, null)
+                .andExpect(status().isOk()).andExpect(jsonPath("$.favorito").value(true));
+        mockMvc.perform(get("/favoritos").header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.jugadores", org.hamcrest.Matchers.hasItem(jugadorLocal.get("idJugador").asInt())));
+        postJson("/torneos/" + torneoId + "/visitas", null, null);
+        postJson("/jugadores/" + jugadorLocal.get("idJugador").asLong() + "/visitas", null, null);
+        mockMvc.perform(get("/torneos/" + torneoId)).andExpect(status().isOk()).andExpect(jsonPath("$.visitas").value(1));
+        mockMvc.perform(get("/jugadores/" + jugadorLocal.get("idJugador").asLong())).andExpect(status().isOk()).andExpect(jsonPath("$.visitas").value(1));
 
         JsonNode fixture = postJson("/partidos/torneo/" + torneoId + "/generar-fixture", token, Map.of(
                 "fechaInicio", "2026-09-05",

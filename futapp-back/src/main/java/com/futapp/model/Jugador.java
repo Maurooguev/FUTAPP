@@ -44,6 +44,7 @@ public class Jugador {
     private String nacionalidad;
     @Column(length = 1000) private String biografia;
     private String instagram;
+    @Column(nullable = false) private Long visitas = 0L;
 
     @ManyToOne
     @JoinColumn(name = "id_equipo", nullable = false)
@@ -152,6 +153,8 @@ public class Jugador {
     public void setBiografia(String biografia) { this.biografia = biografia; }
     public String getInstagram() { return instagram; }
     public void setInstagram(String instagram) { this.instagram = instagram; }
+    public Long getVisitas() { return visitas; }
+    public void setVisitas(Long visitas) { this.visitas = visitas; }
 
     public Equipo getEquipo() {
         return equipo;

@@ -260,7 +260,14 @@ public class TorneoService {
             response.setIdCampeon(torneo.getCampeon().getIdEquipo());
             response.setNombreCampeon(torneo.getCampeon().getNombre());
         }
+        response.setVisitas(torneo.getVisitas());
         return response;
+    }
+
+    @Transactional
+    public long registrarVisita(Long id) {
+        if (torneoRepository.incrementarVisitas(id) == 0) throw new ResourceNotFoundException("Torneo no encontrado con id: " + id);
+        return torneoRepository.findById(id).map(Torneo::getVisitas).orElse(0L);
     }
 
     private com.futapp.model.Equipo determinarCampeon(Torneo torneo, List<com.futapp.model.Partido> partidosTorneo) {

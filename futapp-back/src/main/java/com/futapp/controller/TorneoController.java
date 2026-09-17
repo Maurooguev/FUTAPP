@@ -5,6 +5,7 @@ import com.futapp.dto.TorneoResponseDTO;
 import com.futapp.dto.TorneoPanelDTO;
 import com.futapp.dto.EstructuraTorneoDTO;
 import com.futapp.dto.PaginaDTO;
+import com.futapp.dto.ContadorVisitasDTO;
 import com.futapp.service.EstructuraCompetenciaService;
 import com.futapp.service.TorneoService;
 import jakarta.validation.Valid;
@@ -34,6 +35,11 @@ public class TorneoController {
     @GetMapping("/{id}")
     public TorneoResponseDTO obtenerTorneo(@PathVariable Long id) {
         return torneoService.obtenerTorneoPorId(id);
+    }
+
+    @PostMapping("/{id}/visitas")
+    public ContadorVisitasDTO registrarVisita(@PathVariable Long id) {
+        return new ContadorVisitasDTO(torneoService.registrarVisita(id));
     }
 
     @GetMapping("/pagina")
