@@ -45,3 +45,6 @@
 :root[data-theme="dark"] .tournament-tabs button { color: #b9c8d2; }
 :root[data-theme="dark"] .tournament-tabs button.active,
 :root[data-theme="dark"] .tournament-tabs button:hover { color: #67d7ee; }
+:root[data-theme="dark"] .tournament-creator { background: #29414f; border-color: #48616e; color: #b9c8d2; }
+:root[data-theme="dark"] .tournament-creator strong,
+:root[data-theme="dark"] .tournament-creator b { color: #67d7ee; }

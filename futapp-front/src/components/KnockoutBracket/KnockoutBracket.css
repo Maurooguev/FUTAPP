@@ -20,3 +20,16 @@
 .bracket-team.pending { color: #94a3b8; font-style: italic; }
 .bracket-final-champion { border-top: 1px solid #ead88b; background: #fff7d6; padding: 9px 10px; color: #795e00; font-size: 11px; font-weight: 900; text-align: center; }
 @media (max-width: 700px) { .bracket-block { padding: 13px; } .bracket-heading { flex-direction: column; } .bracket-heading button { width: 100%; } }
+
+:root[data-theme="dark"] .bracket-block { background: #213744; border-color: #38505d; }
+:root[data-theme="dark"] .bracket-heading h2,
+:root[data-theme="dark"] .bracket-round h3 { color: #f3f7f9; }
+:root[data-theme="dark"] .bracket-heading p { color: #b9c8d2; }
+:root[data-theme="dark"] .bracket-champion { background: #403b25; color: #f4df91; }
+:root[data-theme="dark"] .bracket-match { background: #29414f; border-color: #48616e; box-shadow: 0 3px 8px rgba(3,12,18,.2); }
+:root[data-theme="dark"] .bracket-match::after { border-color: #5b7380; }
+:root[data-theme="dark"] .bracket-team { color: #e7eef2; }
+:root[data-theme="dark"] .bracket-team + .bracket-team { border-color: #48616e; }
+:root[data-theme="dark"] .bracket-team.winner { background: #23483f; color: #8ce0b3; }
+:root[data-theme="dark"] .bracket-team.pending { color: #8ca0ac; }
+:root[data-theme="dark"] .bracket-final-champion { background: #403b25; border-color: #92762f; color: #f4df91; }

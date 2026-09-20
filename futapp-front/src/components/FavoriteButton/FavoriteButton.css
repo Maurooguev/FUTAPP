@@ -4,3 +4,7 @@
 .favorite-button.active { border-color: #f2c45c; background: #fff9e8; color: #8a5b00; }
 .favorite-button:disabled { opacity: .6; }
 @media (max-width: 600px) { .favorite-button { min-width: 44px; min-height: 44px; justify-content: center; padding: 8px; }.favorite-button small { display: none; } }
+
+:root[data-theme="dark"] .favorite-button { background: #29414f; border-color: #48616e; color: #dbe5ea; }
+:root[data-theme="dark"] .favorite-button:hover { background: #345361; }
+:root[data-theme="dark"] .favorite-button.active { background: #403b25; border-color: #92762f; color: #f4df91; }

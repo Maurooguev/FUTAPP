@@ -184,3 +184,25 @@
 .fixture-score-stepper button:disabled { opacity: .4; }
 .fixture-score-stepper strong { display: grid; height: 28px; place-items: center; background: #fff; color: #0f172a; font-size: 15px; }
 .fixture-inline-result .fixture-quick-save { grid-column: 1 / -1; width: 100%; padding: 7px; background: #16a34a; color: #fff; font-size: 10px; }
+
+:root[data-theme="dark"] .fixture-header h2 { color: #f3f7f9; }
+:root[data-theme="dark"] .fixture-header p { color: #b9c8d2; }
+:root[data-theme="dark"] .fixture-tab { background: #29414f; border-color: #48616e; color: #e7eef2; }
+:root[data-theme="dark"] .fixture-tab:hover { background: #345361; }
+:root[data-theme="dark"] .fixture-tab.active { background: #0877a7; border-color: #159ac5; color: #fff; }
+:root[data-theme="dark"] .fixture-current { background: #29414f; border-color: #48616e; }
+:root[data-theme="dark"] .fixture-current h3 { color: #f3f7f9; }
+:root[data-theme="dark"] .fixture-current span,
+:root[data-theme="dark"] .fixture-progress { color: #b9c8d2; }
+:root[data-theme="dark"] .fixture-progress-track { background: #142632; }
+:root[data-theme="dark"] .fixture-match-card,
+:root[data-theme="dark"] .fixture-empty { background: #213744; border-color: #38505d; color: #e7eef2; }
+:root[data-theme="dark"] .fixture-score-line strong { color: #67d7ee; }
+:root[data-theme="dark"] .fixture-match-card p { color: #b9c8d2; }
+:root[data-theme="dark"] .fixture-inline-result { background: #29414f; border-color: #48616e; }
+:root[data-theme="dark"] .fixture-inline-result > div > span { color: #b9c8d2; }
+:root[data-theme="dark"] .fixture-score-stepper strong { background: #1a303c; color: #f3f7f9; }
+:root[data-theme="dark"] .fixture-admin-actions button { background: #334b59; color: #e7eef2; }
+:root[data-theme="dark"] .fixture-admin-actions .danger { background: #572f35; color: #ffb4bc; }
+:root[data-theme="dark"] .fixture-admin-actions .close-date { background: #23483f; color: #8ce0b3; }
+:root[data-theme="dark"] .fixture-admin-actions .next-result { background: #0877a7; color: #fff; }
