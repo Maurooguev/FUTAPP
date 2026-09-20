@@ -31,3 +31,17 @@
   .tournament-meta > span { min-width: 0; padding: 0; border: 0; }
   .tournament-tabs button { min-height: 44px; padding-inline: 14px; }
 }
+
+:root[data-theme="dark"] .tournament-hero { background: #213744; border-color: #38505d; color: #f3f7f9; }
+:root[data-theme="dark"] .tournament-hero h1 { color: #f3f7f9; }
+:root[data-theme="dark"] .tournament-hero p,
+:root[data-theme="dark"] .tournament-back { color: #b9c8d2; }
+:root[data-theme="dark"] .tournament-emblem { background: #294957; border-color: #48616e; color: #67d7ee; }
+:root[data-theme="dark"] .tournament-meta { border-color: #48616e; }
+:root[data-theme="dark"] .tournament-meta > span { border-color: #48616e; }
+:root[data-theme="dark"] .tournament-meta small { color: #9fb2bd; }
+:root[data-theme="dark"] .tournament-meta strong { color: #f3f7f9; }
+:root[data-theme="dark"] .tournament-tabs { background: rgba(26,48,60,.97); border-color: #38505d; }
+:root[data-theme="dark"] .tournament-tabs button { color: #b9c8d2; }
+:root[data-theme="dark"] .tournament-tabs button.active,
+:root[data-theme="dark"] .tournament-tabs button:hover { color: #67d7ee; }
