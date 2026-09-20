@@ -33,3 +33,21 @@
 .organizer-message.error { color: #b42318; }
 .organizer-empty h2 { margin: 0; }.organizer-empty p { color: #64748b; font-size: 12px; }
 @media (max-width: 800px) { .organizer-totals { grid-template-columns: repeat(2,1fr); }.organizer-progress { grid-template-columns: repeat(2,1fr); row-gap: 7px; }.organizer-progress div:nth-child(odd) { border-left: 0; padding-left: 0; }.organizer-heading { align-items: start; }.organizer-tournament footer { align-items: start; flex-direction: column; }.organizer-tournament-actions { width: 100%; }.organizer-tournament-actions button { flex: 1; } }
+
+:root[data-theme="dark"] .organizer-page { background: #142632; color: #e7eef2; }
+:root[data-theme="dark"] .organizer-heading h1 { color: #f3f7f9; }
+:root[data-theme="dark"] .organizer-heading p { color: #b9c8d2; }
+:root[data-theme="dark"] .organizer-totals article { background: #213744; border-color: #38505d; box-shadow: 0 7px 18px rgba(3,12,18,.22); }
+:root[data-theme="dark"] .organizer-totals span,
+:root[data-theme="dark"] .organizer-progress span,
+:root[data-theme="dark"] .organizer-tournament footer span { color: #9fb2bd; }
+:root[data-theme="dark"] .organizer-totals strong,
+:root[data-theme="dark"] .organizer-progress strong { color: #f3f7f9; }
+:root[data-theme="dark"] .organizer-tournament { background: #213744; border-color: #38505d; }
+:root[data-theme="dark"] .organizer-tournament-main h2 { color: #f3f7f9; }
+:root[data-theme="dark"] .organizer-tournament-main p { color: #b9c8d2; }
+:root[data-theme="dark"] .organizer-progress div { border-color: #48616e; }
+:root[data-theme="dark"] .organizer-tournament footer { background: #1a303c; border-top: 1px solid #38505d; }
+:root[data-theme="dark"] .organizer-tournament footer strong { color: #e7eef2; }
+:root[data-theme="dark"] .organizer-tournament footer small { color: #9fb2bd; }
+:root[data-theme="dark"] :where(.organizer-message, .organizer-empty) { background: #213744; border-color: #38505d; }
