@@ -186,3 +186,15 @@
   .format-card { min-height: 96px; }
   .bracket-order-list { grid-template-columns: 1fr; }
 }
+
+:root[data-theme="dark"] .tournament-form-modal { background: #213744; color: #e7eef2; }
+:root[data-theme="dark"] .tournament-form-modal :where(h2, h3, label) { color: #f3f7f9; }
+:root[data-theme="dark"] .tournament-form-modal :where(input, textarea, select) { background: #29414f; border-color: #48616e; color: #f3f7f9; }
+:root[data-theme="dark"] .wizard-summary { background: #38505d; }
+:root[data-theme="dark"] .wizard-summary div { background: #29414f; }
+:root[data-theme="dark"] .wizard-summary span { color: #9fb2bd; }
+:root[data-theme="dark"] .wizard-summary strong { color: #f3f7f9; }
+:root[data-theme="dark"] .wizard-draft-note { background: #403b25; color: #f4df91; }
+:root[data-theme="dark"] .fixture-estimate { background: #294957; }
+:root[data-theme="dark"] .format-card { background: #29414f; border-color: #48616e; color: #e7eef2; }
+:root[data-theme="dark"] .format-card.selected { background: #214b55; border-color: #38b9d5; }

@@ -1,0 +1,13 @@
+.location-autocomplete { position: relative; }
+.location-loading { position: absolute; top: 50%; right: 10px; color: #64748b; font-size: 9px; transform: translateY(-50%); }
+.location-suggestions { position: absolute; top: calc(100% + 4px); right: 0; left: 0; z-index: 20; overflow: hidden; border: 1px solid #bdccd3; border-radius: 5px; background: #fbfdfe; box-shadow: 0 10px 24px rgba(15,23,42,.18); }
+.location-suggestions button { display: grid; width: 100%; grid-template-columns: 20px 1fr; align-items: center; gap: 5px; padding: 8px 9px; border: 0; border-bottom: 1px solid #e1e8eb; border-radius: 0; background: transparent; color: #26343e; font-size: 10px; text-align: left; }
+.location-suggestions button:hover { background: #e8f4f8; color: #0877a7; }
+.location-suggestions button:last-of-type { border-bottom: 0; }
+.location-suggestions p { margin: 0; padding: 9px; color: #64748b; font-size: 10px; }
+
+:root[data-theme="dark"] .location-suggestions { border-color: #48616e; background: #29414f; }
+:root[data-theme="dark"] .location-suggestions button { border-color: #38505d; color: #e7eef2; }
+:root[data-theme="dark"] .location-suggestions button:hover { background: #345361; color: #67d7ee; }
+:root[data-theme="dark"] .location-suggestions p,
+:root[data-theme="dark"] .location-loading { color: #b9c8d2; }
