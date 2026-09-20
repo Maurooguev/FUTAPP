@@ -1718,7 +1718,7 @@ body,
 .favorites-page,
 .organizer-profile-page,
 .my-teams-page {
-  background-color: #bdc9cf;
+  background-color: #d5e3e9;
 }
 
 :where(
@@ -1770,13 +1770,13 @@ body,
   .export-modal,
   .crop-modal
 ) {
-  background-color: #f5f8f9;
-  border-color: #afbec6;
-  box-shadow: 0 5px 14px rgba(31, 50, 61, .1);
+  background-color: #f7fafb;
+  border-color: #bdccd3;
+  box-shadow: 0 5px 14px rgba(31, 50, 61, .09);
 }
 
 :where(.tabla, .tabla-premium, .standings-table, .tabla-secundaria) {
-  background-color: #f5f8f9;
+  background-color: #f7fafb;
 }
 
 :where(
@@ -1790,19 +1790,88 @@ body,
   .existing-team-list > button,
   .format-card
 ) {
-  background-color: #fbfcfc;
-  border-color: #b8c6cd;
+  background-color: #fbfdfe;
+  border-color: #bdccd3;
 }
 
 .tournament-admin-bar,
 .admin-more-toggle,
 .admin-more-menu,
 .tournament-mobile-actions {
-  background-color: #f5f8f9;
+  background-color: #f7fafb;
 }
 
 @media (max-width: 700px) {
   .torneo-page .admin-actions {
-    background: rgba(245, 248, 249, .97);
+    background: rgba(247, 250, 251, .97);
   }
+}
+
+/* Opción C: modo nocturno. */
+:root[data-theme="dark"] body,
+:root[data-theme="dark"] #root,
+:root[data-theme="dark"] .app,
+:root[data-theme="dark"] .app-layout,
+:root[data-theme="dark"] .app-main,
+:root[data-theme="dark"] .home,
+:root[data-theme="dark"] .torneo-page,
+:root[data-theme="dark"] .partido-page,
+:root[data-theme="dark"] .auth-page,
+:root[data-theme="dark"] .my-tournaments-page,
+:root[data-theme="dark"] .profile-page,
+:root[data-theme="dark"] .favorites-page,
+:root[data-theme="dark"] .organizer-profile-page,
+:root[data-theme="dark"] .my-teams-page {
+  background-color: #142632;
+  color: #dbe5ea;
+}
+
+:root[data-theme="dark"] .main-header { background: #063f51; }
+
+:root[data-theme="dark"] :where(
+  .stat-card, .card, .step-card, .empty-state, .torneo-card, .info-box,
+  .torneo-stat-card, .panel-card, .partido-card, .empty-panel, .partido-hero,
+  .partido-panel, .auth-card, .team-card, .profile-panel, .profile-message,
+  .organizer-totals article, .organizer-tournament, .organizer-message,
+  .organizer-empty, .my-team-card, .my-teams-empty, .favorite-card,
+  .favorites-message, .organizer-profile-hero, .organizer-profile-tournaments,
+  .organizer-profile-form, .organizer-profile-empty, .organizer-profile-message,
+  .tournament-readiness, .tournament-hero, .bracket-block, .fixture-block,
+  .fixture-date, .fixture-match-card, .top-table-card, .cards-table-card,
+  .top-scorers-card, .stats-card, .request-card, .notification-item,
+  .modal-content, .tournament-form-modal, .result-modal, .match-modal,
+  .export-modal, .crop-modal, .tournament-admin-bar, .admin-more-menu
+) {
+  background-color: #213744;
+  border-color: #38505d;
+  color: #dbe5ea;
+  box-shadow: 0 7px 18px rgba(3, 12, 18, .22);
+}
+
+:root[data-theme="dark"] :where(.tabla, .tabla-premium, .standings-table, .tabla-secundaria) {
+  background-color: #213744;
+  color: #dbe5ea;
+}
+
+:root[data-theme="dark"] .app-main :where(h1, h2, h3, h4, strong, label, th, td) { color: #f3f7f9; }
+:root[data-theme="dark"] .app-main :where(p, small, .profile-note, .info-label) { color: #b9c8d2; }
+
+:root[data-theme="dark"] :where(
+  input, textarea, select, .player-facts div, .partido-quick-summary div,
+  .tournament-overview-actions button, .existing-player-grid > button,
+  .existing-team-list > button, .format-card, .admin-more-toggle,
+  .admin-context-actions button
+) {
+  background-color: #29414f;
+  border-color: #48616e;
+  color: #f3f7f9;
+}
+
+:root[data-theme="dark"] :where(.tabla-premium td, .tabla-secundaria td, .standings-table td) { border-color: #38505d; }
+:root[data-theme="dark"] :where(.tabla-premium tbody tr:hover, .admin-more-menu > button:hover) { background-color: #294654; }
+:root[data-theme="dark"] .fila-top { background-color: #23483f; }
+:root[data-theme="dark"] .tournament-mobile-actions { background: rgba(33, 55, 68, .98); border-color: #38505d; }
+
+@media (max-width: 700px) {
+  :root[data-theme="dark"] .torneo-page .admin-actions { background: rgba(33, 55, 68, .97); }
 }

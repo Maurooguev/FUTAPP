@@ -1,10 +1,10 @@
 :root {
   --text: #6b6375;
   --text-h: #08060d;
-  --bg: #bdc9cf;
-  --surface: #f5f8f9;
-  --surface-soft: #d6e0e4;
-  --border: #b3c1c8;
+  --bg: #d5e3e9;
+  --surface: #f7fafb;
+  --surface-soft: #e5eef2;
+  --border: #bdccd3;
   --code-bg: #f4f3ec;
   --accent: #aa3bff;
   --accent-bg: rgba(170, 59, 255, 0.1);
@@ -33,7 +33,7 @@
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme]) {
     --text: #9ca3af;
     --text-h: #f3f4f6;
     --bg: #16171d;
@@ -50,6 +50,16 @@
   #social .button-icon {
     filter: invert(1) brightness(2);
   }
+}
+
+:root[data-theme="dark"] {
+  --text: #b9c8d2;
+  --text-h: #f3f7f9;
+  --bg: #142632;
+  --surface: #213744;
+  --surface-soft: #1a303c;
+  --border: #38505d;
+  color-scheme: dark;
 }
 
 body {
