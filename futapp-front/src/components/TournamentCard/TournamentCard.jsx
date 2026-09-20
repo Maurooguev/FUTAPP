@@ -18,7 +18,6 @@ function TournamentCard({ torneo, variant = "default", onClick }) {
         <div className="tournament-meta">
           <span>{torneo.formato}</span>
           <span>{torneo.cantidadEquipos} equipos</span>
-          <span>👁 {torneo.visitas || 0}</span>
         </div>
 
         <button 
@@ -49,7 +48,6 @@ function TournamentCard({ torneo, variant = "default", onClick }) {
         <span>📍 {torneo.ubicacion}</span>
         <span>🏆 {torneo.formato}</span>
         <span>👥 {torneo.cantidadEquipos} equipos</span>
-        <span>👁 {torneo.visitas || 0} visitas</span>
       </div>
     </div>
   );
