@@ -48,3 +48,11 @@
 .top-table-header { margin-bottom: 8px; padding-bottom: 6px; }
 .top-table-header h2 { font-size: 18px; }
 .top-table th, .top-table td { padding: 7px 5px; font-size: 10px; }
+
+:root[data-theme="dark"] .top-table-card { background: #213744; border-color: #38505d; }
+:root[data-theme="dark"] .top-table-header { border-color: #48616e; }
+:root[data-theme="dark"] .top-table-header h2 { color: #f3f7f9; }
+:root[data-theme="dark"] .top-table th { background: #29414f; color: #b9c8d2; }
+:root[data-theme="dark"] .top-table td { border-color: #48616e; color: #e7eef2; }
+:root[data-theme="dark"] .top-table tbody tr:hover { background: #294957; }
+:root[data-theme="dark"] .top-table a { color: #67d7ee; }

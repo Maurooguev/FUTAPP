@@ -48,3 +48,11 @@
 .cards-table-header { margin-bottom: 8px; padding-bottom: 6px; }
 .cards-table-header h2 { font-size: 18px; }
 .cards-table th, .cards-table td { padding: 7px 5px; font-size: 10px; }
+
+:root[data-theme="dark"] .cards-table-card { background: #213744; border-color: #38505d; }
+:root[data-theme="dark"] .cards-table-header { border-color: #48616e; }
+:root[data-theme="dark"] .cards-table-header h2 { color: #f3f7f9; }
+:root[data-theme="dark"] .cards-table th { background: #29414f; color: #b9c8d2; }
+:root[data-theme="dark"] .cards-table td { border-color: #48616e; color: #e7eef2; }
+:root[data-theme="dark"] .cards-table tbody tr:hover { background: #294957; }
+:root[data-theme="dark"] .cards-table a { color: #67d7ee; }
