@@ -1703,3 +1703,105 @@ button {
   .home .home-search-box { width: min(340px, 100%); min-width: 0; }
   .home .home-search-box input { min-width: 0; width: 100%; }
 }
+
+/* Tema claro descansado: evita el blanco puro sin perder legibilidad. */
+html,
+body,
+#root,
+.app,
+.home,
+.torneo-page,
+.partido-page,
+.auth-page,
+.my-tournaments-page,
+.profile-page,
+.favorites-page,
+.organizer-profile-page,
+.my-teams-page {
+  background-color: #dfe7eb;
+}
+
+:where(
+  .stat-card,
+  .card,
+  .step-card,
+  .empty-state,
+  .torneo-card,
+  .info-box,
+  .torneo-stat-card,
+  .panel-card,
+  .partido-card,
+  .empty-panel,
+  .partido-hero,
+  .partido-panel,
+  .auth-card,
+  .team-card,
+  .profile-panel,
+  .profile-message,
+  .organizer-totals article,
+  .organizer-tournament,
+  .organizer-message,
+  .organizer-empty,
+  .my-team-card,
+  .my-teams-empty,
+  .favorite-card,
+  .favorites-message,
+  .organizer-profile-hero,
+  .organizer-profile-tournaments,
+  .organizer-profile-form,
+  .organizer-profile-empty,
+  .organizer-profile-message,
+  .tournament-readiness,
+  .tournament-hero,
+  .bracket-block,
+  .fixture-block,
+  .fixture-date,
+  .fixture-match-card,
+  .top-table-card,
+  .cards-table-card,
+  .top-scorers-card,
+  .stats-card,
+  .request-card,
+  .notification-item,
+  .modal-content,
+  .tournament-form-modal,
+  .result-modal,
+  .match-modal,
+  .export-modal,
+  .crop-modal
+) {
+  background-color: #f3f6f7;
+  border-color: #cbd6dc;
+}
+
+:where(.tabla, .tabla-premium, .standings-table, .tabla-secundaria) {
+  background-color: #f3f6f7;
+}
+
+:where(
+  input,
+  textarea,
+  select,
+  .player-facts div,
+  .partido-quick-summary div,
+  .tournament-overview-actions button,
+  .existing-player-grid > button,
+  .existing-team-list > button,
+  .format-card
+) {
+  background-color: #f7f9fa;
+  border-color: #c7d2d9;
+}
+
+.tournament-admin-bar,
+.admin-more-toggle,
+.admin-more-menu,
+.tournament-mobile-actions {
+  background-color: #f3f6f7;
+}
+
+@media (max-width: 700px) {
+  .torneo-page .admin-actions {
+    background: rgba(243, 246, 247, .97);
+  }
+}
