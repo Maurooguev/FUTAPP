@@ -1718,7 +1718,7 @@ body,
 .favorites-page,
 .organizer-profile-page,
 .my-teams-page {
-  background-color: #dfe7eb;
+  background-color: #bdc9cf;
 }
 
 :where(
@@ -1770,12 +1770,13 @@ body,
   .export-modal,
   .crop-modal
 ) {
-  background-color: #f3f6f7;
-  border-color: #cbd6dc;
+  background-color: #f5f8f9;
+  border-color: #afbec6;
+  box-shadow: 0 5px 14px rgba(31, 50, 61, .1);
 }
 
 :where(.tabla, .tabla-premium, .standings-table, .tabla-secundaria) {
-  background-color: #f3f6f7;
+  background-color: #f5f8f9;
 }
 
 :where(
@@ -1789,19 +1790,19 @@ body,
   .existing-team-list > button,
   .format-card
 ) {
-  background-color: #f7f9fa;
-  border-color: #c7d2d9;
+  background-color: #fbfcfc;
+  border-color: #b8c6cd;
 }
 
 .tournament-admin-bar,
 .admin-more-toggle,
 .admin-more-menu,
 .tournament-mobile-actions {
-  background-color: #f3f6f7;
+  background-color: #f5f8f9;
 }
 
 @media (max-width: 700px) {
   .torneo-page .admin-actions {
-    background: rgba(243, 246, 247, .97);
+    background: rgba(245, 248, 249, .97);
   }
 }
