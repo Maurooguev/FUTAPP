@@ -30,3 +30,5 @@
 :root[data-theme="dark"] .organizer-profile-entry { background: #213744; border-color: #38505d; }
 :root[data-theme="dark"] .organizer-profile-entry strong { color: #f3f7f9; }
 :root[data-theme="dark"] .organizer-profile-entry span { color: #b9c8d2; }
+:root[data-theme="dark"] .organizer-tournament-champion { background: #403b25; border: 1px solid #6f5c29; color: #f4df91; }
+:root[data-theme="dark"] .organizer-tournament-champion strong { color: #ffe9a0; }
