@@ -1827,9 +1827,13 @@ body,
 }
 
 :root[data-theme="dark"] .main-header { background: #063f51; }
+:root[data-theme="dark"] .home .section { background-color: #142632; }
+:root[data-theme="dark"] .home .section-soft { background-color: #1a303c; }
+:root[data-theme="dark"] .home .cta-section { background-color: #142632; }
 
 :root[data-theme="dark"] :where(
-  .stat-card, .card, .step-card, .empty-state, .torneo-card, .info-box,
+  .stat-card, .card, .step-card, .empty-state, .torneo-card, .tournament-card,
+  .featured-tournament-card, .info-box,
   .torneo-stat-card, .panel-card, .partido-card, .empty-panel, .partido-hero,
   .partido-panel, .auth-card, .team-card, .profile-panel, .profile-message,
   .organizer-totals article, .organizer-tournament, .organizer-message,
@@ -1855,6 +1859,12 @@ body,
 
 :root[data-theme="dark"] .app-main :where(h1, h2, h3, h4, strong, label, th, td) { color: #f3f7f9; }
 :root[data-theme="dark"] .app-main :where(p, small, .profile-note, .info-label) { color: #b9c8d2; }
+:root[data-theme="dark"] .home .section-title p { color: #aebfc9; }
+:root[data-theme="dark"] .home .section-title-chip { background: #294957; color: #67d7ee; }
+:root[data-theme="dark"] .home :where(.tournament-card h3, .featured-tournament-card h3) { color: #f3f7f9; }
+:root[data-theme="dark"] .home :where(.tournament-card p, .featured-tournament-card p, .tournament-card-meta, .tournament-meta) { color: #b9c8d2; }
+:root[data-theme="dark"] .home .tournament-meta { border-color: #38505d; }
+:root[data-theme="dark"] .home :where(.tournament-location, .tournament-code, .tournament-link) { color: #67d7ee; }
 
 :root[data-theme="dark"] :where(
   input, textarea, select, .player-facts div, .partido-quick-summary div,
