@@ -16,10 +16,13 @@ const EMPTY_TEAM = {
   estado: "ACTIVO",
 };
 
-function TeamFormModal({ torneoId, equipo, onClose, onSaved }) {
+function TeamFormModal({ torneoId, equipo, onClose, onSaved, onLinked }) {
   const [form, setForm] = useState(EMPTY_TEAM);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [linkCode, setLinkCode] = useState("");
+  const [linkTarget, setLinkTarget] = useState(null);
+  const [linking, setLinking] = useState(false);
   const isEditing = Boolean(equipo?.idEquipo);
 
   useEffect(() => {
@@ -71,6 +74,35 @@ function TeamFormModal({ torneoId, equipo, onClose, onSaved }) {
     }
   };
 
+  const searchLinkTarget = async () => {
+    setError(""); setLinkTarget(null);
+    if (!linkCode.trim()) return setError("Ingresá el código público del club.");
+    try {
+      const response = await fetch(`${API_URL}/equipos/codigo/${encodeURIComponent(linkCode.trim())}`);
+      const payload = await response.json().catch(() => null);
+      if (!response.ok) throw new Error(payload?.message || "No encontramos un club con ese código");
+      if (payload.idEquipo === equipo.idEquipo) throw new Error("Ese código pertenece a este mismo equipo.");
+      setLinkTarget(payload);
+    } catch (requestError) { setError(requestError.message); }
+  };
+
+  const linkTeam = async () => {
+    if (!linkTarget || !window.confirm(`¿Vincular ${equipo.nombre} con ${linkTarget.nombre}? Se conservará el perfil ${linkTarget.codigoPublico} y se trasladará el historial de este equipo.`)) return;
+    setLinking(true); setError("");
+    try {
+      const response = await apiFetch(`${API_URL}/equipos/${linkTarget.idEquipo}/fusionar/${equipo.idEquipo}`, { method: "POST" });
+      if (!response.ok) {
+        const payload = await response.json().catch(() => null);
+        if (response.status === 403) throw new Error("El club encontrado tiene otro administrador. La vinculación necesita su aprobación.");
+        throw new Error(payload?.message || "No se pudieron vincular los clubes");
+      }
+      const officialResponse = await fetch(`${API_URL}/equipos/${linkTarget.idEquipo}`);
+      const officialTeam = officialResponse.ok ? await officialResponse.json() : linkTarget;
+      onLinked?.(officialTeam, equipo.idEquipo); onClose();
+    } catch (requestError) { setError(requestError.message); }
+    finally { setLinking(false); }
+  };
+
   return (
     <div className="tournament-form-backdrop" onMouseDown={onClose}>
       <section className="tournament-form-modal" role="dialog" aria-modal="true" onMouseDown={(e) => e.stopPropagation()}>
@@ -91,6 +123,11 @@ function TeamFormModal({ torneoId, equipo, onClose, onSaved }) {
           <ImageUploadField label="Escudo" value={form.escudo} shape="avatar" onUploaded={(escudo) => setForm((current) => ({ ...current, escudo }))} />
           <ImageUploadField label="Foto del plantel" value={form.fotoPlantel} onUploaded={(fotoPlantel) => setForm((current) => ({ ...current, fotoPlantel }))} />
           <label>Descripción<textarea name="descripcion" value={form.descripcion} onChange={updateField} maxLength="1000" rows="4" /></label>
+          {isEditing && <section className="team-link-panel">
+            <div><span>Identidad del club</span><h3>Vincular con un equipo existente</h3><p>Ingresá el código del perfil oficial. El código actual quedará como alias y no se perderán partidos ni estadísticas.</p></div>
+            <label>Código público<div className="team-code-search"><input value={linkCode} onChange={(event) => { setLinkCode(event.target.value.toUpperCase()); setLinkTarget(null); }} placeholder="EQ-XXXXXXX" /><button type="button" onClick={searchLinkTarget}>Buscar</button></div></label>
+            {linkTarget && <div className="team-link-preview"><span>{linkTarget.nombre.slice(0, 2).toUpperCase()}</span><div><strong>{linkTarget.nombre}</strong><small>{linkTarget.barrio || "Sin barrio"} · {linkTarget.codigoPublico}</small></div><button type="button" onClick={linkTeam} disabled={linking}>{linking ? "Vinculando…" : "Confirmar vinculación"}</button></div>}
+          </section>}
           {error && <p className="tournament-form-error">{error}</p>}
           <div className="tournament-form-actions">
             <button type="button" className="tournament-form-cancel" onClick={onClose}>Cancelar</button>

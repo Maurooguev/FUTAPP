@@ -52,7 +52,7 @@ function TeamManagement({ torneoId, equipos, canManage, onTeamSaved, onTeamDelet
           </article>
         ))}</div>
       )}
-      {showTeamForm && <TeamFormModal torneoId={torneoId} equipo={editingTeam} onClose={() => setShowTeamForm(false)} onSaved={onTeamSaved} />}
+      {showTeamForm && <TeamFormModal torneoId={torneoId} equipo={editingTeam} onClose={() => setShowTeamForm(false)} onSaved={onTeamSaved} onLinked={(officialTeam, duplicateId) => { onTeamDeleted(duplicateId); onTeamSaved(officialTeam); }} />}
       {rosterTeam && <TeamRosterModal equipo={rosterTeam} torneoId={torneoId} canManage={canManage} onClose={() => setRosterTeam(null)} />}
       {showExistingTeam && <ExistingTeamEnrollmentModal torneoId={torneoId} currentTeams={equipos} onClose={() => setShowExistingTeam(false)} onSaved={onTeamSaved} />}
     </section>

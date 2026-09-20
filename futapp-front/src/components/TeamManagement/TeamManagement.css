@@ -81,3 +81,18 @@
   .team-card-name { font-size: 13px; }
 }
 .existing-team-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-bottom: 12px; }.existing-team-tabs button { padding: 8px; border: 1px solid #dbe3e8; background: #f4f7f8; color: #64748b; font-size: 10px; }.existing-team-tabs button.active { border-color: #0877a7; background: #eaf6fa; color: #0877a7; font-weight: 800; }.existing-team-list { display: grid; gap: 6px; max-height: 250px; overflow-y: auto; }.existing-team-list > button { display: grid; grid-template-columns: auto 1fr auto; gap: 9px; align-items: center; padding: 9px; border: 1px solid #dbe3e8; background: #fff; color: #334155; text-align: left; }.existing-team-list > button.selected { border-color: #0877a7; background: #eef9fc; }.existing-team-list strong,.existing-team-list small { display: block; }.existing-team-list strong { color: #0f172a; font-size: 11px; }.existing-team-list small { margin-top: 2px; color: #64748b; font-size: 9px; }.existing-team-list em { color: #0877a7; font-size: 9px; font-style: normal; font-weight: 800; }.existing-team-logo { display: grid; width: 38px; height: 38px; place-items: center; overflow: hidden; border-radius: 50%; background: #e2e8f0; color: #0877a7; font-size: 9px; font-weight: 900; }.existing-team-logo img { width: 100%; height: 100%; object-fit: cover; }.team-code-search { display: grid; grid-template-columns: 1fr auto; gap: 5px; }.team-code-search button { padding: 8px 12px; background: #0877a7; color: #fff; font-size: 10px; }.team-code-result { display: grid; grid-template-columns: auto 1fr auto; gap: 9px; align-items: center; padding: 10px; border: 1px solid #86c5da; background: #eef9fc; }.team-code-result strong,.team-code-result small { display: block; }.team-code-result small { margin-top: 2px; color: #64748b; font-size: 9px; }.team-code-result > span:last-child { color: #15803d; font-size: 9px; font-weight: 800; }
+
+.team-link-panel { display: grid; gap: 10px; margin-top: 4px; padding: 13px; border: 1px solid #b9dce7; border-radius: 5px; background: #f3fbfd; }
+.team-link-panel > div:first-child span { color: #0877a7; font-size: 8px; font-weight: 900; letter-spacing: .06em; text-transform: uppercase; }
+.team-link-panel h3 { margin: 2px 0; color: #17212b; font-size: 14px; }
+.team-link-panel p { margin: 0; color: #64748b; font-size: 10px; line-height: 1.45; }
+.team-link-preview { display: grid; grid-template-columns: 38px 1fr auto; align-items: center; gap: 9px; padding: 9px; border: 1px solid #86c5da; background: #eaf7fb; }
+.team-link-preview > span { display: grid; width: 38px; height: 38px; place-items: center; border-radius: 50%; background: #dcebf2; color: #0877a7; font-size: 9px; font-weight: 900; }
+.team-link-preview strong,.team-link-preview small { display: block; }
+.team-link-preview small { margin-top: 2px; color: #64748b; font-size: 9px; }
+.team-link-preview button { padding: 8px 10px; background: #0877a7; color: #fff; font-size: 9px; }
+:root[data-theme="dark"] .team-link-panel { background: #29414f; border-color: #48616e; }
+:root[data-theme="dark"] .team-link-panel h3 { color: #f3f7f9; }
+:root[data-theme="dark"] .team-link-panel p { color: #b9c8d2; }
+:root[data-theme="dark"] .team-link-preview { background: #1f4654; border-color: #4c8496; }
+:root[data-theme="dark"] .team-link-preview small { color: #b9c8d2; }
