@@ -14,7 +14,7 @@ public class SolicitudReclamo {
     @ManyToOne @JoinColumn(name = "id_jugador") private Jugador jugador;
     @ManyToOne(optional = false) @JoinColumn(name = "id_torneo") private Torneo torneo;
     @ManyToOne @JoinColumn(name = "id_revisor") private Usuario revisor;
-    private String mensaje; @Column(name = "motivo_resolucion") private String motivoResolucion;
+    private String mensaje; private String categoria; @Column(name = "motivo_resolucion") private String motivoResolucion;
     @Column(name = "fecha_solicitud") private LocalDateTime fechaSolicitud = LocalDateTime.now();
     @Column(name = "fecha_resolucion") private LocalDateTime fechaResolucion;
     public Long getIdSolicitud() { return idSolicitud; } public String getTipo() { return tipo; } public void setTipo(String tipo) { this.tipo = tipo; }
@@ -26,6 +26,7 @@ public class SolicitudReclamo {
     public Torneo getTorneo() { return torneo; } public void setTorneo(Torneo torneo) { this.torneo = torneo; }
     public Usuario getRevisor() { return revisor; } public void setRevisor(Usuario revisor) { this.revisor = revisor; }
     public String getMensaje() { return mensaje; } public void setMensaje(String mensaje) { this.mensaje = mensaje; }
+    public String getCategoria() { return categoria; } public void setCategoria(String categoria) { this.categoria = categoria; }
     public String getMotivoResolucion() { return motivoResolucion; } public void setMotivoResolucion(String value) { this.motivoResolucion = value; }
     public LocalDateTime getFechaSolicitud() { return fechaSolicitud; } public LocalDateTime getFechaResolucion() { return fechaResolucion; } public void setFechaResolucion(LocalDateTime value) { this.fechaResolucion = value; }
 }

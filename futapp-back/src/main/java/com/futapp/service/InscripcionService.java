@@ -78,17 +78,47 @@ public class InscripcionService {
         authorization.verificarGestion(request.idTorneo());
         Equipo equipo = equipos.findById(request.idEquipo())
                 .orElseThrow(() -> new ResourceNotFoundException("Equipo no encontrado con id: " + request.idEquipo()));
-        var torneo = torneos.findById(request.idTorneo())
-                .orElseThrow(() -> new ResourceNotFoundException("Torneo no encontrado con id: " + request.idTorneo()));
-        if (inscripcionesEquipo.existsByEquipoIdEquipoAndTorneoIdTorneo(request.idEquipo(), request.idTorneo())) {
+        equipoAuthorization.verificarGestion(equipo);
+        return inscribirEquipoInterno(request.idEquipo(), request.idTorneo(), request.categoria());
+    }
+
+    @Transactional
+    public InscripcionEquipoResponseDTO inscribirEquipoAprobado(Long idEquipo, Long idTorneo, String categoria) {
+        return inscribirEquipoInterno(idEquipo, idTorneo, categoria);
+    }
+
+    private InscripcionEquipoResponseDTO inscribirEquipoInterno(Long idEquipo, Long idTorneo, String categoria) {
+        Equipo equipo = equipos.findById(idEquipo)
+                .orElseThrow(() -> new ResourceNotFoundException("Equipo no encontrado con id: " + idEquipo));
+        var torneo = torneos.findById(idTorneo)
+                .orElseThrow(() -> new ResourceNotFoundException("Torneo no encontrado con id: " + idTorneo));
+        if (inscripcionesEquipo.existsByEquipoIdEquipoAndTorneoIdTorneo(idEquipo, idTorneo)) {
             throw new IllegalArgumentException("El club ya está inscrito en este torneo");
         }
         InscripcionEquipo inscripcion = new InscripcionEquipo();
         inscripcion.setEquipo(equipo);
         inscripcion.setTorneo(torneo);
-        inscripcion.setCategoria(normalizar(request.categoria()));
+        inscripcion.setCategoria(normalizar(categoria));
         inscripcion.setEstado("ACTIVA");
-        return equipoDto(inscripcionesEquipo.save(inscripcion));
+        inscripcion = inscripcionesEquipo.save(inscripcion);
+        copiarPlantelExistente(inscripcion, equipo);
+        return equipoDto(inscripcion);
+    }
+
+    private void copiarPlantelExistente(InscripcionEquipo inscripcion, Equipo equipo) {
+        java.util.Set<Integer> dorsales = new java.util.HashSet<>();
+        jugadores.findByEquipoIdEquipo(equipo.getIdEquipo()).stream()
+                .filter(jugador -> !"INACTIVO".equalsIgnoreCase(jugador.getEstado()))
+                .forEach(jugador -> {
+                    InscripcionJugador alta = new InscripcionJugador();
+                    alta.setInscripcionEquipo(inscripcion);
+                    alta.setJugador(jugador);
+                    Integer dorsal = jugador.getNumeroCamiseta();
+                    alta.setNumeroCamiseta(dorsal != null && dorsales.add(dorsal) ? dorsal : null);
+                    alta.setPosicion(normalizar(jugador.getPosicion()));
+                    alta.setEstado("ACTIVA");
+                    inscripcionesJugador.save(alta);
+                });
     }
 
     @Transactional

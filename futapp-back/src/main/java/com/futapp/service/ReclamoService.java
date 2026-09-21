@@ -17,8 +17,8 @@ public class ReclamoService {
     private final JugadorRepository jugadores; private final TorneoRepository torneos;
     private final EquipoAdministradorRepository administradores; private final InscripcionEquipoRepository inscripciones;
     private final NotificacionService notificaciones;
-    private final EquipoAliasRepository aliases; private final FusionEquipoService fusiones;
-    public ReclamoService(SolicitudReclamoRepository r, EquipoRepository e, JugadorRepository j, TorneoRepository t, EquipoAdministradorRepository a, InscripcionEquipoRepository i, NotificacionService n, EquipoAliasRepository al, FusionEquipoService f) { reclamos=r; equipos=e; jugadores=j; torneos=t; administradores=a; inscripciones=i; notificaciones=n; aliases=al; fusiones=f; }
+    private final EquipoAliasRepository aliases; private final FusionEquipoService fusiones; private final InscripcionService inscripcionService;
+    public ReclamoService(SolicitudReclamoRepository r, EquipoRepository e, JugadorRepository j, TorneoRepository t, EquipoAdministradorRepository a, InscripcionEquipoRepository i, NotificacionService n, EquipoAliasRepository al, FusionEquipoService f, InscripcionService is) { reclamos=r; equipos=e; jugadores=j; torneos=t; administradores=a; inscripciones=i; notificaciones=n; aliases=al; fusiones=f; inscripcionService=is; }
 
     @Transactional
     public ReclamoResponseDTO solicitarFusion(Long idDuplicado, String codigoOficial, ReclamoRequestDTO request) {
@@ -33,6 +33,19 @@ public class ReclamoService {
         if (!user.tieneRol("ADMIN") && !propietario && !administra && !creador) throw new AccessDeniedException("No tenés permiso para vincular este equipo");
         if (reclamos.existsBySolicitanteIdUsuarioAndEquipoIdEquipoAndEquipoDestinoIdEquipoAndEstado(user.getIdUsuario(),idDuplicado,oficial.getIdEquipo(),"PENDIENTE")) throw new IllegalArgumentException("Esta vinculación ya está esperando aprobación");
         SolicitudReclamo item=base(user,torneo,request.mensaje()); item.setTipo("FUSION_EQUIPO"); item.setEquipo(duplicado); item.setEquipoDestino(oficial); item=reclamos.save(item); notificaciones.avisarResponsablesReclamo(item); return dto(item);
+    }
+
+    @Transactional
+    public ReclamoResponseDTO invitarEquipoATorneo(Long idEquipo, ReclamoRequestDTO request) {
+        Usuario user=actual();
+        Equipo equipo=equipos.findById(idEquipo).orElseThrow(() -> new ResourceNotFoundException("Equipo no encontrado"));
+        Torneo torneo=torneos.findById(request.idTorneo()).orElseThrow(() -> new ResourceNotFoundException("Torneo no encontrado"));
+        if (torneo.getPropietario()==null || (!torneo.getPropietario().getIdUsuario().equals(user.getIdUsuario()) && !user.tieneRol("ADMIN"))) throw new AccessDeniedException("Solo el organizador puede invitar equipos");
+        if (inscripciones.existsByEquipoIdEquipoAndTorneoIdTorneo(idEquipo, request.idTorneo())) throw new IllegalArgumentException("El club ya está inscrito en este torneo");
+        if (reclamos.existsByEquipoIdEquipoAndTorneoIdTorneoAndTipoAndEstado(idEquipo, request.idTorneo(), "INVITACION_TORNEO", "PENDIENTE")) throw new IllegalArgumentException("Este equipo ya tiene una invitación pendiente para el torneo");
+        SolicitudReclamo item=base(user,torneo,request.mensaje());
+        item.setTipo("INVITACION_TORNEO"); item.setEquipo(equipo); item.setCategoria(normalizar(request.categoria()));
+        item=reclamos.save(item); notificaciones.avisarResponsablesReclamo(item); return dto(item);
     }
 
     public ReclamoResponseDTO reclamarEquipo(Long idEquipo, ReclamoRequestDTO request) {
@@ -78,6 +91,9 @@ public class ReclamoService {
         if (aprobar && "FUSION_EQUIPO".equals(item.getTipo())) {
             fusiones.fusionarAprobada(item.getEquipoDestino().getIdEquipo(), item.getEquipo().getIdEquipo());
         }
+        if (aprobar && "INVITACION_TORNEO".equals(item.getTipo())) {
+            inscripcionService.inscribirEquipoAprobado(item.getEquipo().getIdEquipo(), item.getTorneo().getIdTorneo(), item.getCategoria());
+        }
         item.setEstado(aprobar ? "APROBADA" : "RECHAZADA"); item.setRevisor(user); item.setMotivoResolucion(normalizar(motivo)); item.setFechaResolucion(LocalDateTime.now()); item=reclamos.save(item);
         String objetivo = "JUGADOR".equals(item.getTipo()) ? item.getJugador().getNombre()+" "+item.getJugador().getApellido() : item.getEquipo().getNombre();
         notificaciones.enviar(item.getSolicitante(), "SOLICITUD", aprobar ? "Solicitud aprobada" : "Solicitud rechazada",
@@ -93,8 +109,14 @@ public class ReclamoService {
                 && reclamo.getTorneo().getPropietario().getIdUsuario().equals(usuario.getIdUsuario());
         if ("EQUIPO".equals(reclamo.getTipo())) return esPropietarioDelTorneo;
         if ("FUSION_EQUIPO".equals(reclamo.getTipo())) {
+            boolean tieneAdministradores=administradores.existsByEquipoIdEquipoAndEstado(reclamo.getEquipoDestino().getIdEquipo(), "ACTIVO");
             return administradores.existsByEquipoIdEquipoAndUsuarioIdUsuarioAndEstado(reclamo.getEquipoDestino().getIdEquipo(), usuario.getIdUsuario(), "ACTIVO")
-                    || (reclamo.getEquipoDestino().getCreador()!=null && reclamo.getEquipoDestino().getCreador().getIdUsuario().equals(usuario.getIdUsuario()));
+                    || (!tieneAdministradores && reclamo.getEquipoDestino().getCreador()!=null && reclamo.getEquipoDestino().getCreador().getIdUsuario().equals(usuario.getIdUsuario()));
+        }
+        if ("INVITACION_TORNEO".equals(reclamo.getTipo())) {
+            boolean tieneAdministradores=administradores.existsByEquipoIdEquipoAndEstado(reclamo.getEquipo().getIdEquipo(), "ACTIVO");
+            return administradores.existsByEquipoIdEquipoAndUsuarioIdUsuarioAndEstado(reclamo.getEquipo().getIdEquipo(), usuario.getIdUsuario(), "ACTIVO")
+                    || (!tieneAdministradores && reclamo.getEquipo().getCreador()!=null && reclamo.getEquipo().getCreador().getIdUsuario().equals(usuario.getIdUsuario()));
         }
 
         Long idEquipo = reclamo.getJugador().getEquipo().getIdEquipo();
@@ -120,7 +142,7 @@ public class ReclamoService {
                 r.getEquipoDestino()==null?null:r.getEquipoDestino().getIdEquipo(),
                 r.getEquipoDestino()==null?null:r.getEquipoDestino().getNombre(),
                 r.getEquipoDestino()==null?null:r.getEquipoDestino().getCodigoPublico(),
-                r.getTorneo().getIdTorneo(),r.getTorneo().getNombre(),r.getMensaje(),r.getMotivoResolucion(),
+                r.getTorneo().getIdTorneo(),r.getTorneo().getNombre(),r.getCategoria(),r.getMensaje(),r.getMotivoResolucion(),
                 r.getRevisor()==null?null:r.getRevisor().getNombre(),r.getFechaSolicitud(),r.getFechaResolucion());
     }
 }

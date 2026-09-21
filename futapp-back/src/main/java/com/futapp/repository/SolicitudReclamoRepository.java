@@ -20,6 +20,7 @@ public interface SolicitudReclamoRepository extends JpaRepository<SolicitudRecla
     boolean existsBySolicitanteIdUsuarioAndEquipoIdEquipoAndEstado(Long idUsuario, Long idEquipo, String estado);
     boolean existsBySolicitanteIdUsuarioAndJugadorIdJugadorAndEstado(Long idUsuario, Long idJugador, String estado);
     boolean existsBySolicitanteIdUsuarioAndEquipoIdEquipoAndEquipoDestinoIdEquipoAndEstado(Long userId, Long teamId, Long targetId, String estado);
+    boolean existsByEquipoIdEquipoAndTorneoIdTorneoAndTipoAndEstado(Long teamId, Long tournamentId, String type, String status);
     List<SolicitudReclamo> findByEquipoIdEquipo(Long idEquipo);
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @EntityGraph(attributePaths = {"solicitante", "torneo", "torneo.propietario", "equipo", "equipoDestino", "jugador", "jugador.equipo", "revisor"})

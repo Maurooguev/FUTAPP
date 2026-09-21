@@ -52,10 +52,18 @@ public class NotificacionService {
             destinatarios.clear();
             administradores.findByEquipoIdEquipoAndEstado(reclamo.getEquipoDestino().getIdEquipo(), "ACTIVO")
                     .forEach(link -> destinatarios.add(link.getUsuario()));
-            if (reclamo.getEquipoDestino().getCreador() != null) destinatarios.add(reclamo.getEquipoDestino().getCreador());
+            if (destinatarios.isEmpty() && reclamo.getEquipoDestino().getCreador() != null) destinatarios.add(reclamo.getEquipoDestino().getCreador());
+        }
+        if ("INVITACION_TORNEO".equals(reclamo.getTipo())) {
+            destinatarios.clear();
+            administradores.findByEquipoIdEquipoAndEstado(reclamo.getEquipo().getIdEquipo(), "ACTIVO")
+                    .forEach(link -> destinatarios.add(link.getUsuario()));
+            if (destinatarios.isEmpty() && reclamo.getEquipo().getCreador() != null) destinatarios.add(reclamo.getEquipo().getCreador());
         }
         destinatarios.forEach(user -> enviar(user, "SOLICITUD", "Nueva solicitud pendiente",
-                reclamo.getSolicitante().getNombre() + " solicita vincularse con " +
+                "INVITACION_TORNEO".equals(reclamo.getTipo())
+                        ? reclamo.getSolicitante().getNombre() + " invitó a " + reclamo.getEquipo().getNombre() + " al torneo " + reclamo.getTorneo().getNombre()
+                        : reclamo.getSolicitante().getNombre() + " solicita vincularse con " +
                         ("FUSION_EQUIPO".equals(reclamo.getTipo()) ? "fusionar " + reclamo.getEquipo().getNombre() + " con " + reclamo.getEquipoDestino().getNombre() : "EQUIPO".equals(reclamo.getTipo()) ? reclamo.getEquipo().getNombre() : reclamo.getJugador().getNombre() + " " + reclamo.getJugador().getApellido()),
                 "/solicitudes"));
     }

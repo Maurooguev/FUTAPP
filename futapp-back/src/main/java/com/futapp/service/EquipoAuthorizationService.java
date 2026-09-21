@@ -27,6 +27,7 @@ public class EquipoAuthorizationService {
         if (administradores.existsByEquipoIdEquipoAndUsuarioIdUsuarioAndEstado(
                 equipo.getIdEquipo(), usuario.getIdUsuario(), "ACTIVO")) return true;
         if (administradores.existsByEquipoIdEquipoAndEstado(equipo.getIdEquipo(), "ACTIVO")) return false;
+        if (equipo.getCreador() != null && equipo.getCreador().getIdUsuario().equals(usuario.getIdUsuario())) return true;
         return inscripciones.existsByEquipoIdEquipoAndTorneoPropietarioIdUsuarioAndEstado(
                 equipo.getIdEquipo(), usuario.getIdUsuario(), "ACTIVA");
     }
