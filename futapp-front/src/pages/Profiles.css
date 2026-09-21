@@ -54,6 +54,11 @@
 
 :root[data-theme="dark"] .profile-page { color: #dbe5ea; }
 :root[data-theme="dark"] .profile-panel { background: #213744; border-color: #38505d; }
+:root[data-theme="dark"] .history-link { border: 1px solid #3d5866; background: #29414f; color: #f3f7f9; }
+:root[data-theme="dark"] .history-link:hover { border-color: #4b7182; background: #304b59; }
+:root[data-theme="dark"] .history-link strong { color: #f3f7f9; }
+:root[data-theme="dark"] .history-link small { color: #b9c8d2; }
+:root[data-theme="dark"] .history-link span { color: #67d7ee; }
 :root[data-theme="dark"] .player-hero-side .favorite-button { background: #29414f; border-color: #6f8996; color: #e7eef2; }
 :root[data-theme="dark"] .player-hero-side .favorite-button.active { background: #403b25; border-color: #92762f; color: #f4df91; }
 :root[data-theme="dark"] .player-facts { background: #38505d; border-color: #48616e; }
