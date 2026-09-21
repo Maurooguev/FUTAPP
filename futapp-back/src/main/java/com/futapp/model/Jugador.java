@@ -1,6 +1,7 @@
 package com.futapp.model;
 
 import jakarta.persistence.*;
+import com.futapp.util.TextNormalizer;
 import java.util.UUID;
 
 @Entity
@@ -73,7 +74,7 @@ public class Jugador {
     }
 
     public void setNombre(String nombre) {
-        this.nombre = nombre;
+        this.nombre = TextNormalizer.titleCase(nombre);
     }
 
     public String getApellido() {
@@ -81,7 +82,7 @@ public class Jugador {
     }
 
     public void setApellido(String apellido) {
-        this.apellido = apellido;
+        this.apellido = TextNormalizer.titleCase(apellido);
     }
 
     public String getDni() {
@@ -95,7 +96,7 @@ public class Jugador {
     public String getCodigoPublico() { return codigoPublico; }
     public void setCodigoPublico(String codigoPublico) { this.codigoPublico = codigoPublico; }
     public String getApodo() { return apodo; }
-    public void setApodo(String apodo) { this.apodo = apodo; }
+    public void setApodo(String apodo) { this.apodo = TextNormalizer.titleCase(apodo); }
     public String getPiernaHabil() { return piernaHabil; }
     public void setPiernaHabil(String piernaHabil) { this.piernaHabil = piernaHabil; }
 
@@ -120,7 +121,7 @@ public class Jugador {
     }
 
     public void setPosicion(String posicion) {
-        this.posicion = posicion;
+        this.posicion = TextNormalizer.titleCase(posicion);
     }
 
     public String getFoto() {
@@ -142,13 +143,13 @@ public class Jugador {
     public Usuario getUsuario() { return usuario; }
     public void setUsuario(Usuario usuario) { this.usuario = usuario; }
     public String getEquipoFavorito() { return equipoFavorito; }
-    public void setEquipoFavorito(String equipoFavorito) { this.equipoFavorito = equipoFavorito; }
+    public void setEquipoFavorito(String equipoFavorito) { this.equipoFavorito = TextNormalizer.titleCase(equipoFavorito); }
     public String getBarrio() { return barrio; }
-    public void setBarrio(String barrio) { this.barrio = barrio; }
+    public void setBarrio(String barrio) { this.barrio = TextNormalizer.titleCase(barrio); }
     public Integer getAlturaCm() { return alturaCm; }
     public void setAlturaCm(Integer alturaCm) { this.alturaCm = alturaCm; }
     public String getNacionalidad() { return nacionalidad; }
-    public void setNacionalidad(String nacionalidad) { this.nacionalidad = nacionalidad; }
+    public void setNacionalidad(String nacionalidad) { this.nacionalidad = TextNormalizer.titleCase(nacionalidad); }
     public String getBiografia() { return biografia; }
     public void setBiografia(String biografia) { this.biografia = biografia; }
     public String getInstagram() { return instagram; }

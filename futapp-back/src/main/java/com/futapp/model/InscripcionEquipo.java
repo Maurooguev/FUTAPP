@@ -1,6 +1,7 @@
 package com.futapp.model;
 
 import jakarta.persistence.*;
+import com.futapp.util.TextNormalizer;
 import java.time.LocalDate;
 
 @Entity
@@ -33,7 +34,7 @@ public class InscripcionEquipo {
     public Torneo getTorneo() { return torneo; }
     public void setTorneo(Torneo torneo) { this.torneo = torneo; }
     public String getCategoria() { return categoria; }
-    public void setCategoria(String categoria) { this.categoria = categoria; }
+    public void setCategoria(String categoria) { this.categoria = TextNormalizer.titleCase(categoria); }
     public String getEstado() { return estado; }
     public void setEstado(String estado) { this.estado = estado; }
     public LocalDate getFechaAlta() { return fechaAlta; }

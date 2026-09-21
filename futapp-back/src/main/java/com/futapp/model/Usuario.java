@@ -1,6 +1,7 @@
 package com.futapp.model;
 
 import jakarta.persistence.*;
+import com.futapp.util.TextNormalizer;
 
 @Entity
 @Table(name = "usuario", uniqueConstraints = @UniqueConstraint(columnNames = "email"))
@@ -17,7 +18,7 @@ public class Usuario {
     private java.util.Set<String> roles = new java.util.HashSet<>();
     public Long getIdUsuario() { return idUsuario; }
     public String getNombre() { return nombre; }
-    public void setNombre(String nombre) { this.nombre = nombre; }
+    public void setNombre(String nombre) { this.nombre = TextNormalizer.titleCase(nombre); }
     public String getEmail() { return email; }
     public void setEmail(String email) { this.email = email; }
     public String getPasswordHash() { return passwordHash; }

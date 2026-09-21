@@ -1,6 +1,7 @@
 package com.futapp.model;
 
 import jakarta.persistence.*;
+import com.futapp.util.TextNormalizer;
 import java.time.LocalDateTime;
 
 @Entity
@@ -26,7 +27,7 @@ public class SolicitudReclamo {
     public Torneo getTorneo() { return torneo; } public void setTorneo(Torneo torneo) { this.torneo = torneo; }
     public Usuario getRevisor() { return revisor; } public void setRevisor(Usuario revisor) { this.revisor = revisor; }
     public String getMensaje() { return mensaje; } public void setMensaje(String mensaje) { this.mensaje = mensaje; }
-    public String getCategoria() { return categoria; } public void setCategoria(String categoria) { this.categoria = categoria; }
+    public String getCategoria() { return categoria; } public void setCategoria(String categoria) { this.categoria = TextNormalizer.titleCase(categoria); }
     public String getMotivoResolucion() { return motivoResolucion; } public void setMotivoResolucion(String value) { this.motivoResolucion = value; }
     public LocalDateTime getFechaSolicitud() { return fechaSolicitud; } public LocalDateTime getFechaResolucion() { return fechaResolucion; } public void setFechaResolucion(LocalDateTime value) { this.fechaResolucion = value; }
 }

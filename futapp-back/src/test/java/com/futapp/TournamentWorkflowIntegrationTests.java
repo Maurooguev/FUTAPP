@@ -200,7 +200,7 @@ class TournamentWorkflowIntegrationTests {
 
         putJson("/torneos/" + torneoId, token, torneo())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.nombre").value("Liga integral"));
+                .andExpect(jsonPath("$.nombre").value("Liga Integral"));
     }
 
     @Test
@@ -227,7 +227,7 @@ class TournamentWorkflowIntegrationTests {
 
         mockMvc.perform(get("/equipos/{id}", equipoId))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.nombre").value("Club protegido"));
+                .andExpect(jsonPath("$.nombre").value("Club Protegido"));
     }
 
     @Test
@@ -245,7 +245,7 @@ class TournamentWorkflowIntegrationTests {
         mockMvc.perform(get("/torneos/{id}/estructura", torneoId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.divisiones", org.hamcrest.Matchers.hasSize(1)))
-                .andExpect(jsonPath("$.divisiones[0].nombre").value("División única"))
+                .andExpect(jsonPath("$.divisiones[0].nombre").value("División Única"))
                 .andExpect(jsonPath("$.divisiones[0].fases", org.hamcrest.Matchers.hasSize(2)))
                 .andExpect(jsonPath("$.divisiones[0].fases[0].tipo").value("ZONAS"))
                 .andExpect(jsonPath("$.divisiones[0].fases[0].zonas", org.hamcrest.Matchers.hasSize(2)))

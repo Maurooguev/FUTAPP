@@ -1,6 +1,7 @@
 package com.futapp.model;
 
 import jakarta.persistence.*;
+import com.futapp.util.TextNormalizer;
 
 @Entity @Table(name = "competicion_zona")
 public class CompeticionZona {
@@ -10,6 +11,6 @@ public class CompeticionZona {
     @Column(nullable = false) private Integer orden;
     public Long getIdZona() { return idZona; }
     public CompeticionFase getFase() { return fase; } public void setFase(CompeticionFase fase) { this.fase = fase; }
-    public String getNombre() { return nombre; } public void setNombre(String nombre) { this.nombre = nombre; }
+    public String getNombre() { return nombre; } public void setNombre(String nombre) { this.nombre = TextNormalizer.titleCase(nombre); }
     public Integer getOrden() { return orden; } public void setOrden(Integer orden) { this.orden = orden; }
 }

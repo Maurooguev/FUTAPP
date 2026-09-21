@@ -1,6 +1,7 @@
 package com.futapp.model;
 
 import jakarta.persistence.*;
+import com.futapp.util.TextNormalizer;
 
 @Entity
 @Table(name = "torneo")
@@ -53,7 +54,7 @@ public class Torneo {
     }
 
     public void setNombre(String nombre) {
-        this.nombre = nombre;
+        this.nombre = TextNormalizer.titleCase(nombre);
     }
 
     public String getDescripcion() {
@@ -69,7 +70,7 @@ public class Torneo {
     }
 
     public void setUbicacion(String ubicacion) {
-        this.ubicacion = ubicacion;
+        this.ubicacion = TextNormalizer.titleCase(ubicacion);
     }
 
     public String getEstado() {

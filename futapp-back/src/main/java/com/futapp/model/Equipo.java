@@ -1,6 +1,7 @@
 package com.futapp.model;
 
 import jakarta.persistence.*;
+import com.futapp.util.TextNormalizer;
 import java.util.UUID;
 
 @Entity
@@ -69,7 +70,7 @@ public class Equipo {
     }
 
     public void setNombre(String nombre) {
-        this.nombre = nombre;
+        this.nombre = TextNormalizer.titleCase(nombre);
     }
 
     public String getEscudo() {
@@ -94,7 +95,7 @@ public class Equipo {
     }
 
     public void setColorCamiseta(String colorCamiseta) {
-        this.colorCamiseta = colorCamiseta;
+        this.colorCamiseta = TextNormalizer.titleCase(colorCamiseta);
     }
 
     public String getBarrio() {
@@ -102,7 +103,7 @@ public class Equipo {
     }
 
     public void setBarrio(String barrio) {
-        this.barrio = barrio;
+        this.barrio = TextNormalizer.titleCase(barrio);
     }
 
     public String getResponsable() {
@@ -110,7 +111,7 @@ public class Equipo {
     }
 
     public void setResponsable(String responsable) {
-        this.responsable = responsable;
+        this.responsable = TextNormalizer.titleCase(responsable);
     }
 
     public String getTelefonoContacto() {

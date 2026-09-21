@@ -1,6 +1,7 @@
 package com.futapp.model;
 
 import jakarta.persistence.*;
+import com.futapp.util.TextNormalizer;
 import java.time.LocalDate;
 
 @Entity
@@ -38,7 +39,7 @@ public class InscripcionJugador {
     public Integer getNumeroCamiseta() { return numeroCamiseta; }
     public void setNumeroCamiseta(Integer numeroCamiseta) { this.numeroCamiseta = numeroCamiseta; }
     public String getPosicion() { return posicion; }
-    public void setPosicion(String posicion) { this.posicion = posicion; }
+    public void setPosicion(String posicion) { this.posicion = TextNormalizer.titleCase(posicion); }
     public String getEstado() { return estado; }
     public void setEstado(String estado) { this.estado = estado; }
     public LocalDate getFechaAlta() { return fechaAlta; }

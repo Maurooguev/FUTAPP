@@ -1,6 +1,7 @@
 package com.futapp.model;
 
 import jakarta.persistence.*;
+import com.futapp.util.TextNormalizer;
 
 @Entity @Table(name = "competicion_division")
 public class CompeticionDivision {
@@ -10,6 +11,6 @@ public class CompeticionDivision {
     @Column(nullable = false) private Integer orden;
     public Long getIdDivision() { return idDivision; }
     public Torneo getTorneo() { return torneo; } public void setTorneo(Torneo torneo) { this.torneo = torneo; }
-    public String getNombre() { return nombre; } public void setNombre(String nombre) { this.nombre = nombre; }
+    public String getNombre() { return nombre; } public void setNombre(String nombre) { this.nombre = TextNormalizer.titleCase(nombre); }
     public Integer getOrden() { return orden; } public void setOrden(Integer orden) { this.orden = orden; }
 }

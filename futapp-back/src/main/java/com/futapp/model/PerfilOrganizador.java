@@ -1,6 +1,7 @@
 package com.futapp.model;
 
 import jakarta.persistence.*;
+import com.futapp.util.TextNormalizer;
 
 @Entity
 @Table(name = "perfil_organizador")
@@ -30,7 +31,7 @@ public class PerfilOrganizador {
     public Usuario getUsuario() { return usuario; }
     public void setUsuario(Usuario usuario) { this.usuario = usuario; }
     public String getNombrePublico() { return nombrePublico; }
-    public void setNombrePublico(String nombrePublico) { this.nombrePublico = nombrePublico; }
+    public void setNombrePublico(String nombrePublico) { this.nombrePublico = TextNormalizer.titleCase(nombrePublico); }
     public String getDescripcion() { return descripcion; }
     public void setDescripcion(String descripcion) { this.descripcion = descripcion; }
     public String getFotoPerfil() { return fotoPerfil; }
