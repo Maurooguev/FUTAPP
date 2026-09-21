@@ -23,6 +23,8 @@ public interface TorneoRepository extends JpaRepository<Torneo, Long> {
     Page<Torneo> findByEstadoNotIgnoreCase(String estado, Pageable pageable);
     Page<Torneo> findByNombreContainingIgnoreCaseOrCodigoPublicoContainingIgnoreCase(
             String nombre, String codigoPublico, Pageable pageable);
+    Page<Torneo> findByNombreContainingIgnoreCaseOrCodigoPublicoContainingIgnoreCaseOrUbicacionContainingIgnoreCase(
+            String nombre, String codigoPublico, String ubicacion, Pageable pageable);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select t from Torneo t where t.idTorneo = :id")

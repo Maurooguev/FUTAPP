@@ -6,6 +6,8 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 @Repository
 public interface EquipoRepository extends JpaRepository<Equipo, Long> {
@@ -13,4 +15,6 @@ public interface EquipoRepository extends JpaRepository<Equipo, Long> {
     List<Equipo> findByTorneoIdTorneo(Long idTorneo);
     List<Equipo> findByCreadorIdUsuarioOrderByNombre(Long idUsuario);
     Optional<Equipo> findByCodigoPublicoIgnoreCase(String codigoPublico);
+    Page<Equipo> findByNombreContainingIgnoreCaseOrCodigoPublicoContainingIgnoreCaseOrBarrioContainingIgnoreCase(
+            String nombre, String codigoPublico, String barrio, Pageable pageable);
 }

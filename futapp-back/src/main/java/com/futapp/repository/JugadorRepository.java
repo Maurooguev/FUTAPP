@@ -9,6 +9,8 @@ import java.util.Optional;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 @Repository
 public interface JugadorRepository extends JpaRepository<Jugador, Long> {
@@ -24,6 +26,8 @@ public interface JugadorRepository extends JpaRepository<Jugador, Long> {
     boolean existsByDniAndIdJugadorNot(String dni, Long idJugador);
     Optional<Jugador> findByUsuarioIdUsuario(Long idUsuario);
     Optional<Jugador> findByCodigoPublicoIgnoreCase(String codigoPublico);
+    Page<Jugador> findByNombreContainingIgnoreCaseOrApellidoContainingIgnoreCaseOrApodoContainingIgnoreCaseOrCodigoPublicoContainingIgnoreCase(
+            String nombre, String apellido, String apodo, String codigoPublico, Pageable pageable);
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("update Jugador j set j.visitas = j.visitas + 1 where j.idJugador = :id")
     int incrementarVisitas(@Param("id") Long id);

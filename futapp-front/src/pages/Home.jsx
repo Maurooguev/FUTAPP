@@ -11,6 +11,9 @@ import { tieneRol } from "../utils/roles";
 function Home() {
   const [torneos, setTorneos] = useState([]);
   const [busqueda, setBusqueda] = useState("");
+  const [resultadosBusqueda, setResultadosBusqueda] = useState({ torneos: [], equipos: [], jugadores: [] });
+  const [buscando, setBuscando] = useState(false);
+  const [errorBusqueda, setErrorBusqueda] = useState("");
   const [showTournamentForm, setShowTournamentForm] = useState(false);
   const [loadError, setLoadError] = useState("");
   const [reloadKey, setReloadKey] = useState(0);
@@ -27,12 +30,34 @@ function Home() {
       .catch(() => setLoadError("No pudimos conectar con el backend. Verificá que FUTAPP esté iniciado."));
   }, [reloadKey]);
 
-  const torneosFiltrados = useMemo(() => {
-    return torneos.filter((torneo) => {
-      const texto = `${torneo.nombre} ${torneo.codigoPublico ?? ""} ${torneo.ubicacion} ${torneo.estado}`.toLowerCase();
-      return texto.includes(busqueda.toLowerCase());
-    });
-  }, [torneos, busqueda]);
+  useEffect(() => {
+    const termino = busqueda.trim();
+    if (termino.length < 2) {
+      setResultadosBusqueda({ torneos: [], equipos: [], jugadores: [] });
+      setErrorBusqueda("");
+      setBuscando(false);
+      return undefined;
+    }
+    let vigente = true;
+    setBuscando(true);
+    const timer = window.setTimeout(async () => {
+      setErrorBusqueda("");
+      try {
+        const response = await apiFetch(`${API_URL}/busqueda?q=${encodeURIComponent(termino)}`);
+        if (!response.ok) throw new Error("No se pudo buscar");
+        const data = await response.json();
+        if (vigente) setResultadosBusqueda(data);
+      } catch {
+        if (vigente) setErrorBusqueda("No pudimos completar la búsqueda.");
+      } finally {
+        if (vigente) setBuscando(false);
+      }
+    }, 250);
+    return () => {
+      vigente = false;
+      window.clearTimeout(timer);
+    };
+  }, [busqueda]);
 
   const destacados = useMemo(() => [...torneos]
     .sort((a, b) => (b.visitas || 0) - (a.visitas || 0)
@@ -57,6 +82,10 @@ function Home() {
     document.getElementById("todos-torneos")?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
+  const buscar = () => {
+    if (busqueda.trim().length < 2) irATorneos();
+  };
+
   const crearTorneo = () => {
     if (!usuario) return navigate("/register");
     setShowTournamentForm(true);
@@ -70,7 +99,11 @@ function Home() {
       <HeroHome
         busqueda={busqueda}
         onBusquedaChange={setBusqueda}
-        onSearch={irATorneos}
+        onSearch={buscar}
+        resultados={resultadosBusqueda}
+        buscando={buscando}
+        errorBusqueda={errorBusqueda}
+        onResultClick={(tipo, id) => navigate(`/${tipo}/${id}`)}
         onCreate={crearTorneo}
         onExplore={irATorneos}
         primaryLabel={primaryLabel}
@@ -127,14 +160,14 @@ function Home() {
           description="Filtrá rápidamente y encontrá el torneo que estás buscando."
         />
 
-        {!loadError && torneosFiltrados.length === 0 ? (
+        {!loadError && torneos.length === 0 ? (
           <div className="empty-state">
             <h3>No encontramos torneos</h3>
             <p>Probá con otro nombre, estado o ubicación.</p>
           </div>
         ) : (
           <div className="cards-grid">
-            {torneosFiltrados.map((torneo) => (
+            {torneos.map((torneo) => (
               <TournamentCard
                 key={torneo.idTorneo}
                 torneo={torneo}
