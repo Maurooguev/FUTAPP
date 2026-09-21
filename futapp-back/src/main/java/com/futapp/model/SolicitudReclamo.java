@@ -10,6 +10,7 @@ public class SolicitudReclamo {
     private String tipo; private String estado = "PENDIENTE";
     @ManyToOne(optional = false) @JoinColumn(name = "id_solicitante") private Usuario solicitante;
     @ManyToOne @JoinColumn(name = "id_equipo") private Equipo equipo;
+    @ManyToOne @JoinColumn(name = "id_equipo_destino") private Equipo equipoDestino;
     @ManyToOne @JoinColumn(name = "id_jugador") private Jugador jugador;
     @ManyToOne(optional = false) @JoinColumn(name = "id_torneo") private Torneo torneo;
     @ManyToOne @JoinColumn(name = "id_revisor") private Usuario revisor;
@@ -20,6 +21,7 @@ public class SolicitudReclamo {
     public String getEstado() { return estado; } public void setEstado(String estado) { this.estado = estado; }
     public Usuario getSolicitante() { return solicitante; } public void setSolicitante(Usuario solicitante) { this.solicitante = solicitante; }
     public Equipo getEquipo() { return equipo; } public void setEquipo(Equipo equipo) { this.equipo = equipo; }
+    public Equipo getEquipoDestino() { return equipoDestino; } public void setEquipoDestino(Equipo value) { this.equipoDestino = value; }
     public Jugador getJugador() { return jugador; } public void setJugador(Jugador jugador) { this.jugador = jugador; }
     public Torneo getTorneo() { return torneo; } public void setTorneo(Torneo torneo) { this.torneo = torneo; }
     public Usuario getRevisor() { return revisor; } public void setRevisor(Usuario revisor) { this.revisor = revisor; }

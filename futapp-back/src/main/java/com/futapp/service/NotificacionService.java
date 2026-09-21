@@ -48,9 +48,15 @@ public class NotificacionService {
             administradores.findByEquipoIdEquipoAndEstado(reclamo.getJugador().getEquipo().getIdEquipo(), "ACTIVO")
                     .forEach(link -> destinatarios.add(link.getUsuario()));
         }
+        if ("FUSION_EQUIPO".equals(reclamo.getTipo())) {
+            destinatarios.clear();
+            administradores.findByEquipoIdEquipoAndEstado(reclamo.getEquipoDestino().getIdEquipo(), "ACTIVO")
+                    .forEach(link -> destinatarios.add(link.getUsuario()));
+            if (reclamo.getEquipoDestino().getCreador() != null) destinatarios.add(reclamo.getEquipoDestino().getCreador());
+        }
         destinatarios.forEach(user -> enviar(user, "SOLICITUD", "Nueva solicitud pendiente",
                 reclamo.getSolicitante().getNombre() + " solicita vincularse con " +
-                        ("EQUIPO".equals(reclamo.getTipo()) ? reclamo.getEquipo().getNombre() : reclamo.getJugador().getNombre() + " " + reclamo.getJugador().getApellido()),
+                        ("FUSION_EQUIPO".equals(reclamo.getTipo()) ? "fusionar " + reclamo.getEquipo().getNombre() + " con " + reclamo.getEquipoDestino().getNombre() : "EQUIPO".equals(reclamo.getTipo()) ? reclamo.getEquipo().getNombre() : reclamo.getJugador().getNombre() + " " + reclamo.getJugador().getApellido()),
                 "/solicitudes"));
     }
     public void avisarPartido(Partido partido, boolean resultado) {

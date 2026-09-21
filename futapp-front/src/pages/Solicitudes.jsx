@@ -11,16 +11,20 @@ const formatDate = (value) => value
 
 function SolicitudCard({ item, onResolve, rejecting, onReject, onCancelReject, canResolve = false }) {
   const [reason, setReason] = useState("");
-  const targetUrl = item.tipo === "EQUIPO" ? `/equipo/${item.idEquipo}` : `/jugador/${item.idJugador}`;
-  const targetName = item.tipo === "EQUIPO" ? item.nombreEquipo : item.nombreJugador;
+  const isFusion = item.tipo === "FUSION_EQUIPO";
+  const isTeam = item.tipo === "EQUIPO";
+  const targetUrl = isFusion ? `/equipo/${item.idEquipoDestino}` : isTeam ? `/equipo/${item.idEquipo}` : `/jugador/${item.idJugador}`;
+  const targetName = isFusion ? item.nombreEquipoDestino : isTeam ? item.nombreEquipo : item.nombreJugador;
 
   return <article className="request-card">
     <div className="request-avatar">{item.fotoSolicitante ? <img src={assetUrl(item.fotoSolicitante)} alt="" /> : item.nombreSolicitante?.slice(0, 2).toUpperCase()}</div>
     <div className="request-content">
-      <div className="request-title"><div><span>{item.tipo === "EQUIPO" ? "Reclamo de equipo" : "Reclamo de jugador"}</span><h2>{item.nombreSolicitante}</h2></div><strong className={`request-status ${item.estado.toLowerCase()}`}>{item.estado}</strong></div>
+      <div className="request-title"><div><span>{isFusion ? "Vinculación de equipos" : isTeam ? "Reclamo de equipo" : "Reclamo de jugador"}</span><h2>{item.nombreSolicitante}</h2></div><strong className={`request-status ${item.estado.toLowerCase()}`}>{item.estado}</strong></div>
       <div className="request-meta"><span>{item.rolSolicitante?.replaceAll("_", " ")}</span><a href={`mailto:${item.emailSolicitante}`}>{item.emailSolicitante}</a><span>{formatDate(item.fechaSolicitud)}</span></div>
-      <p>{item.tipo === "EQUIPO" ? "Solicita administrar" : "Solicita vincular su cuenta con"} <Link to={targetUrl}>{targetName}</Link> en <Link to={`/torneo/${item.idTorneo}`}>{item.nombreTorneo}</Link>.</p>
-      <p className="request-team">Equipo: <Link to={`/equipo/${item.idEquipo}`}>{item.nombreEquipo}</Link></p>
+      {isFusion
+        ? <p>Solicita vincular <Link to={`/equipo/${item.idEquipo}`}>{item.nombreEquipo}</Link> con el perfil oficial <Link to={targetUrl}>{targetName}</Link> ({item.codigoEquipoDestino}).</p>
+        : <p>{isTeam ? "Solicita administrar" : "Solicita vincular su cuenta con"} <Link to={targetUrl}>{targetName}</Link> en <Link to={`/torneo/${item.idTorneo}`}>{item.nombreTorneo}</Link>.</p>}
+      {!isFusion && <p className="request-team">Equipo: <Link to={`/equipo/${item.idEquipo}`}>{item.nombreEquipo}</Link></p>}
       {item.mensaje && <blockquote>“{item.mensaje}”</blockquote>}
       {item.estado !== "PENDIENTE" && <div className="request-resolution"><strong>{item.nombreRevisor || "Revisor"}</strong> · {formatDate(item.fechaResolucion)}{item.motivoResolucion && <p>Motivo: {item.motivoResolucion}</p>}</div>}
       {item.estado === "PENDIENTE" && !canResolve && <div className="request-resolution">Esperando revisión.</div>}

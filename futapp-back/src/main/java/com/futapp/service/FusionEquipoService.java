@@ -38,11 +38,19 @@ public class FusionEquipoService {
 
     @Transactional
     public void fusionar(Long idOficial, Long idDuplicado) {
+        fusionarInterno(idOficial, idDuplicado, true);
+    }
+
+    public void fusionarAprobada(Long idOficial, Long idDuplicado) {
+        fusionarInterno(idOficial, idDuplicado, false);
+    }
+
+    private void fusionarInterno(Long idOficial, Long idDuplicado, boolean validarPermiso) {
         if (idOficial.equals(idDuplicado)) throw new IllegalArgumentException("Seleccioná dos clubes diferentes");
         Equipo oficial = equipos.findById(idOficial).orElseThrow(() -> new ResourceNotFoundException("Club oficial no encontrado"));
         Equipo duplicado = equipos.findById(idDuplicado).orElseThrow(() -> new ResourceNotFoundException("Club duplicado no encontrado"));
         Usuario usuario = usuarioActual();
-        if (!puedeFusionar(usuario, oficial, duplicado)) {
+        if (validarPermiso && !puedeFusionar(usuario, oficial, duplicado)) {
             throw new AccessDeniedException("Debés administrar ambos clubes para poder fusionarlos");
         }
 

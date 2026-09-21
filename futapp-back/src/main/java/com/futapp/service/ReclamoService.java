@@ -17,7 +17,23 @@ public class ReclamoService {
     private final JugadorRepository jugadores; private final TorneoRepository torneos;
     private final EquipoAdministradorRepository administradores; private final InscripcionEquipoRepository inscripciones;
     private final NotificacionService notificaciones;
-    public ReclamoService(SolicitudReclamoRepository r, EquipoRepository e, JugadorRepository j, TorneoRepository t, EquipoAdministradorRepository a, InscripcionEquipoRepository i, NotificacionService n) { reclamos=r; equipos=e; jugadores=j; torneos=t; administradores=a; inscripciones=i; notificaciones=n; }
+    private final EquipoAliasRepository aliases; private final FusionEquipoService fusiones;
+    public ReclamoService(SolicitudReclamoRepository r, EquipoRepository e, JugadorRepository j, TorneoRepository t, EquipoAdministradorRepository a, InscripcionEquipoRepository i, NotificacionService n, EquipoAliasRepository al, FusionEquipoService f) { reclamos=r; equipos=e; jugadores=j; torneos=t; administradores=a; inscripciones=i; notificaciones=n; aliases=al; fusiones=f; }
+
+    @Transactional
+    public ReclamoResponseDTO solicitarFusion(Long idDuplicado, String codigoOficial, ReclamoRequestDTO request) {
+        Usuario user=actual();
+        Equipo duplicado=equipos.findById(idDuplicado).orElseThrow(() -> new ResourceNotFoundException("Equipo a vincular no encontrado"));
+        Equipo oficial=equipos.findByCodigoPublicoIgnoreCase(codigoOficial.trim()).orElseGet(() -> aliases.findByCodigoIgnoreCase(codigoOficial.trim()).map(EquipoAlias::getEquipo).orElseThrow(() -> new ResourceNotFoundException("No encontramos un equipo con ese código")));
+        if (duplicado.getIdEquipo().equals(oficial.getIdEquipo())) throw new IllegalArgumentException("Ese código pertenece al mismo equipo");
+        Torneo torneo=torneos.findById(request.idTorneo()).orElseThrow(() -> new ResourceNotFoundException("Torneo no encontrado"));
+        boolean propietario=torneo.getPropietario()!=null && torneo.getPropietario().getIdUsuario().equals(user.getIdUsuario());
+        boolean administra=administradores.existsByEquipoIdEquipoAndUsuarioIdUsuarioAndEstado(idDuplicado,user.getIdUsuario(),"ACTIVO");
+        boolean creador=duplicado.getCreador()!=null && duplicado.getCreador().getIdUsuario().equals(user.getIdUsuario());
+        if (!user.tieneRol("ADMIN") && !propietario && !administra && !creador) throw new AccessDeniedException("No tenés permiso para vincular este equipo");
+        if (reclamos.existsBySolicitanteIdUsuarioAndEquipoIdEquipoAndEquipoDestinoIdEquipoAndEstado(user.getIdUsuario(),idDuplicado,oficial.getIdEquipo(),"PENDIENTE")) throw new IllegalArgumentException("Esta vinculación ya está esperando aprobación");
+        SolicitudReclamo item=base(user,torneo,request.mensaje()); item.setTipo("FUSION_EQUIPO"); item.setEquipo(duplicado); item.setEquipoDestino(oficial); item=reclamos.save(item); notificaciones.avisarResponsablesReclamo(item); return dto(item);
+    }
 
     public ReclamoResponseDTO reclamarEquipo(Long idEquipo, ReclamoRequestDTO request) {
         Usuario user = actual(); exigirRol(user, "DIRECTOR_EQUIPO");
@@ -59,11 +75,14 @@ public class ReclamoService {
             if (item.getJugador().getUsuario() != null) throw new IllegalArgumentException("Este jugador ya tiene una cuenta verificada");
             item.getJugador().setUsuario(item.getSolicitante()); jugadores.save(item.getJugador());
         }
+        if (aprobar && "FUSION_EQUIPO".equals(item.getTipo())) {
+            fusiones.fusionarAprobada(item.getEquipoDestino().getIdEquipo(), item.getEquipo().getIdEquipo());
+        }
         item.setEstado(aprobar ? "APROBADA" : "RECHAZADA"); item.setRevisor(user); item.setMotivoResolucion(normalizar(motivo)); item.setFechaResolucion(LocalDateTime.now()); item=reclamos.save(item);
-        String objetivo = "EQUIPO".equals(item.getTipo()) ? item.getEquipo().getNombre() : item.getJugador().getNombre()+" "+item.getJugador().getApellido();
+        String objetivo = "JUGADOR".equals(item.getTipo()) ? item.getJugador().getNombre()+" "+item.getJugador().getApellido() : item.getEquipo().getNombre();
         notificaciones.enviar(item.getSolicitante(), "SOLICITUD", aprobar ? "Solicitud aprobada" : "Solicitud rechazada",
                 "Tu solicitud sobre "+objetivo+" fue "+(aprobar ? "aprobada." : "rechazada."+(item.getMotivoResolucion()==null?"":" Motivo: "+item.getMotivoResolucion())),
-                "EQUIPO".equals(item.getTipo()) ? "/equipo/"+item.getEquipo().getIdEquipo() : "/jugador/"+item.getJugador().getIdJugador());
+                "JUGADOR".equals(item.getTipo()) ? "/jugador/"+item.getJugador().getIdJugador() : "/equipo/"+item.getEquipo().getIdEquipo());
         return dto(item);
     }
 
@@ -73,6 +92,10 @@ public class ReclamoService {
         boolean esPropietarioDelTorneo = reclamo.getTorneo().getPropietario() != null
                 && reclamo.getTorneo().getPropietario().getIdUsuario().equals(usuario.getIdUsuario());
         if ("EQUIPO".equals(reclamo.getTipo())) return esPropietarioDelTorneo;
+        if ("FUSION_EQUIPO".equals(reclamo.getTipo())) {
+            return administradores.existsByEquipoIdEquipoAndUsuarioIdUsuarioAndEstado(reclamo.getEquipoDestino().getIdEquipo(), usuario.getIdUsuario(), "ACTIVO")
+                    || (reclamo.getEquipoDestino().getCreador()!=null && reclamo.getEquipoDestino().getCreador().getIdUsuario().equals(usuario.getIdUsuario()));
+        }
 
         Long idEquipo = reclamo.getJugador().getEquipo().getIdEquipo();
         boolean esDirector = administradores.existsByEquipoIdEquipoAndUsuarioIdUsuarioAndEstado(
@@ -94,6 +117,9 @@ public class ReclamoService {
                 r.getSolicitante().getRol(),foto,equipo.getIdEquipo(),equipo.getNombre(),equipo.getEscudo(),
                 r.getJugador()==null?null:r.getJugador().getIdJugador(),
                 r.getJugador()==null?null:r.getJugador().getNombre()+" "+r.getJugador().getApellido(),
+                r.getEquipoDestino()==null?null:r.getEquipoDestino().getIdEquipo(),
+                r.getEquipoDestino()==null?null:r.getEquipoDestino().getNombre(),
+                r.getEquipoDestino()==null?null:r.getEquipoDestino().getCodigoPublico(),
                 r.getTorneo().getIdTorneo(),r.getTorneo().getNombre(),r.getMensaje(),r.getMotivoResolucion(),
                 r.getRevisor()==null?null:r.getRevisor().getNombre(),r.getFechaSolicitud(),r.getFechaResolucion());
     }
