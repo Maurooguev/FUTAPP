@@ -151,7 +151,7 @@ public class Jugador {
     public String getNacionalidad() { return nacionalidad; }
     public void setNacionalidad(String nacionalidad) { this.nacionalidad = TextNormalizer.titleCase(nacionalidad); }
     public String getBiografia() { return biografia; }
-    public void setBiografia(String biografia) { this.biografia = biografia; }
+    public void setBiografia(String biografia) { this.biografia = TextNormalizer.titleCase(biografia); }
     public String getInstagram() { return instagram; }
     public void setInstagram(String instagram) { this.instagram = instagram; }
     public Long getVisitas() { return visitas; }

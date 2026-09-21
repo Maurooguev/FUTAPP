@@ -62,7 +62,7 @@ public class Torneo {
     }
 
     public void setDescripcion(String descripcion) {
-        this.descripcion = descripcion;
+        this.descripcion = TextNormalizer.titleCase(descripcion);
     }
 
     public String getUbicacion() {

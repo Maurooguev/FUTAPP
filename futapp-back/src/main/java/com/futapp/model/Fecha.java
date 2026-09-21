@@ -1,6 +1,7 @@
 package com.futapp.model;
 
 import jakarta.persistence.*;
+import com.futapp.util.TextNormalizer;
 
 @Entity
 @Table(name = "fecha")
@@ -45,7 +46,7 @@ public class Fecha {
     }
 
     public void setDescripcion(String descripcion) {
-        this.descripcion = descripcion;
+        this.descripcion = TextNormalizer.titleCase(descripcion);
     }
 
     public String getEstado() {

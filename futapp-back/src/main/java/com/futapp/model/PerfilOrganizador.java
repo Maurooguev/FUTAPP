@@ -33,7 +33,7 @@ public class PerfilOrganizador {
     public String getNombrePublico() { return nombrePublico; }
     public void setNombrePublico(String nombrePublico) { this.nombrePublico = TextNormalizer.titleCase(nombrePublico); }
     public String getDescripcion() { return descripcion; }
-    public void setDescripcion(String descripcion) { this.descripcion = descripcion; }
+    public void setDescripcion(String descripcion) { this.descripcion = TextNormalizer.titleCase(descripcion); }
     public String getFotoPerfil() { return fotoPerfil; }
     public void setFotoPerfil(String fotoPerfil) { this.fotoPerfil = fotoPerfil; }
     public String getFotoPortada() { return fotoPortada; }

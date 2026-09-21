@@ -84,7 +84,7 @@ public class Equipo {
     public String getCodigoPublico() { return codigoPublico; }
     public void setCodigoPublico(String codigoPublico) { this.codigoPublico = codigoPublico; }
     public String getDescripcion() { return descripcion; }
-    public void setDescripcion(String descripcion) { this.descripcion = descripcion; }
+    public void setDescripcion(String descripcion) { this.descripcion = TextNormalizer.titleCase(descripcion); }
     public String getFotoPlantel() { return fotoPlantel; }
     public void setFotoPlantel(String fotoPlantel) { this.fotoPlantel = fotoPlantel; }
     public String getEmailContacto() { return emailContacto; }
