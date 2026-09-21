@@ -76,7 +76,12 @@ function Solicitudes() {
     const response = await apiFetch(`${API_URL}/reclamos/${id}/${approve ? "aprobar" : "rechazar"}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ motivo: reason }) });
     const body = await response.json().catch(() => null);
     setMessage(response.ok ? (approve ? "Solicitud aprobada." : "Solicitud rechazada.") : body?.message || "No se pudo resolver");
-    if (response.ok) { setRejectingId(null); await load(); window.dispatchEvent(new Event("requests-updated")); }
+    if (response.ok) {
+      setRejectingId(null);
+      localStorage.setItem("tournamentDataUpdatedAt", String(Date.now()));
+      window.dispatchEvent(new Event("requests-updated"));
+      await load();
+    }
     setResolving(false);
   };
   return <main className="profile-page requests-page">

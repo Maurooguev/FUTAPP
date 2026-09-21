@@ -124,6 +124,32 @@ function TorneoDetalle() {
   }, [id, reloadKey]);
 
   useEffect(() => {
+    let active = true;
+    const refreshTeams = async () => {
+      try {
+        const response = await apiFetch(`${API_URL}/equipos/torneo/${id}`, { cache: "no-store" });
+        if (!response.ok) return;
+        const teams = await response.json();
+        if (active) setEquipos(Array.isArray(teams) ? teams : []);
+      } catch { /* La carga principal conserva el último estado disponible. */ }
+    };
+    const onFocus = () => refreshTeams();
+    const onVisibility = () => { if (document.visibilityState === "visible") refreshTeams(); };
+    const onStorage = (event) => { if (event.key === "tournamentDataUpdatedAt") refreshTeams(); };
+    window.addEventListener("focus", onFocus);
+    window.addEventListener("requests-updated", onFocus);
+    window.addEventListener("storage", onStorage);
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => {
+      active = false;
+      window.removeEventListener("focus", onFocus);
+      window.removeEventListener("requests-updated", onFocus);
+      window.removeEventListener("storage", onStorage);
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
+  }, [id]);
+
+  useEffect(() => {
     if (!torneo?.idTorneo || visitedTournament.current === id) return;
     visitedTournament.current = id;
     fetch(`${API_URL}/torneos/${id}/visitas`, { method: "POST" }).then((response) => response.ok ? response.json() : null)
