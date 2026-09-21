@@ -140,9 +140,9 @@ function TeamFormModal({ torneoId, equipo, onClose, onSaved, onLinked }) {
           <ImageUploadField label="Foto del plantel" value={form.fotoPlantel} onUploaded={(fotoPlantel) => setForm((current) => ({ ...current, fotoPlantel }))} />
           <label>Descripción<textarea name="descripcion" value={form.descripcion} onChange={updateField} maxLength="1000" rows="4" /></label>
           {isEditing && <section className="team-link-panel">
-            <div><span>Identidad del club</span><h3>Vincular con un equipo existente</h3><p>Ingresá el código del perfil oficial. El código actual quedará como alias y no se perderán partidos ni estadísticas.</p></div>
+            <div><span>Perfiles duplicados</span><h3>Fusionar con el perfil oficial</h3><p>Usá esta opción solamente si ambos perfiles representan al mismo club. Esto no lo invita al torneo: para eso usá “Inscribir club existente”.</p><p>El código actual quedará como alias y no se perderán partidos ni estadísticas.</p></div>
             <label>Código público<div className="team-code-search"><input value={linkCode} onChange={(event) => { setLinkCode(event.target.value.toUpperCase()); setLinkTarget(null); }} placeholder="EQ-XXXXXXX" /><button type="button" onClick={searchLinkTarget}>Buscar</button></div></label>
-            {linkTarget && <div className="team-link-preview"><span>{linkTarget.nombre.slice(0, 2).toUpperCase()}</span><div><strong>{linkTarget.nombre}</strong><small>{linkTarget.barrio || "Sin barrio"} · {linkTarget.codigoPublico}</small></div><button type="button" onClick={linkTeam} disabled={linking}>{linking ? "Vinculando…" : "Confirmar vinculación"}</button></div>}
+            {linkTarget && <div className="team-link-preview"><span>{linkTarget.nombre.slice(0, 2).toUpperCase()}</span><div><strong>{linkTarget.nombre}</strong><small>{linkTarget.barrio || "Sin barrio"} · {linkTarget.codigoPublico}</small></div><button type="button" onClick={linkTeam} disabled={linking}>{linking ? "Fusionando…" : "Solicitar fusión"}</button></div>}
             {linkMessage && <p className="profile-action-message">{linkMessage}</p>}
           </section>}
           {error && <p className="tournament-form-error">{error}</p>}
