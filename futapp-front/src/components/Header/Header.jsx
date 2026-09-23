@@ -133,6 +133,8 @@ function Header() {
     return apiFetch(`${API_URL}/notificaciones/no-leidas/count`).then((response) => response.ok ? response.json() : { cantidad: 0 }).then((data) => setUnreadNotifications(data.cantidad || 0)).catch(() => setUnreadNotifications(0));
   }, [usuario]);
 
+  const registrationLink = (next, intent) => `/register?next=${encodeURIComponent(next)}&intent=${encodeURIComponent(intent)}`;
+
   useEffect(() => {
     loadNotifications();
     const interval = window.setInterval(loadNotifications, 30000);
@@ -150,16 +152,15 @@ function Header() {
 
         <HeaderSearch />
 
-        <nav className="header-nav">
+        <nav className={`header-nav ${usuario ? "" : "guest"}`}>
           <Link to="/">Explorar</Link>
 
-          {usuario && (
-            <Link to="/mis-torneos">Mis torneos</Link>
-          )}
+          {usuario ? <Link to="/mis-torneos">Mis torneos</Link> : <Link className="guest-nav-link" to={registrationLink("/?crearTorneo=1", "crear-torneo")}>Crear torneo <span>🔒</span></Link>}
           {(tieneRol(usuario, "ADMIN") || tieneRol(usuario, "DIRECTOR_EQUIPO")) && <Link to="/mis-equipos">Mis equipos</Link>}
           {usuario && <Link className="requests-nav-link" to="/solicitudes">Solicitudes{pendingRequests > 0 && <span>{pendingRequests > 99 ? "99+" : pendingRequests}</span>}</Link>}
-          {usuario && <Link to="/favoritos">Favoritos</Link>}
+          {usuario ? <Link to="/favoritos">Favoritos</Link> : <Link className="guest-nav-link" to={registrationLink("/favoritos", "guardar-favoritos")}>Favoritos <span>🔒</span></Link>}
           {(tieneRol(usuario, "JUGADOR") || tieneRol(usuario, "ORGANIZADOR")) && <Link to={usuario?.rol === "ORGANIZADOR" || !tieneRol(usuario, "JUGADOR") ? "/mi-perfil-organizador" : "/mi-perfil-jugador"}>Mi perfil</Link>}
+          {!usuario && <Link className="guest-nav-link" to={registrationLink("/mi-perfil-jugador", "crear-perfil")}>Crear perfil <span>🔒</span></Link>}
         </nav>
 
         <div className="header-actions">

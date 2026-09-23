@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import useAuth from "../context/useAuth";
 
 function Register() {
@@ -11,19 +11,28 @@ function Register() {
 
   const { register } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const next = searchParams.get("next");
+  const safeNext = next?.startsWith("/") && !next.startsWith("//") ? next : "/";
+  const intent = searchParams.get("intent");
+  const intentCopy = {
+    "crear-torneo": "Creá tu cuenta y empezá a armar tu torneo.",
+    "guardar-favoritos": "Creá tu cuenta para guardar torneos, equipos y jugadores.",
+    "crear-perfil": "Creá tu cuenta para generar y completar tu perfil.",
+  }[intent];
 
   const manejarRegistro = async (e) => {
     e.preventDefault();
 
     setError("");
-    try { await register(nombre, email, password, rol); navigate("/"); } catch (registerError) { setError(registerError.message); }
+    try { await register(nombre, email, password, rol); navigate(safeNext, { replace: true }); } catch (registerError) { setError(registerError.message); }
   };
 
   return (
     <div className="auth-page">
       <div className="auth-card">
         <h1>Registrarse</h1>
-        <p>Creá tu cuenta de prueba en FUTAPP.</p>
+        <p>{intentCopy || "Creá tu cuenta en FUTAPP."}</p>
 
         <form onSubmit={manejarRegistro}>
           <label>Nombre</label>
@@ -54,7 +63,7 @@ function Register() {
         </form>
 
         <p className="auth-link">
-          ¿Ya tenés cuenta? <Link to="/login">Ingresar</Link>
+          ¿Ya tenés cuenta? <Link to={`/login?next=${encodeURIComponent(safeNext)}${intent ? `&intent=${encodeURIComponent(intent)}` : ""}`}>Ingresar</Link>
         </p>
       </div>
     </div>

@@ -1,10 +1,13 @@
 import { useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { API_URL, apiFetch } from "../../config/api";
 import useAuth from "../../context/useAuth";
 import "./FavoriteButton.css";
 
 function FavoriteButton({ type, id }) {
   const { usuario } = useAuth();
+  const location = useLocation();
+  const navigate = useNavigate();
   const [favorite, setFavorite] = useState(false);
   const [saving, setSaving] = useState(false);
 
@@ -14,7 +17,10 @@ function FavoriteButton({ type, id }) {
       .then((data) => setFavorite(Boolean(data?.[type]?.includes(Number(id))))).catch(() => null);
   }, [usuario, type, id]);
 
-  if (!usuario) return null;
+  if (!usuario) {
+    const returnTo = `${location.pathname}${location.search}`;
+    return <button type="button" className="favorite-button guest" onClick={() => navigate(`/register?next=${encodeURIComponent(returnTo)}&intent=guardar-favoritos`)} aria-label="Crear una cuenta para guardar en favoritos" title="Creá una cuenta para guardar este perfil"><span>☆</span><small>Guardar</small></button>;
+  }
   const toggle = async () => {
     setSaving(true);
     try {

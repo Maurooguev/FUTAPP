@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import useAuth from "../context/useAuth";
 
 function Login() {
@@ -9,18 +9,22 @@ function Login() {
 
   const { login } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const next = searchParams.get("next");
+  const safeNext = next?.startsWith("/") && !next.startsWith("//") ? next : "/";
+  const intent = searchParams.get("intent");
 
   const manejarLogin = async (e) => {
     e.preventDefault();
     setError("");
-    try { await login(email, password); navigate("/"); } catch (loginError) { setError(loginError.message); }
+    try { await login(email, password); navigate(safeNext, { replace: true }); } catch (loginError) { setError(loginError.message); }
   };
 
   return (
     <div className="auth-page">
       <div className="auth-card">
         <h1>Ingresar</h1>
-        <p>Ingresá con tu cuenta de FUTAPP.</p>
+        <p>{intent ? "Ingresá para continuar con lo que elegiste." : "Ingresá con tu cuenta de FUTAPP."}</p>
 
         <form onSubmit={manejarLogin}>
           <label>Email</label>
@@ -37,7 +41,7 @@ function Login() {
         </form>
 
         <p className="auth-link">
-          ¿No tenés cuenta? <Link to="/register">Registrarse</Link>
+          ¿No tenés cuenta? <Link to={`/register?next=${encodeURIComponent(safeNext)}${intent ? `&intent=${encodeURIComponent(intent)}` : ""}`}>Registrarse</Link>
         </p>
       </div>
     </div>

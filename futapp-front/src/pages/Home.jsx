@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import SectionTitle from "../components/SectionTitle/SectionTitle";
 import TournamentCard from "../components/TournamentCard/TournamentCard";
 import TournamentFormModal from "../components/TournamentFormModal/TournamentFormModal";
@@ -27,17 +27,25 @@ function MatchActivityCard({ partido, result, onClick }) {
 }
 
 function Home() {
+  const { usuario, refreshSession } = useAuth();
   const [exploreData, setExploreData] = useState({ torneos: [], ultimosResultados: [], proximosPartidos: [], ubicaciones: [] });
   const [favorites, setFavorites] = useState({ equipos: [], torneos: [], jugadores: [] });
   const [loading, setLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState("TODOS");
   const [sort, setSort] = useState("RELEVANTES");
   const [location, setLocation] = useState(() => window.localStorage.getItem("futapp-explore-location") || "");
-  const [showTournamentForm, setShowTournamentForm] = useState(false);
+  const [showTournamentForm, setShowTournamentForm] = useState(() => Boolean(usuario && new URLSearchParams(window.location.search).get("crearTorneo") === "1"));
   const [loadError, setLoadError] = useState("");
   const [reloadKey, setReloadKey] = useState(0);
   const navigate = useNavigate();
-  const { usuario, refreshSession } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  useEffect(() => {
+    if (!usuario || searchParams.get("crearTorneo") !== "1") return;
+    const nextParams = new URLSearchParams(searchParams);
+    nextParams.delete("crearTorneo");
+    setSearchParams(nextParams, { replace: true });
+  }, [searchParams, setSearchParams, usuario]);
 
   useEffect(() => {
     let active = true;
@@ -107,7 +115,7 @@ function Home() {
   const champions = useMemo(() => torneos.filter((tournament) => tournament.idCampeon).slice(0, 6), [torneos]);
 
   const createTournament = () => {
-    if (!usuario) return navigate("/register");
+    if (!usuario) return navigate(`/register?next=${encodeURIComponent("/?crearTorneo=1")}&intent=crear-torneo`);
     setShowTournamentForm(true);
   };
   const retry = () => { setLoading(true); setLoadError(""); setReloadKey((value) => value + 1); };
