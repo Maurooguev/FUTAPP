@@ -353,14 +353,24 @@ const recargarDatosTorneo = () => {
     } catch (requestError) { setAdminError(requestError.message); }
   };
 
+  const primaryAdminAction = (() => {
+    if (torneo.estado?.toUpperCase() === "FINALIZADO") return { icon: "🏆", label: "Torneo finalizado", action: () => changeTab("resumen"), disabled: false };
+    if (equipos.length < 2) return { icon: "👥", label: "Agregar equipos", action: () => changeTab("equipos"), disabled: false };
+    if (partidos.length === 0) return { icon: "▦", label: usaLlave ? "Generar llaves" : "Generar fixture", action: abrirGeneradorFixture, disabled: generandoFixture };
+    if (siguientePartidoPendiente) return { icon: "⚽", label: "Cargar próximo resultado", action: abrirProximoResultado, disabled: false };
+    if (usaLlave && !torneo.idCampeon) return { icon: "→", label: "Generar siguiente fase", action: generarSiguienteLlave, disabled: generandoFixture };
+    if (torneo.estado?.toUpperCase() === "ACTIVO") return { icon: "✓", label: "Finalizar torneo", action: () => cambiarEstadoTorneo("finalizar"), disabled: false };
+    return { icon: "▦", label: "Revisar fixture", action: () => changeTab("fixture"), disabled: false };
+  })();
+
   return (
     <div className="torneo-page">
       <TournamentHero torneo={torneo} fechaActual={fechaActual} perfilOrganizador={perfilOrganizador} activeTab={activeTab} onTabChange={changeTab} />
 
       {puedeEditar && <div className="tournament-admin-bar">
         <div className="tournament-admin-main">
-          <button className="admin-primary-action" type="button" onClick={abrirProximoResultado} disabled={!siguientePartidoPendiente}>
-            <span>⚽</span><span><small>Siguiente acción</small><strong>{siguientePartidoPendiente ? "Cargar próximo resultado" : "No hay partidos pendientes"}</strong></span>
+          <button className="admin-primary-action" type="button" onClick={primaryAdminAction.action} disabled={primaryAdminAction.disabled}>
+            <span>{primaryAdminAction.icon}</span><span><small>Siguiente acción</small><strong>{primaryAdminAction.label}</strong></span>
           </button>
           <div className="admin-context-actions">
             {activeTab === "resumen" && <><button type="button" onClick={() => setMostrarEdicion(true)}>Editar torneo</button>{torneo.estado?.toUpperCase() === "BORRADOR" && <button type="button" onClick={() => cambiarEstadoTorneo("publicar")}>Publicar</button>}{["BORRADOR", "PUBLICADO"].includes(torneo.estado?.toUpperCase()) && <button type="button" onClick={() => cambiarEstadoTorneo("iniciar")}>Iniciar</button>}{torneo.estado?.toUpperCase() === "ACTIVO" && <button type="button" onClick={() => cambiarEstadoTorneo("finalizar")}>Finalizar</button>}</>}
