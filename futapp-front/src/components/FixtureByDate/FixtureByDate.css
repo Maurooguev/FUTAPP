@@ -105,6 +105,11 @@
   font-weight: 800;
 }
 
+.fixture-score-line .fixture-team { display: flex; min-width: 0; align-items: center; justify-content: center; gap: 7px; }
+.fixture-score-line .fixture-team img { width: 34px; height: 34px; flex: 0 0 auto; border-radius: 50%; object-fit: cover; }
+.fixture-score-line .fixture-team span { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.fixture-score-line .fixture-team-away { flex-direction: row-reverse; }
+
 .fixture-score-line strong {
   color: #1d4ed8;
   font-size: 20px;
@@ -131,6 +136,8 @@
   .fixture-score-line {
     grid-template-columns: 1fr;
   }
+
+  .fixture-score-line .fixture-team-away { flex-direction: row; }
 }
 .fixture-score-line a { color: inherit; text-decoration: none; }
 .fixture-score-line a:hover { color: #0877a7; text-decoration: underline; }

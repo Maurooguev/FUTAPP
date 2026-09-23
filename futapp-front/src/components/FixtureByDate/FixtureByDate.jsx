@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import EntityImage from "../EntityImage/EntityImage";
 import "./FixtureByDate.css";
 
 function FixtureByDate({ fechas, partidos, onSelectPartido, canManage, onEditDate, onCloseDate, onDeleteDate, onEditMatch, onSuspendMatch, onDeleteMatch, onLoadResult, onQuickResult }) {
@@ -117,7 +118,7 @@ function FixtureByDate({ fechas, partidos, onSelectPartido, canManage, onEditDat
               <div className="fixture-match-status">{partido.estado}</div>
 
               <div className="fixture-score-line">
-                <Link to={`/equipo/${partido.idEquipoLocal}`} onClick={(event) => event.stopPropagation()}>{partido.nombreEquipoLocal}</Link>
+                <Link className="fixture-team" to={`/equipo/${partido.idEquipoLocal}`} onClick={(event) => event.stopPropagation()}><EntityImage type="team" value={partido.escudoEquipoLocal} alt="" /><span>{partido.nombreEquipoLocal}</span></Link>
 
                 <strong>
                   {partido.estado?.toUpperCase() === "FINALIZADO"
@@ -125,7 +126,7 @@ function FixtureByDate({ fechas, partidos, onSelectPartido, canManage, onEditDat
                     : "vs"}
                 </strong>
 
-                <Link to={`/equipo/${partido.idEquipoVisitante}`} onClick={(event) => event.stopPropagation()}>{partido.nombreEquipoVisitante}</Link>
+                <Link className="fixture-team fixture-team-away" to={`/equipo/${partido.idEquipoVisitante}`} onClick={(event) => event.stopPropagation()}><EntityImage type="team" value={partido.escudoEquipoVisitante} alt="" /><span>{partido.nombreEquipoVisitante}</span></Link>
               </div>
 
               <p>{partido.fechaHora || "Horario a confirmar"}{partido.cancha ? ` · ${partido.cancha}` : ""}</p>
