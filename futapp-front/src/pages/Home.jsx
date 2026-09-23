@@ -16,6 +16,12 @@ const formatDate = (value) => value
   ? new Intl.DateTimeFormat("es-AR", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" }).format(new Date(value))
   : "A confirmar";
 
+const normalizeFilterValue = (value) => (value || "")
+  .normalize("NFD")
+  .replace(/[\u0300-\u036f]/g, "")
+  .trim()
+  .toUpperCase();
+
 function MatchActivityCard({ partido, result, onClick }) {
   return (
     <button type="button" className="explore-match-card" onClick={onClick}>
@@ -76,13 +82,15 @@ function Home() {
 
   const filteredTournaments = useMemo(() => {
     const filtered = torneos.filter((tournament) => {
-      const state = tournament.estado?.toUpperCase();
-      const format = tournament.formato?.toUpperCase() || "";
+      const state = normalizeFilterValue(tournament.estado);
+      const format = normalizeFilterValue(tournament.formato);
+      const sameLocation = !location || normalizeFilterValue(tournament.ubicacion) === normalizeFilterValue(location);
+      if (!sameLocation) return false;
       if (activeFilter === "ACTIVO" || activeFilter === "FINALIZADO") return state === activeFilter;
-      if (activeFilter === "PROXIMAMENTE") return Boolean(tournament.proximoPartido);
+      if (activeFilter === "PROXIMAMENTE") return state !== "FINALIZADO" && Boolean(tournament.proximoPartido);
       if (activeFilter === "LIGA") return format === "LIGA";
-      if (activeFilter === "ELIMINACION") return format.includes("ELIMINACIÓN") || format.includes("ELIMINACION");
-      if (activeFilter === "ZONAS") return format.includes("ZONA");
+      if (activeFilter === "ELIMINACION") return format === "ELIMINACION DIRECTA";
+      if (activeFilter === "ZONAS") return format.includes("ZONA") || format.includes("PLAYOFF");
       return true;
     });
     return filtered.sort((a, b) => {
@@ -92,11 +100,10 @@ function Home() {
       if (sort === "PROXIMOS") return (a.proximoPartido?.fechaHora || "9999").localeCompare(b.proximoPartido?.fechaHora || "9999");
       return Number(b.estado === "ACTIVO") - Number(a.estado === "ACTIVO") || (b.visitas || 0) - (a.visitas || 0);
     });
-  }, [torneos, activeFilter, sort]);
+  }, [torneos, activeFilter, sort, location]);
 
-  const nearby = useMemo(() => location
-    ? torneos.filter((tournament) => tournament.ubicacion?.toLowerCase() === location.toLowerCase()).slice(0, 8)
-    : [], [torneos, location]);
+  const hasActiveFilters = activeFilter !== "TODOS" || Boolean(location);
+  const activeFilterLabel = FILTERS.find(([value]) => value === activeFilter)?.[1] || "Torneos";
 
   const personalized = useMemo(() => {
     if (!usuario) return [];
@@ -144,19 +151,24 @@ function Home() {
       {loadError && <div className="empty-state explore-message" role="alert"><h3>FUTAPP todavía no está disponible</h3><p>{loadError}</p><button type="button" className="home-btn-primary" onClick={retry}>Reintentar</button></div>}
       {loading && !loadError && <div className="empty-state explore-message">Cargando torneos...</div>}
 
-      {!loading && !loadError && personalized.length > 0 && (
+      {!loading && !loadError && hasActiveFilters && (
+        <section className="section section-soft explore-section explore-filter-results" aria-live="polite">
+          <SectionTitle chip="Resultados" title={location ? `${activeFilterLabel} en ${location}` : activeFilterLabel} description={`${filteredTournaments.length} ${filteredTournaments.length === 1 ? "torneo" : "torneos"}`} />
+          {filteredTournaments.length === 0
+            ? <div className="empty-state"><h3>No hay torneos con estos filtros</h3><p>Probá con otra categoría o ubicación.</p><button type="button" onClick={() => { setActiveFilter("TODOS"); setLocation(""); window.localStorage.removeItem("futapp-explore-location"); }}>Limpiar filtros</button></div>
+            : <div className="cards-grid">{filteredTournaments.map((tournament) => <TournamentCard key={tournament.idTorneo} torneo={tournament} onClick={() => navigate(`/torneo/${tournament.idTorneo}`)} />)}</div>}
+        </section>
+      )}
+
+      {!loading && !loadError && !hasActiveFilters && personalized.length > 0 && (
         <section className="section explore-section explore-personal"><SectionTitle chip="Para vos" title="Tus torneos" description="Favoritos y competencias que administrás." /><div className="cards-grid explore-rail">{personalized.map((tournament) => <TournamentCard key={tournament.idTorneo} torneo={tournament} onClick={() => navigate(`/torneo/${tournament.idTorneo}`)} />)}</div>{relatedMatches.length > 0 && <div className="related-matches"><strong>Próximos relacionados</strong>{relatedMatches.map((match) => <MatchActivityCard key={match.idPartido} partido={match} onClick={() => navigate(`/partido/${match.idPartido}`)} />)}</div>}</section>
       )}
 
-      {!loading && !loadError && nearby.length > 0 && (
-        <section className="section explore-section"><SectionTitle chip="Cerca de vos" title={`Torneos en ${location}`} description="La ubicación queda guardada en este dispositivo." /><div className="cards-grid explore-rail">{nearby.map((tournament) => <TournamentCard key={tournament.idTorneo} torneo={tournament} onClick={() => navigate(`/torneo/${tournament.idTorneo}`)} />)}</div></section>
-      )}
-
-      {!loading && !loadError && destacados.length > 0 && (
+      {!loading && !loadError && !hasActiveFilters && destacados.length > 0 && (
         <section className="section explore-section" id="destacados"><SectionTitle chip="Destacados" title="Los más visitados" description="Competencias que están siguiendo los usuarios de FUTAPP." /><div className="cards-grid explore-rail featured-grid">{destacados.map((tournament) => <TournamentCard key={tournament.idTorneo} torneo={tournament} variant="featured" onClick={() => navigate(`/torneo/${tournament.idTorneo}`)} />)}</div></section>
       )}
 
-      {!loading && !loadError && (
+      {!loading && !loadError && !hasActiveFilters && (
         <section className="section explore-activity-section">
           <SectionTitle chip="Actividad" title="Qué está pasando" description="Resultados recientes y lo próximo que se juega." />
           <div className="explore-activity-grid">
@@ -167,7 +179,7 @@ function Home() {
         </section>
       )}
 
-      {!loading && !loadError && (
+      {!loading && !loadError && !hasActiveFilters && (
         <section className="section section-soft explore-section" id="todos-torneos">
           <SectionTitle chip="Competencias" title="Todos los torneos" description={`${filteredTournaments.length} resultados`} />
           {filteredTournaments.length === 0 ? <div className="empty-state"><h3>No hay torneos con este filtro</h3><p>Probá seleccionando otra categoría.</p></div> : <div className="cards-grid">{filteredTournaments.map((tournament) => <TournamentCard key={tournament.idTorneo} torneo={tournament} onClick={() => navigate(`/torneo/${tournament.idTorneo}`)} />)}</div>}
