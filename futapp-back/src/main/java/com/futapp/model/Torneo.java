@@ -13,6 +13,7 @@ public class Torneo {
     private Long idTorneo;
 
     private String nombre;
+    @Column(length = 500)
     private String descripcion;
     private String ubicacion;
     private String estado;

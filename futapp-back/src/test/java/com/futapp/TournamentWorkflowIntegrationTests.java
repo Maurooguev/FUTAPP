@@ -204,6 +204,20 @@ class TournamentWorkflowIntegrationTests {
     }
 
     @Test
+    void permiteEditarUnaDescripcionDeHastaQuinientosCaracteres() throws Exception {
+        String token = registrarOrganizador();
+        Map<String, Object> request = new LinkedHashMap<>(torneo());
+        long torneoId = postJson("/torneos", token, request).get("idTorneo").asLong();
+        String descripcionLarga = "Torneo barrial con información detallada para equipos y jugadores. ".repeat(6).trim();
+        request.put("descripcion", descripcionLarga);
+
+        putJson("/torneos/" + torneoId, token, request)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.descripcion", org.hamcrest.Matchers.hasLength(descripcionLarga.length())))
+                .andExpect(jsonPath("$.descripcion", org.hamcrest.Matchers.startsWith("Torneo Barrial")));
+    }
+
+    @Test
     void protegeElTorneoYLosEquiposDeUsuariosAjenos() throws Exception {
         String propietario = registrarUsuario("ORGANIZADOR");
         String otroOrganizador = registrarUsuario("ORGANIZADOR");

@@ -1,0 +1,2 @@
+ALTER TABLE torneo
+    ALTER COLUMN descripcion TYPE VARCHAR(500);

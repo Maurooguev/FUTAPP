@@ -43,5 +43,16 @@ class PostgresMigrationIT {
                 assertThat(result.getString(1)).isEqualTo("timestamp without time zone");
             }
         }
+
+        try (var connection = dataSource.getConnection();
+             var statement = connection.prepareStatement("""
+                     SELECT character_maximum_length FROM information_schema.columns
+                     WHERE table_name = 'torneo' AND column_name = 'descripcion'
+                     """)) {
+            try (var result = statement.executeQuery()) {
+                assertThat(result.next()).isTrue();
+                assertThat(result.getInt(1)).isEqualTo(500);
+            }
+        }
     }
 }

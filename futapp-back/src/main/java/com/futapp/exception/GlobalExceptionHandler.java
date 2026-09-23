@@ -41,8 +41,11 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<ErrorResponse> manejarConflictoDeDatos(DataIntegrityViolationException ex) {
-        return new ResponseEntity<>(new ErrorResponse(409,
-                "La operación está duplicada o entra en conflicto con datos existentes"), HttpStatus.CONFLICT);
+        String detalle = ex.getMostSpecificCause().getMessage();
+        String mensaje = detalle != null && (detalle.contains("value too long") || detalle.contains("Value too long"))
+                ? "Uno de los textos supera la longitud permitida"
+                : "La operación está duplicada o entra en conflicto con datos existentes";
+        return new ResponseEntity<>(new ErrorResponse(409, mensaje), HttpStatus.CONFLICT);
     }
 
     @ExceptionHandler(TooManyLoginAttemptsException.class)
