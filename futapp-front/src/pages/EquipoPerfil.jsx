@@ -8,6 +8,7 @@ import TeamFormModal from "../components/TeamManagement/TeamFormModal";
 import TeamRosterModal from "../components/TeamManagement/TeamRosterModal";
 import FavoriteButton from "../components/FavoriteButton/FavoriteButton";
 import ImageLightbox from "../components/ImageLightbox/ImageLightbox";
+import plantelGenerico from "../assets/plantel-generico.png";
 
 async function fetchJson(url, message) {
   const response = await fetch(url);
@@ -81,7 +82,7 @@ function EquipoPerfil() {
 
   return <main className="profile-page">
     <section className="club-cover">
-      {equipo.fotoPlantel ? <img src={assetUrl(equipo.fotoPlantel)} alt={`Plantel de ${equipo.nombre}`} /> : <div className="club-cover-placeholder">Foto del plantel</div>}
+      <img src={equipo.fotoPlantel ? assetUrl(equipo.fotoPlantel) : plantelGenerico} alt={equipo.fotoPlantel ? `Plantel de ${equipo.nombre}` : `Fondo genérico del plantel de ${equipo.nombre}`} onError={(event) => { event.currentTarget.onerror = null; event.currentTarget.src = plantelGenerico; }} />
     </section>
     <section className="profile-identity">
       {equipo.escudo ? <button type="button" className="profile-avatar club-avatar image-preview-trigger" onClick={() => setPreviewImage({ src: assetUrl(equipo.escudo), alt: `Escudo de ${equipo.nombre}` })} aria-label={`Ampliar escudo de ${equipo.nombre}`}><img src={assetUrl(equipo.escudo)} alt={`Escudo de ${equipo.nombre}`} /></button> : <div className="profile-avatar club-avatar">{equipo.nombre.slice(0, 2).toUpperCase()}</div>}
