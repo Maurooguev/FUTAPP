@@ -163,6 +163,20 @@ nombre. La seccion `Mis torneos` muestra las competencias administrables por la
 sesion actual; `ADMIN` puede gestionar todas. Los torneos historicos sin
 propietario permanecen publicos en modo consulta.
 
+## Datos demo de Zona Oeste
+
+Con PostgreSQL ejecutándose, se puede completar el entorno local con diez
+torneos ficticios de Zona Oeste, equipos, planteles, fixtures, resultados,
+goles, tarjetas, tablas y campeones:
+
+```powershell
+.\cargar-demo-zona-oeste.ps1
+```
+
+La carga es idempotente: puede repetirse sin duplicar los registros demo. Los
+torneos se identifican mediante los códigos `ZO-DEMO-01` a `ZO-DEMO-10` y no
+modifican los datos creados manualmente.
+
 ## Verificacion
 
 ```powershell
