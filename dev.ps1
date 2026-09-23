@@ -17,19 +17,28 @@ if ($LASTEXITCODE -ne 0) {
     throw "No se pudo iniciar PostgreSQL. Verifica que Docker Desktop este abierto."
 }
 
-$backendCommand = "Set-Location -LiteralPath '$backendPath'; .\mvnw.cmd spring-boot:run"
-
-$backendProcess = Start-Process powershell `
-    -WorkingDirectory $backendPath `
-    -ArgumentList "-NoExit", "-Command", $backendCommand `
-    -PassThru
-
 $healthUrl = "http://localhost:8080/api/v1/status"
 $backendReady = $false
+$backendAlreadyRunning = $false
+try {
+    $health = Invoke-RestMethod -Uri $healthUrl -TimeoutSec 2
+    $backendAlreadyRunning = $health.status -eq "UP" -and $health.database -eq "UP"
+} catch {
+    $backendAlreadyRunning = $false
+}
+
+if (-not $backendAlreadyRunning) {
+    $backendProcess = Start-Process powershell `
+        -WorkingDirectory $projectRoot `
+        -ArgumentList "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", (Join-Path $projectRoot "dev-backend.ps1") `
+        -WindowStyle Hidden `
+        -PassThru
+}
+
 Write-Host "Esperando a que el backend quede listo..."
 for ($attempt = 1; $attempt -le 90; $attempt++) {
-    if ($backendProcess.HasExited) {
-        throw "El backend se cerro durante el inicio. Revisa la terminal del backend."
+    if (-not $backendAlreadyRunning -and $backendProcess.HasExited) {
+        throw "El supervisor del backend se cerro durante el inicio. Revisa futapp-back/backend-dev-error.log."
     }
     try {
         $health = Invoke-RestMethod -Uri $healthUrl -TimeoutSec 2
@@ -43,7 +52,7 @@ for ($attempt = 1; $attempt -le 90; $attempt++) {
 }
 
 if (-not $backendReady) {
-    throw "El backend no quedo listo en 90 segundos. Revisa la terminal del backend."
+    throw "El backend no quedo listo en 90 segundos. Revisa futapp-back/backend-dev.log y backend-dev-error.log."
 }
 
 Write-Host "Backend y PostgreSQL listos. Iniciando frontend..."

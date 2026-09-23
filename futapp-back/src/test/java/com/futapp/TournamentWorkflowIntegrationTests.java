@@ -125,8 +125,29 @@ class TournamentWorkflowIntegrationTests {
                 Map.of("golesLocal", 2, "golesVisitante", 1))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("El resultado no puede ser menor que los goles individuales ya cargados"));
-        postJson("/tarjetas", token, Map.of("minuto", 31, "tipoTarjeta", "AMARILLA", "idPartido", partidoId,
+        JsonNode tarjeta = postJson("/tarjetas", token, Map.of("minuto", 31, "tipoTarjeta", "AMARILLA", "idPartido", partidoId,
                 "idJugador", jugadorVisitante.get("idJugador").asLong(), "idEquipo", visitante.get("idEquipo").asLong()));
+
+        mockMvc.perform(get("/tarjetas/partido/{id}", partidoId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", org.hamcrest.Matchers.hasSize(1)))
+                .andExpect(jsonPath("$[0].tipoTarjeta").value("AMARILLA"))
+                .andExpect(jsonPath("$[0].nombreJugador").value("Pedro Sur"))
+                .andExpect(jsonPath("$[0].nombreEquipo").value("Deportivo Sur"));
+        mockMvc.perform(get("/tarjetas/torneo/{id}", torneoId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", org.hamcrest.Matchers.hasSize(1)));
+
+        mockMvc.perform(put("/tarjetas/{id}", tarjeta.get("idTarjeta").asLong())
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonMapper.writeValueAsString(Map.of("minuto", 72, "tipoTarjeta", "ROJA",
+                                "motivo", "Doble amarilla", "idPartido", partidoId,
+                                "idJugador", jugadorVisitante.get("idJugador").asLong(),
+                                "idEquipo", visitante.get("idEquipo").asLong()))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.tipoTarjeta").value("ROJA"))
+                .andExpect(jsonPath("$.minuto").value(72));
 
         mockMvc.perform(delete("/partidos/{id}", partidoId).header("Authorization", "Bearer " + token))
                 .andExpect(status().isBadRequest())
