@@ -7,6 +7,7 @@ import "./Profiles.css";
 import TeamFormModal from "../components/TeamManagement/TeamFormModal";
 import TeamRosterModal from "../components/TeamManagement/TeamRosterModal";
 import FavoriteButton from "../components/FavoriteButton/FavoriteButton";
+import ImageLightbox from "../components/ImageLightbox/ImageLightbox";
 
 async function fetchJson(url, message) {
   const response = await fetch(url);
@@ -27,6 +28,7 @@ function EquipoPerfil() {
   const [canManage, setCanManage] = useState(false);
   const [showEdit, setShowEdit] = useState(false);
   const [showRoster, setShowRoster] = useState(false);
+  const [previewImage, setPreviewImage] = useState(null);
 
   const claimTeam = async () => {
     const response = await apiFetch(`${API_URL}/reclamos/equipos/${id}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ idTorneo: equipo.idTorneo, mensaje: "Solicito administrar este equipo" }) });
@@ -82,7 +84,7 @@ function EquipoPerfil() {
       {equipo.fotoPlantel ? <img src={assetUrl(equipo.fotoPlantel)} alt={`Plantel de ${equipo.nombre}`} /> : <div className="club-cover-placeholder">Foto del plantel</div>}
     </section>
     <section className="profile-identity">
-      <div className="profile-avatar club-avatar">{equipo.escudo ? <img src={assetUrl(equipo.escudo)} alt={`Escudo de ${equipo.nombre}`} /> : equipo.nombre.slice(0, 2).toUpperCase()}</div>
+      {equipo.escudo ? <button type="button" className="profile-avatar club-avatar image-preview-trigger" onClick={() => setPreviewImage({ src: assetUrl(equipo.escudo), alt: `Escudo de ${equipo.nombre}` })} aria-label={`Ampliar escudo de ${equipo.nombre}`}><img src={assetUrl(equipo.escudo)} alt={`Escudo de ${equipo.nombre}`} /></button> : <div className="profile-avatar club-avatar">{equipo.nombre.slice(0, 2).toUpperCase()}</div>}
       <div><span className="profile-code">{equipo.codigoPublico}</span><h1>{equipo.nombre} {equipo.verificado && <span className="verified-badge" title="Equipo administrado por un director aprobado">✓ Verificado</span>} {titulos.length > 0 && <span className="club-stars" title={`${titulos.length} título${titulos.length === 1 ? "" : "s"}`}>{"★".repeat(titulos.length)}</span>}</h1><p>{equipo.barrio || "Barrio sin informar"}</p></div>
       <div className="profile-owner-actions">
         <FavoriteButton type="equipos" id={equipo.idEquipo} />
@@ -100,6 +102,7 @@ function EquipoPerfil() {
     <section className="profile-panel"><h2>Partidos</h2><div className="profile-match-list">{historial.length === 0 ? <p>Todavía no hay partidos.</p> : historial.slice().reverse().map((partido) => <Link to={`/partido/${partido.idPartido}`} key={partido.idPartido}><span>{partido.nombreEquipoLocal}</span><strong>{partido.estado === "JUGADO" || partido.estado === "FINALIZADO" ? `${partido.golesLocal} - ${partido.golesVisitante}` : "vs"}</strong><span>{partido.nombreEquipoVisitante}</span></Link>)}</div></section>
     {showEdit && <TeamFormModal torneoId={equipo.idTorneo} equipo={equipo} onClose={() => setShowEdit(false)} onSaved={setEquipo} />}
     {showRoster && <TeamRosterModal equipo={equipo} torneoId={equipo.idTorneo} canManage={hasManageAccess} onClose={() => setShowRoster(false)} />}
+    {previewImage && <ImageLightbox {...previewImage} onClose={() => setPreviewImage(null)} />}
   </main>;
 }
 

@@ -255,9 +255,11 @@ END $$;
 -- Imágenes públicas y determinísticas para visualizar perfiles completos.
 -- Solo se aplican a los registros demo y no reemplazan cargas manuales.
 UPDATE equipo
-SET escudo = 'https://api.dicebear.com/10.x/identicon/svg?seed=' || codigo_publico
-WHERE codigo_publico LIKE 'EQ-Z%'
-  AND (escudo IS NULL OR btrim(escudo) = '');
+SET escudo = CASE
+    WHEN id_equipo % 2 = 0 THEN '/uploads/escudo-demo-azul.png'
+    ELSE '/uploads/escudo-demo-rojo.png'
+END
+WHERE codigo_publico LIKE 'EQ-Z%';
 
 UPDATE jugador
 SET foto = 'https://randomuser.me/api/portraits/men/' || ((id_jugador % 99) + 1)::TEXT || '.jpg'

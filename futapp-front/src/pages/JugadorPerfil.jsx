@@ -5,6 +5,7 @@ import useAuth from "../context/useAuth";
 import { tieneRol } from "../utils/roles";
 import "./Profiles.css";
 import FavoriteButton from "../components/FavoriteButton/FavoriteButton";
+import ImageLightbox from "../components/ImageLightbox/ImageLightbox";
 
 async function fetchJson(url, message) {
   const response = await fetch(url);
@@ -35,6 +36,7 @@ function JugadorPerfil() {
   const [claimMessage, setClaimMessage] = useState("");
   const [ownPlayerId, setOwnPlayerId] = useState(null);
   const [organizerProfileExists, setOrganizerProfileExists] = useState(false);
+  const [previewImage, setPreviewImage] = useState(null);
   const visitedPlayer = useRef(null);
 
   const claimPlayer = async () => {
@@ -100,7 +102,7 @@ function JugadorPerfil() {
 
   return <main className="profile-page player-profile">
     <section className="player-hero">
-      <div className="profile-avatar player-avatar">{jugador.foto ? <img src={assetUrl(jugador.foto)} alt={`${jugador.nombre} ${jugador.apellido}`} /> : jugador.numeroCamiseta}</div>
+      {jugador.foto ? <button type="button" className="profile-avatar player-avatar image-preview-trigger" onClick={() => setPreviewImage({ src: assetUrl(jugador.foto), alt: `${jugador.nombre} ${jugador.apellido}` })} aria-label={`Ampliar foto de ${jugador.nombre} ${jugador.apellido}`}><img src={assetUrl(jugador.foto)} alt={`${jugador.nombre} ${jugador.apellido}`} /></button> : <div className="profile-avatar player-avatar">{jugador.numeroCamiseta}</div>}
       <div><span className="profile-code">{jugador.codigoPublico}</span><h1>{jugador.nombre} {jugador.apellido} {jugador.verificado && <span className="verified-badge" title="Perfil vinculado con la cuenta del jugador">✓ Verificado</span>}</h1>{jugador.apodo && <p className="player-nickname">“{jugador.apodo}”</p>}<Link to={`/equipo/${equipo.idEquipo}`}>{equipo.nombre}</Link></div>
       <div className="player-hero-side"><strong className="shirt-number">#{jugador.numeroCamiseta}</strong><FavoriteButton type="jugadores" id={jugador.idJugador} /><span className="profile-views">👁 {jugador.visitas || 0} visitas</span></div>
       {isOwnProfile ? <div className="player-profile-actions"><Link className="profile-edit-link" to="/mi-perfil-jugador/editar">Editar perfil de jugador</Link>{(tieneRol(usuario, "ORGANIZADOR") || tieneRol(usuario, "ADMIN")) && <Link className="profile-organizer-link" to={organizerProfileExists ? "/mi-perfil-organizador" : "/mi-perfil-organizador/editar"}>{organizerProfileExists ? "Ver perfil de organizador" : "Generar perfil de organizador"}</Link>}</div> : tieneRol(usuario, "JUGADOR") && !jugador.verificado && <button className="profile-claim-button" onClick={claimPlayer}>Este jugador soy yo</button>}
@@ -110,6 +112,7 @@ function JugadorPerfil() {
     <section className="profile-panel"><h2>Equipos y torneos</h2><div className="career-list">{inscripciones.map((item) => <article key={item.idInscripcionJugador}><Link className="career-team-link" to={`/equipo/${item.idEquipo}`}>{item.nombreEquipo}</Link><Link className="career-tournament-link" to={`/torneo/${item.idTorneo}`}><span>{item.nombreTorneo}</span><b>Ver torneo →</b></Link><small>#{item.numeroCamiseta || "—"} · {item.posicion || "Sin posición"} · {item.estado}</small></article>)}</div></section>
     <section className="profile-panel"><h2>Estadísticas</h2><div className="player-stats"><div><strong>{historial.filter((p) => p.estado === "JUGADO" || p.estado === "FINALIZADO").length}</strong><span>Partidos del plantel</span></div><div><strong>{goles.length}</strong><span>Goles</span></div><div><strong>{amarillas}</strong><span>Amarillas</span></div><div><strong>{rojas}</strong><span>Rojas</span></div></div></section>
     <section className="profile-panel"><h2>Historial de partidos</h2><p className="profile-note">Primera versión: se muestran los partidos del plantel. Más adelante registraremos convocatorias y minutos individuales.</p><div className="profile-match-list">{historial.length === 0 ? <p>Todavía no hay partidos.</p> : historial.slice().reverse().map((partido) => <Link to={`/partido/${partido.idPartido}`} key={partido.idPartido}><span>{partido.nombreEquipoLocal}</span><strong>{partido.estado === "JUGADO" || partido.estado === "FINALIZADO" ? `${partido.golesLocal} - ${partido.golesVisitante}` : "vs"}</strong><span>{partido.nombreEquipoVisitante}</span></Link>)}</div></section>
+    {previewImage && <ImageLightbox {...previewImage} onClose={() => setPreviewImage(null)} />}
   </main>;
 }
 
