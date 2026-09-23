@@ -155,12 +155,12 @@ function Header() {
         <nav className={`header-nav ${usuario ? "" : "guest"}`}>
           <Link to="/">Explorar</Link>
 
-          {usuario ? <Link to="/mis-torneos">Mis torneos</Link> : <Link className="guest-nav-link" to={registrationLink("/?crearTorneo=1", "crear-torneo")}>Crear torneo <span>🔒</span></Link>}
+          {usuario ? <Link to="/mis-torneos">Mis torneos</Link> : <Link className="guest-nav-link" to={registrationLink("/?crearTorneo=1", "crear-torneo")}>Crear torneo</Link>}
           {(tieneRol(usuario, "ADMIN") || tieneRol(usuario, "DIRECTOR_EQUIPO")) && <Link to="/mis-equipos">Mis equipos</Link>}
           {usuario && <Link className="requests-nav-link" to="/solicitudes">Solicitudes{pendingRequests > 0 && <span>{pendingRequests > 99 ? "99+" : pendingRequests}</span>}</Link>}
-          {usuario ? <Link to="/favoritos">Favoritos</Link> : <Link className="guest-nav-link" to={registrationLink("/favoritos", "guardar-favoritos")}>Favoritos <span>🔒</span></Link>}
+          {usuario ? <Link to="/favoritos">Favoritos</Link> : <Link className="guest-nav-link" to={registrationLink("/favoritos", "guardar-favoritos")}>Favoritos</Link>}
           {(tieneRol(usuario, "JUGADOR") || tieneRol(usuario, "ORGANIZADOR")) && <Link to={usuario?.rol === "ORGANIZADOR" || !tieneRol(usuario, "JUGADOR") ? "/mi-perfil-organizador" : "/mi-perfil-jugador"}>Mi perfil</Link>}
-          {!usuario && <Link className="guest-nav-link" to={registrationLink("/mi-perfil-jugador", "crear-perfil")}>Crear perfil <span>🔒</span></Link>}
+          {!usuario && <Link className="guest-nav-link" to={registrationLink("/mi-perfil-jugador", "crear-perfil")}>Crear perfil</Link>}
         </nav>
 
         <div className="header-actions">

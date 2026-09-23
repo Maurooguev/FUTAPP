@@ -52,8 +52,7 @@
   color: white;
 }
 
-.header-nav .guest-nav-link { display: inline-flex; align-items: center; gap: 4px; }
-.header-nav .guest-nav-link span { font-size: 8px; opacity: .7; }
+.header-nav .guest-nav-link { display: inline-flex; align-items: center; }
 
 .header-search { position: relative; display: flex; flex: 1 1 260px; max-width: 340px; align-items: center; gap: 7px; padding: 7px 9px; border: 1px solid rgba(255,255,255,.2); border-radius: 6px; background: rgba(255,255,255,.1); }
 .header-search > span { color: #d4edf7; font-size: 18px; line-height: 1; }
