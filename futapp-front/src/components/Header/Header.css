@@ -54,7 +54,7 @@
 
 .header-search { position: relative; display: flex; flex: 1 1 260px; max-width: 340px; align-items: center; gap: 7px; padding: 7px 9px; border: 1px solid rgba(255,255,255,.2); border-radius: 6px; background: rgba(255,255,255,.1); }
 .header-search > span { color: #d4edf7; font-size: 18px; line-height: 1; }
-.header-search input { width: 100%; min-width: 0; border: 0; outline: 0; background: transparent; color: #fff; font-size: 11px; }
+.header-search input { width: 100%; min-width: 0; padding: 0; border: 0; outline: 0; appearance: none; background: transparent; color: #fff; font-size: 11px; }
 .header-search input::placeholder { color: #b8d2df; }
 .header-search input::-webkit-search-cancel-button { display: none; }
 .header-search-clear { display: grid; flex: 0 0 20px; width: 20px; height: 20px; padding: 0 !important; place-items: center; border: 0; border-radius: 50% !important; background: rgba(255,255,255,.12); color: #fff; font-size: 14px !important; }
@@ -163,6 +163,7 @@
 }
 
 :root[data-theme="dark"] .header-search-results { border-color: #3a5360; background: #213744; color: #f3f7f9; }
+:root[data-theme="dark"] .header-search input { border-color: transparent; background-color: transparent; color: #fff; box-shadow: none; }
 :root[data-theme="dark"] .header-search-results section + section,
 :root[data-theme="dark"] .header-search-results section > button { border-color: #38505d; }
 :root[data-theme="dark"] .header-search-results section > button { color: #f3f7f9; }
