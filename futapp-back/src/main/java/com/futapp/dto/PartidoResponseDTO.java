@@ -25,9 +25,11 @@ public class PartidoResponseDTO {
 
     private Long idEquipoLocal;
     private String nombreEquipoLocal;
+    private String escudoEquipoLocal;
 
     private Long idEquipoVisitante;
     private String nombreEquipoVisitante;
+    private String escudoEquipoVisitante;
 
     public PartidoResponseDTO() {
     }
@@ -37,8 +39,8 @@ public class PartidoResponseDTO {
                               Long idMvp, String nombreMvp, String fotoMvp,
                               Long idTorneo, String nombreTorneo,
                               Long idFecha, Integer numeroFecha,
-                              Long idEquipoLocal, String nombreEquipoLocal,
-                              Long idEquipoVisitante, String nombreEquipoVisitante) {
+                              Long idEquipoLocal, String nombreEquipoLocal, String escudoEquipoLocal,
+                              Long idEquipoVisitante, String nombreEquipoVisitante, String escudoEquipoVisitante) {
         this.idPartido = idPartido;
         this.fechaHora = fechaHora;
         this.estado = estado;
@@ -55,8 +57,10 @@ public class PartidoResponseDTO {
         this.numeroFecha = numeroFecha;
         this.idEquipoLocal = idEquipoLocal;
         this.nombreEquipoLocal = nombreEquipoLocal;
+        this.escudoEquipoLocal = escudoEquipoLocal;
         this.idEquipoVisitante = idEquipoVisitante;
         this.nombreEquipoVisitante = nombreEquipoVisitante;
+        this.escudoEquipoVisitante = escudoEquipoVisitante;
     }
 
     public Long getIdPartido() {
@@ -168,6 +172,9 @@ public class PartidoResponseDTO {
         this.nombreEquipoLocal = nombreEquipoLocal;
     }
 
+    public String getEscudoEquipoLocal() { return escudoEquipoLocal; }
+    public void setEscudoEquipoLocal(String escudoEquipoLocal) { this.escudoEquipoLocal = escudoEquipoLocal; }
+
     public Long getIdEquipoVisitante() {
         return idEquipoVisitante;
     }
@@ -183,4 +190,7 @@ public class PartidoResponseDTO {
     public void setNombreEquipoVisitante(String nombreEquipoVisitante) {
         this.nombreEquipoVisitante = nombreEquipoVisitante;
     }
+
+    public String getEscudoEquipoVisitante() { return escudoEquipoVisitante; }
+    public void setEscudoEquipoVisitante(String escudoEquipoVisitante) { this.escudoEquipoVisitante = escudoEquipoVisitante; }
 }

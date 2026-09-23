@@ -643,8 +643,10 @@ public class PartidoService {
                 partido.getFecha().getNumeroFecha(),
                 partido.getEquipoLocal().getIdEquipo(),
                 partido.getEquipoLocal().getNombre(),
+                partido.getEquipoLocal().getEscudo(),
                 partido.getEquipoVisitante().getIdEquipo(),
-                partido.getEquipoVisitante().getNombre()
+                partido.getEquipoVisitante().getNombre(),
+                partido.getEquipoVisitante().getEscudo()
         );
         dto.setPenalesLocal(partido.getPenalesLocal());
         dto.setPenalesVisitante(partido.getPenalesVisitante());

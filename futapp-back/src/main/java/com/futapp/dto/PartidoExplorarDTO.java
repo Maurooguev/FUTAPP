@@ -12,7 +12,9 @@ public record PartidoExplorarDTO(
         String nombreTorneo,
         Long idEquipoLocal,
         String nombreEquipoLocal,
+        String escudoEquipoLocal,
         Long idEquipoVisitante,
-        String nombreEquipoVisitante
+        String nombreEquipoVisitante,
+        String escudoEquipoVisitante
 ) {
 }

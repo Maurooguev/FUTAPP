@@ -1,4 +1,6 @@
 import "./TournamentCard.css";
+import torneoGenerico from "../../assets/torneo-generico.png";
+import EntityImage from "../EntityImage/EntityImage";
 
 function TournamentCard({ torneo, variant = "default", onClick }) {
   const estadoClass = torneo.estado?.toLowerCase();
@@ -16,13 +18,13 @@ function TournamentCard({ torneo, variant = "default", onClick }) {
         </div>
         <span className="tournament-code">{torneo.codigoPublico}</span>
 
-        <h3>{torneo.nombre}</h3>
+        <div className="tournament-card-title"><img src={torneoGenerico} alt="" /><h3>{torneo.nombre}</h3></div>
         <div className="tournament-meta">
           <span>{torneo.formato}</span>
           <span>{torneo.cantidadEquipos} equipos</span>
         </div>
 
-        {torneo.nombreCampeon && <div className="tournament-card-highlight">🏆 {torneo.nombreCampeon}</div>}
+        {torneo.nombreCampeon && <div className="tournament-card-highlight tournament-card-champion"><EntityImage type="team" value={torneo.escudoCampeon} alt="" /><span>Campeón · {torneo.nombreCampeon}</span></div>}
         {!torneo.nombreCampeon && nextMatchLabel && <div className="tournament-card-highlight">📅 Próximo · {nextMatchLabel}</div>}
         {torneo.nombrePropietario && <small className="tournament-organizer">✓ {torneo.nombrePropietario}</small>}
 
@@ -43,7 +45,7 @@ function TournamentCard({ torneo, variant = "default", onClick }) {
   return (
     <div className="tournament-card" onClick={onClick}>
       <div className="tournament-card-header">
-        <h3>{torneo.nombre}</h3>
+        <div className="tournament-card-title"><img src={torneoGenerico} alt="" /><h3>{torneo.nombre}</h3></div>
         <span className={`status-badge small ${estadoClass}`}>{torneo.estado}</span>
       </div>
       <span className="tournament-code">{torneo.codigoPublico}</span>
@@ -53,7 +55,7 @@ function TournamentCard({ torneo, variant = "default", onClick }) {
         <span>🏆 {torneo.formato}</span>
         <span>👥 {torneo.cantidadEquipos} equipos</span>
       </div>
-      {torneo.nombreCampeon && <div className="tournament-card-highlight">🏆 Campeón: {torneo.nombreCampeon}</div>}
+      {torneo.nombreCampeon && <div className="tournament-card-highlight tournament-card-champion"><EntityImage type="team" value={torneo.escudoCampeon} alt="" /><span>Campeón · {torneo.nombreCampeon}</span></div>}
       {!torneo.nombreCampeon && nextMatchLabel && <div className="tournament-card-highlight">📅 Próximo partido · {nextMatchLabel}</div>}
       {torneo.nombrePropietario && <small className="tournament-organizer">✓ Organiza {torneo.nombrePropietario}</small>}
     </div>

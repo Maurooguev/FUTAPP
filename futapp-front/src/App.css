@@ -253,12 +253,16 @@ button {
 .explore-match-card > div { display: grid; grid-template-columns: 1fr 42px 1fr; gap: 6px; align-items: center; }
 .explore-match-card > div strong { overflow: hidden; font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
 .explore-match-card > div strong:last-child { text-align: right; }
+.explore-match-card .activity-team { display: flex; min-width: 0; align-items: center; gap: 5px; }
+.explore-match-card .activity-team-away { justify-content: flex-end; }
+.explore-match-card .activity-team img { width: 22px; height: 22px; flex: 0 0 auto; border-radius: 50%; object-fit: cover; }
+.explore-match-card .activity-team span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .explore-match-card > div b { color: #0f172a; font-size: 12px; text-align: center; }
 .explore-match-card small { color: #64748b; font-size: 8px; }
 .recent-champions { max-width: 920px; margin: 14px auto 0; }
 .recent-champions > div { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 7px; }
 .recent-champions button { display: grid; grid-template-columns: 28px 1fr; gap: 2px 7px; align-items: center; padding: 9px; border: 1px solid #e4d394; border-radius: 5px; background: #fff9df; color: #334155; text-align: left; }
-.recent-champions button > span { grid-row: 1 / 3; font-size: 17px; }
+.recent-champions button > img { width: 28px; height: 28px; grid-row: 1 / 3; border-radius: 50%; object-fit: cover; }
 .recent-champions button strong { overflow: hidden; font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
 .recent-champions button small { overflow: hidden; color: #78631c; font-size: 8px; text-overflow: ellipsis; white-space: nowrap; }
 
@@ -1225,6 +1229,7 @@ button {
 }
 
 .team-mark { width: 58px; height: 58px; margin: 0 auto 8px; display: grid; place-items: center; border: 1px solid #cfd8de; border-radius: 50%; background: #f3f6f8; color: #0877a7; font-size: 24px; font-weight: 900; }
+.team-mark img { width: 100%; height: 100%; border-radius: inherit; object-fit: cover; }
 
 .team-box h2 {
   font-size: 17px;
@@ -1271,6 +1276,9 @@ button {
   font-size: 20px;
 }
 .partido-mvp { grid-column: 1 / -1; border-left: 4px solid #f59e0b; }
+.partido-mvp { display: flex; align-items: center; gap: 12px; }
+.partido-mvp > img { width: 52px; height: 52px; flex: 0 0 auto; border-radius: 50%; object-fit: cover; }
+.partido-mvp h2 { margin-bottom: 3px; }
 .partido-quick-summary { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; overflow: hidden; border: 1px solid #dbe3e8; border-radius: 5px; background: #dbe3e8; }
 .partido-quick-summary div { padding: 11px; background: #fff; text-align: center; }.partido-quick-summary strong,.partido-quick-summary span { display: block; }.partido-quick-summary strong { color: #0f172a; font-size: 16px; }.partido-quick-summary span { margin-top: 2px; color: #64748b; font-size: 9px; text-transform: uppercase; }
 

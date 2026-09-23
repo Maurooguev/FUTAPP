@@ -69,6 +69,7 @@ public class ExplorarService {
                 torneo.getPropietario() == null ? null : torneo.getPropietario().getNombre(),
                 torneo.getCampeon() == null ? null : torneo.getCampeon().getIdEquipo(),
                 torneo.getCampeon() == null ? null : torneo.getCampeon().getNombre(),
+                torneo.getCampeon() == null ? null : torneo.getCampeon().getEscudo(),
                 torneo.getVisitas(), proximo);
     }
 
@@ -78,6 +79,8 @@ public class ExplorarService {
                 partido.getGolesLocal(), partido.getGolesVisitante(),
                 partido.getTorneo().getIdTorneo(), partido.getTorneo().getNombre(),
                 partido.getEquipoLocal().getIdEquipo(), partido.getEquipoLocal().getNombre(),
-                partido.getEquipoVisitante().getIdEquipo(), partido.getEquipoVisitante().getNombre());
+                partido.getEquipoLocal().getEscudo(),
+                partido.getEquipoVisitante().getIdEquipo(), partido.getEquipoVisitante().getNombre(),
+                partido.getEquipoVisitante().getEscudo());
     }
 }

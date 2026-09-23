@@ -44,6 +44,9 @@
 }
 .top-table a { color: #0877a7; font-weight: 700; text-decoration: none; }
 .top-table a:hover { text-decoration: underline; }
+.top-table .scorer-player { display: inline-flex; max-width: 100%; align-items: center; justify-content: center; gap: 7px; text-align: left; }
+.scorer-player img { width: 30px; height: 30px; flex: 0 0 auto; border-radius: 50%; object-fit: cover; }
+.scorer-player span { overflow: hidden; text-overflow: ellipsis; }
 .top-table-card { padding: 13px; border-radius: 5px; box-shadow: 0 2px 5px rgba(15,23,42,.07); }
 .top-table-header { margin-bottom: 8px; padding-bottom: 6px; }
 .top-table-header h2 { font-size: 18px; }

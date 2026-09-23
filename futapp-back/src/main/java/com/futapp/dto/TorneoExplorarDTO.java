@@ -13,6 +13,7 @@ public record TorneoExplorarDTO(
         String nombrePropietario,
         Long idCampeon,
         String nombreCampeon,
+        String escudoCampeon,
         Long visitas,
         PartidoExplorarDTO proximoPartido
 ) {

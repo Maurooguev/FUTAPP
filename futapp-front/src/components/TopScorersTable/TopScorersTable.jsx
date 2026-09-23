@@ -1,5 +1,6 @@
 import "./TopScorersTable.css";
 import { Link } from "react-router-dom";
+import EntityImage from "../EntityImage/EntityImage";
 
 function TopScorersTable({ goleadores }) {
   return (
@@ -22,7 +23,7 @@ function TopScorersTable({ goleadores }) {
           {goleadores.map((goleador, index) => (
             <tr key={goleador.idJugador}>
               <td>{index + 1}</td>
-              <td><Link to={`/jugador/${goleador.idJugador}`}>{goleador.nombreJugador}</Link></td>
+              <td><Link className="scorer-player" to={`/jugador/${goleador.idJugador}`}><EntityImage type="player" value={goleador.fotoJugador} alt="" /><span>{goleador.nombreJugador}</span></Link></td>
               <td><Link to={`/equipo/${goleador.idEquipo}`}>{goleador.nombreEquipo}</Link></td>
               <td>{goleador.cantidadGoles}</td>
             </tr>

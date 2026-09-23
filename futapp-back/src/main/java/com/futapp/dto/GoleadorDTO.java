@@ -4,13 +4,15 @@ public class GoleadorDTO {
 
     private Long idJugador;
     private String nombreJugador;
+    private String fotoJugador;
     private Long idEquipo;
     private String nombreEquipo;
     private Long cantidadGoles;
 
-    public GoleadorDTO(Long idJugador, String nombreJugador, Long idEquipo, String nombreEquipo, Long cantidadGoles) {
+    public GoleadorDTO(Long idJugador, String nombreJugador, String fotoJugador, Long idEquipo, String nombreEquipo, Long cantidadGoles) {
         this.idJugador = idJugador;
         this.nombreJugador = nombreJugador;
+        this.fotoJugador = fotoJugador;
         this.idEquipo = idEquipo;
         this.nombreEquipo = nombreEquipo;
         this.cantidadGoles = cantidadGoles;
@@ -31,6 +33,10 @@ public class GoleadorDTO {
     public void setNombreJugador(String nombreJugador) {
         this.nombreJugador = nombreJugador;
     }
+
+    public String getFotoJugador() { return fotoJugador; }
+
+    public void setFotoJugador(String fotoJugador) { this.fotoJugador = fotoJugador; }
 
     public Long getIdEquipo() { return idEquipo; }
 

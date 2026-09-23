@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { API_URL } from "../config/api";
+import EntityImage from "../components/EntityImage/EntityImage";
 
 function PartidoDetalle() {
   const { id } = useParams();
@@ -45,7 +46,7 @@ function PartidoDetalle() {
 
           <div className="scoreboard">
             <Link className="team-box profile-entity-link" to={`/equipo/${partido.idEquipoLocal}`}>
-              <div className="team-mark">{partido.nombreEquipoLocal?.charAt(0)}</div>
+              <div className="team-mark"><EntityImage type="team" value={partido.escudoEquipoLocal} alt={`Escudo de ${partido.nombreEquipoLocal}`} /></div>
               <h2>{partido.nombreEquipoLocal}</h2>
               <strong>{partido.golesLocal}</strong>
             </Link>
@@ -53,7 +54,7 @@ function PartidoDetalle() {
             <div className="versus">VS</div>
 
             <Link className="team-box profile-entity-link" to={`/equipo/${partido.idEquipoVisitante}`}>
-              <div className="team-mark">{partido.nombreEquipoVisitante?.charAt(0)}</div>
+              <div className="team-mark"><EntityImage type="team" value={partido.escudoEquipoVisitante} alt={`Escudo de ${partido.nombreEquipoVisitante}`} /></div>
               <h2>{partido.nombreEquipoVisitante}</h2>
               <strong>{partido.golesVisitante}</strong>
             </Link>
@@ -68,7 +69,7 @@ function PartidoDetalle() {
       <main className="partido-content">
         <div className="partido-shell partido-grid">
           <section className="partido-quick-summary"><div><strong>{goles.length}</strong><span>Goles detallados</span></div><div><strong>{amarillas}</strong><span>Amarillas</span></div><div><strong>{rojas}</strong><span>Rojas</span></div><div><strong>{partido.nombreMvp || "—"}</strong><span>MVP</span></div></section>
-          {partido.idMvp && <section className="partido-panel partido-mvp"><h2>⭐ MVP del partido</h2><Link className="profile-entity-link" to={`/jugador/${partido.idMvp}`}><strong>{partido.nombreMvp}</strong></Link></section>}
+          {partido.idMvp && <section className="partido-panel partido-mvp"><EntityImage type="player" value={partido.fotoMvp} alt={`Foto de ${partido.nombreMvp}`} /><div><h2>MVP del partido</h2><Link className="profile-entity-link" to={`/jugador/${partido.idMvp}`}><strong>{partido.nombreMvp}</strong></Link></div></section>}
           <section className="partido-panel">
             <h2>Goles</h2>
 

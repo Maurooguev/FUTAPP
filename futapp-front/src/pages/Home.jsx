@@ -6,6 +6,7 @@ import TournamentFormModal from "../components/TournamentFormModal/TournamentFor
 import { API_URL, apiFetch } from "../config/api";
 import useAuth from "../context/useAuth";
 import { tieneRol } from "../utils/roles";
+import EntityImage from "../components/EntityImage/EntityImage";
 
 const FILTERS = [
   ["TODOS", "Todos"], ["ACTIVO", "Activos"], ["PROXIMAMENTE", "Próximamente"], ["FINALIZADO", "Finalizados"],
@@ -26,7 +27,7 @@ function MatchActivityCard({ partido, result, onClick }) {
   return (
     <button type="button" className="explore-match-card" onClick={onClick}>
       <span>{partido.nombreTorneo}</span>
-      <div><strong>{partido.nombreEquipoLocal}</strong><b>{result ? `${partido.golesLocal} – ${partido.golesVisitante}` : "vs"}</b><strong>{partido.nombreEquipoVisitante}</strong></div>
+      <div><strong className="activity-team"><EntityImage type="team" value={partido.escudoEquipoLocal} alt="" /><span>{partido.nombreEquipoLocal}</span></strong><b>{result ? `${partido.golesLocal} – ${partido.golesVisitante}` : "vs"}</b><strong className="activity-team activity-team-away"><span>{partido.nombreEquipoVisitante}</span><EntityImage type="team" value={partido.escudoEquipoVisitante} alt="" /></strong></div>
       <small>{result ? "Finalizado" : formatDate(partido.fechaHora)}</small>
     </button>
   );
@@ -175,7 +176,7 @@ function Home() {
             <div><h3>Últimos resultados</h3>{(exploreData.ultimosResultados || []).slice(0, 5).map((match) => <MatchActivityCard key={match.idPartido} partido={match} result onClick={() => navigate(`/partido/${match.idPartido}`)} />)}</div>
             <div><h3>Próximos partidos</h3>{(exploreData.proximosPartidos || []).slice(0, 5).map((match) => <MatchActivityCard key={match.idPartido} partido={match} onClick={() => navigate(`/partido/${match.idPartido}`)} />)}</div>
           </div>
-          {champions.length > 0 && <div className="recent-champions"><h3>Campeones recientes</h3><div>{champions.map((tournament) => <button type="button" key={tournament.idTorneo} onClick={() => navigate(`/torneo/${tournament.idTorneo}`)}><span>🏆</span><strong>{tournament.nombreCampeon}</strong><small>{tournament.nombre}</small></button>)}</div></div>}
+          {champions.length > 0 && <div className="recent-champions"><h3>Campeones recientes</h3><div>{champions.map((tournament) => <button type="button" key={tournament.idTorneo} onClick={() => navigate(`/torneo/${tournament.idTorneo}`)}><EntityImage type="team" value={tournament.escudoCampeon} alt="" /><strong>{tournament.nombreCampeon}</strong><small>{tournament.nombre}</small></button>)}</div></div>}
         </section>
       )}
 
