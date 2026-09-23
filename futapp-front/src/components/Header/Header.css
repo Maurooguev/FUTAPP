@@ -12,12 +12,12 @@
 }
 
 .header-inner {
-  width: min(920px, 100%);
+  width: min(1320px, 100%);
   margin: 0 auto;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 20px;
+  gap: 12px;
 }
 
 .header-logo {
@@ -39,7 +39,8 @@
 
 .header-nav {
   display: flex;
-  gap: 28px;
+  gap: 14px;
+  white-space: nowrap;
 }
 
 .header-nav a {
@@ -50,6 +51,27 @@
 .header-nav a:hover {
   color: white;
 }
+
+.header-search { position: relative; display: flex; flex: 1 1 260px; max-width: 340px; align-items: center; gap: 7px; padding: 7px 9px; border: 1px solid rgba(255,255,255,.2); border-radius: 6px; background: rgba(255,255,255,.1); }
+.header-search > span { color: #d4edf7; font-size: 18px; line-height: 1; }
+.header-search input { width: 100%; min-width: 0; border: 0; outline: 0; background: transparent; color: #fff; font-size: 11px; }
+.header-search input::placeholder { color: #b8d2df; }
+.header-search input::-webkit-search-cancel-button { display: none; }
+.header-search-clear { display: grid; flex: 0 0 20px; width: 20px; height: 20px; padding: 0 !important; place-items: center; border: 0; border-radius: 50% !important; background: rgba(255,255,255,.12); color: #fff; font-size: 14px !important; }
+.header-search-results { position: absolute; z-index: 120; top: calc(100% + 9px); left: 0; width: min(430px, 88vw); max-height: min(560px, 70vh); overflow-y: auto; border: 1px solid #d7e1e7; border-radius: 7px; background: #fff; box-shadow: 0 18px 50px rgba(5,20,32,.3); color: #17212b; }
+.header-search-results > p { margin: 0; padding: 18px; color: #64748b; font-size: 11px; text-align: center; }
+.header-search-results > p.error { color: #b42318; }
+.header-search-results section + section { border-top: 1px solid #e5ebef; }
+.header-search-results h2 { margin: 0; padding: 9px 11px 5px; color: #64748b; font-size: 9px; letter-spacing: .08em; text-transform: uppercase; }
+.header-search-results section > button { display: grid; width: 100%; grid-template-columns: 34px minmax(0,1fr) auto; align-items: center; gap: 9px; padding: 8px 11px; border: 0; border-top: 1px solid #edf1f3; border-radius: 0; background: transparent; color: #17212b; text-align: left; }
+.header-search-results section > button:hover,.header-search-results section > button:focus-visible { background: #eef8fc; }
+.header-search-results section > button > span:nth-child(2) { min-width: 0; }
+.header-search-results strong,.header-search-results small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.header-search-results strong { font-size: 11px; }
+.header-search-results small { margin-top: 2px; color: #64748b; font-size: 9px; }
+.header-search-results b { color: #0877a7; }
+.header-result-avatar { display: grid; width: 34px; height: 34px; place-items: center; overflow: hidden; border-radius: 50%; background: #e5f2f7; font-size: 14px; }
+.header-result-avatar img { width: 100%; height: 100%; object-fit: cover; }
 .requests-nav-link { display: inline-flex; align-items: center; gap: 5px; }
 .requests-nav-link span { display: grid; min-width: 17px; height: 17px; padding: 0 4px; place-items: center; border-radius: 9px; background: #ef4444; color: #fff; font-size: 8px; font-weight: 900; }
 
@@ -121,7 +143,10 @@
     gap: 14px;
   }
 
-  .header-inner { width: 100%; flex-wrap: wrap; }
+  .header-inner { width: 100%; flex-wrap: wrap; gap: 8px; }
+
+  .header-search { order: 3; flex-basis: 100%; max-width: none; }
+  .header-search-results { width: 100%; max-height: 58vh; }
 
   .header-nav {
     display: none;
@@ -136,3 +161,14 @@
   .header-actions button, .header-link-button { padding: 6px 7px; font-size: 9px; }
   .header-logo { font-size: 16px; }
 }
+
+:root[data-theme="dark"] .header-search-results { border-color: #3a5360; background: #213744; color: #f3f7f9; }
+:root[data-theme="dark"] .header-search-results section + section,
+:root[data-theme="dark"] .header-search-results section > button { border-color: #38505d; }
+:root[data-theme="dark"] .header-search-results section > button { color: #f3f7f9; }
+:root[data-theme="dark"] .header-search-results section > button:hover,
+:root[data-theme="dark"] .header-search-results section > button:focus-visible { background: #294856; }
+:root[data-theme="dark"] .header-search-results h2,
+:root[data-theme="dark"] .header-search-results small,
+:root[data-theme="dark"] .header-search-results > p { color: #b9c8d2; }
+:root[data-theme="dark"] .header-result-avatar { background: #294856; }

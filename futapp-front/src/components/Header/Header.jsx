@@ -1,9 +1,110 @@
 import { useCallback, useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import useAuth from "../../context/useAuth";
-import { API_URL, apiFetch } from "../../config/api";
+import { API_URL, apiFetch, assetUrl } from "../../config/api";
 import { tieneRol } from "../../utils/roles";
 import "./Header.css";
+
+const searchGroups = [
+  { key: "torneos", label: "Torneos", type: "torneo", icon: "🏆" },
+  { key: "equipos", label: "Equipos", type: "equipo", icon: "🛡️" },
+  { key: "jugadores", label: "Jugadores", type: "jugador", icon: "⚽" },
+];
+
+function HeaderSearch() {
+  const [query, setQuery] = useState("");
+  const [results, setResults] = useState({ torneos: [], equipos: [], jugadores: [] });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [open, setOpen] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    setOpen(false);
+    setQuery("");
+  }, [location.pathname]);
+
+  useEffect(() => {
+    const term = query.trim();
+    if (term.length < 2) {
+      setResults({ torneos: [], equipos: [], jugadores: [] });
+      setLoading(false);
+      setError("");
+      return undefined;
+    }
+
+    let active = true;
+    setLoading(true);
+    setOpen(true);
+    const timer = window.setTimeout(async () => {
+      try {
+        const response = await apiFetch(`${API_URL}/busqueda?q=${encodeURIComponent(term)}`);
+        if (!response.ok) throw new Error("No se pudo buscar");
+        const data = await response.json();
+        if (active) {
+          setResults(data);
+          setError("");
+        }
+      } catch {
+        if (active) setError("No pudimos completar la búsqueda.");
+      } finally {
+        if (active) setLoading(false);
+      }
+    }, 250);
+
+    return () => {
+      active = false;
+      window.clearTimeout(timer);
+    };
+  }, [query]);
+
+  const total = searchGroups.reduce((sum, group) => sum + (results[group.key]?.length || 0), 0);
+  const goToResult = (type, id) => {
+    setOpen(false);
+    setQuery("");
+    navigate(`/${type}/${id}`);
+  };
+
+  return (
+    <div className="header-search" onKeyDown={(event) => { if (event.key === "Escape") setOpen(false); }}>
+      <span aria-hidden="true">⌕</span>
+      <input
+        type="search"
+        value={query}
+        placeholder="Buscar torneos, equipos o jugadores"
+        aria-label="Buscar torneos, equipos o jugadores"
+        onFocus={() => { if (query.trim().length >= 2) setOpen(true); }}
+        onChange={(event) => setQuery(event.target.value)}
+      />
+      {query && <button type="button" className="header-search-clear" aria-label="Limpiar búsqueda" onClick={() => setQuery("")}>×</button>}
+
+      {open && query.trim().length >= 2 && (
+        <div className="header-search-results" aria-live="polite">
+          {loading && <p>Buscando...</p>}
+          {!loading && error && <p className="error">{error}</p>}
+          {!loading && !error && total === 0 && <p>No encontramos resultados.</p>}
+          {!loading && !error && searchGroups.map((group) => {
+            const items = results[group.key] || [];
+            if (items.length === 0) return null;
+            return (
+              <section key={group.key}>
+                <h2>{group.label}</h2>
+                {items.map((item) => (
+                  <button type="button" key={`${group.type}-${item.id}`} onClick={() => goToResult(group.type, item.id)}>
+                    <span className="header-result-avatar">{item.imagen ? <img src={assetUrl(item.imagen)} alt="" /> : group.icon}</span>
+                    <span><strong>{item.nombre}</strong><small>{item.subtitulo || item.codigoPublico}</small></span>
+                    <b>→</b>
+                  </button>
+                ))}
+              </section>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
 
 function Header() {
   const { usuario, logout } = useAuth();
@@ -47,10 +148,10 @@ function Header() {
           <span>FUTAPP</span>
         </Link>
 
+        <HeaderSearch />
+
         <nav className="header-nav">
-          <Link to="/">Inicio</Link>
-          <a href="#destacados">Destacados</a>
-          <a href="#beneficios">Beneficios</a>
+          <Link to="/">Explorar</Link>
 
           {usuario && (
             <Link to="/mis-torneos">Mis torneos</Link>

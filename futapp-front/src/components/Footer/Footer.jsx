@@ -10,9 +10,9 @@ function Footer() {
       </div>
 
       <div className="footer-nav">
-        <Link to="/">Inicio</Link>
+        <Link to="/">Explorar</Link>
         <a href="#destacados">Destacados</a>
-        <a href="#beneficios">Beneficios</a>
+        <a href="#todos-torneos">Todos los torneos</a>
       </div>
 
       <p className="footer-copy">© 2026 FUTAPP. Todos los derechos reservados.</p>
