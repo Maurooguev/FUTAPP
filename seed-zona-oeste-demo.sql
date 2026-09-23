@@ -252,6 +252,18 @@ BEGIN
     END LOOP;
 END $$;
 
+-- Imágenes públicas y determinísticas para visualizar perfiles completos.
+-- Solo se aplican a los registros demo y no reemplazan cargas manuales.
+UPDATE equipo
+SET escudo = 'https://api.dicebear.com/10.x/identicon/svg?seed=' || codigo_publico
+WHERE codigo_publico LIKE 'EQ-Z%'
+  AND (escudo IS NULL OR btrim(escudo) = '');
+
+UPDATE jugador
+SET foto = 'https://randomuser.me/api/portraits/men/' || ((id_jugador % 99) + 1)::TEXT || '.jpg'
+WHERE codigo_publico LIKE 'JUG-Z%'
+  AND (foto IS NULL OR btrim(foto) = '');
+
 COMMIT;
 
 SELECT estado, COUNT(*) AS torneos
