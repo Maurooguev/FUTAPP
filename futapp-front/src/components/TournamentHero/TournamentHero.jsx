@@ -1,11 +1,11 @@
 import { Link } from "react-router-dom";
 import "./TournamentHero.css";
 import FavoriteButton from "../FavoriteButton/FavoriteButton";
+import torneoGenerico from "../../assets/torneo-generico.png";
 
 const TABS = [["resumen", "Resumen"], ["tabla", "Tabla"], ["equipos", "Equipos"], ["stats", "Estadísticas"], ["fixture", "Fixture"]];
 
 function TournamentHero({ torneo, fechaActual, perfilOrganizador, activeTab = "resumen", onTabChange }) {
-  const inicial = torneo.nombre?.trim().charAt(0).toUpperCase() || "T";
   const tabs = torneo.formato?.toLowerCase() === "eliminación directa" ? TABS.filter(([id]) => id !== "tabla") : TABS;
 
   return (
@@ -17,7 +17,7 @@ function TournamentHero({ torneo, fechaActual, perfilOrganizador, activeTab = "r
         </Link>
 
         <div className="tournament-summary">
-          <div className="tournament-emblem" aria-hidden="true">{inicial}</div>
+          <div className="tournament-emblem" aria-hidden="true"><img src={torneoGenerico} alt="" /></div>
           <div className="tournament-heading">
             <div className="tournament-kicker">
               <span className="tournament-chip">{torneo.formato}</span>
