@@ -27,6 +27,16 @@ function ResultModal({ partidos, partidoInicial, onClose, onResultadoGuardado, o
   const puedeCerrarFecha = Boolean(partidoSeleccionado?.idFecha
     && ["PROGRAMADO", "EN_JUEGO"].includes(partidoSeleccionado.estado?.toUpperCase())
     && !siguientePendiente);
+
+  useEffect(() => {
+    if (!partidoSeleccionado) return;
+    setGolesLocal(partidoSeleccionado.golesLocal ?? 0);
+    setGolesVisitante(partidoSeleccionado.golesVisitante ?? 0);
+    setPenalesLocal(partidoSeleccionado.penalesLocal ?? 0);
+    setPenalesVisitante(partidoSeleccionado.penalesVisitante ?? 0);
+    setError("");
+  }, [partidoSeleccionado]);
+
   useEffect(() => {
     if (!partidoSeleccionado?.idPartido) { setHistorial([]); return; }
     apiFetch(`${API_URL}/partidos/${partidoSeleccionado.idPartido}/historial-resultado`)
@@ -93,10 +103,16 @@ const guardarResultado = async (e, accion = "CERRAR") => {
           ×
         </button>
 
+        <span className="result-flow-label">Administrar partido</span>
         <h2>Cargar resultado</h2>
-        <p>Seleccioná un partido y cargá el resultado final.</p>
+        <div className="result-flow-steps" aria-label="Pasos de carga del partido">
+          <strong><b>1</b> Resultado</strong>
+          <span><b>2</b> Goles y tarjetas</span>
+          <span><b>3</b> MVP</span>
+        </div>
+        <p>Confirmá el marcador y después podés completar el detalle del partido.</p>
 
-        <form onSubmit={guardarResultado}>
+        <form onSubmit={(event) => guardarResultado(event, "DETALLES")}>
           <label>Partido</label>
           {partidoInicial ? (
             <div className="result-selected-match">
@@ -145,11 +161,12 @@ const guardarResultado = async (e, accion = "CERRAR") => {
 
           {error && <p className="result-error">{error}</p>}
           <div className="result-actions">
-            <button type="submit" className="result-save-btn" disabled={saving}>{saving ? "Guardando…" : "Guardar resultado"}</button>
-            <button type="button" className="result-details-btn" disabled={saving} onClick={(event) => guardarResultado(event, "DETALLES")}>Guardar y cargar goles, tarjetas o MVP</button>
+            <button type="submit" className="result-save-btn" disabled={saving}>{saving ? "Guardando…" : "Guardar y continuar"}</button>
+            <button type="button" className="result-secondary-btn" disabled={saving} onClick={(event) => guardarResultado(event, "CERRAR")}>Guardar sin detalles</button>
             {siguientePendiente && <button type="button" className="result-next-btn" disabled={saving} onClick={(event) => guardarResultado(event, "SIGUIENTE")}>Guardar y cargar siguiente</button>}
             {puedeCerrarFecha && <button type="button" className="result-next-btn close-date" disabled={saving} onClick={(event) => guardarResultado(event, "CERRAR_FECHA")}>Guardar y cerrar jornada</button>}
           </div>
+          <small className="result-flow-help">Los goles individuales, las tarjetas y el MVP son opcionales y se pueden completar o editar después.</small>
           {historial.length > 0 && <div className="result-history"><strong>Historial de cambios</strong>{historial.slice(0, 5).map((item) => <p key={item.id}><span>{item.usuario} · {new Date(item.fechaCambio).toLocaleString("es-AR")}</span><b>{item.golesLocalAnterior ?? "–"}-{item.golesVisitanteAnterior ?? "–"} → {item.golesLocalNuevo}-{item.golesVisitanteNuevo}</b></p>)}</div>}
         </form>
       </div>

@@ -54,11 +54,11 @@ function MatchModal({ partido, onClose, canManage, onChanged }) {
         </button>
 
         <div className="match-modal-header">
-          <span>Fecha {partido.numeroFecha}</span>
+          <span>Paso 2 de 3 · Fecha {partido.numeroFecha}</span>
           <h2>
             <Link to={`/equipo/${partido.idEquipoLocal}`} onClick={onClose}>{partido.nombreEquipoLocal}</Link> vs <Link to={`/equipo/${partido.idEquipoVisitante}`} onClick={onClose}>{partido.nombreEquipoVisitante}</Link>
           </h2>
-          <p>{partido.fechaHora} · {partido.estado}{partido.cancha ? ` · ${partido.cancha}` : ""}</p>
+          <p>Completá goles, tarjetas y MVP · {partido.fechaHora}{partido.cancha ? ` · ${partido.cancha}` : ""}</p>
         </div>
 
         <div className="match-score">
