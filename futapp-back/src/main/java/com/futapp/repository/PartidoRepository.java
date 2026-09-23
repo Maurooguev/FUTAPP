@@ -14,6 +14,7 @@ import java.util.Optional;
 import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import java.time.LocalDateTime;
 
 @Repository
 public interface PartidoRepository extends JpaRepository<Partido, Long> {
@@ -29,6 +30,13 @@ public interface PartidoRepository extends JpaRepository<Partido, Long> {
     @EntityGraph(attributePaths = {"torneo", "fecha", "equipoLocal", "equipoVisitante", "mvp"})
     List<Partido> findByTorneoIdTorneo(Long idTorneo);
     Page<Partido> findByTorneoIdTorneo(Long idTorneo, Pageable pageable);
+
+    @EntityGraph(attributePaths = {"torneo", "fecha", "equipoLocal", "equipoVisitante", "mvp"})
+    Page<Partido> findByEstadoIgnoreCaseOrderByFechaHoraDesc(String estado, Pageable pageable);
+
+    @EntityGraph(attributePaths = {"torneo", "fecha", "equipoLocal", "equipoVisitante", "mvp"})
+    Page<Partido> findByEstadoIgnoreCaseAndFechaHoraGreaterThanEqualOrderByFechaHoraAsc(
+            String estado, LocalDateTime desde, Pageable pageable);
 
     List<Partido> findByFechaIdFecha(Long idFecha);
     List<Partido> findByEquipoLocalIdEquipoOrEquipoVisitanteIdEquipo(Long idEquipoLocal, Long idEquipoVisitante);

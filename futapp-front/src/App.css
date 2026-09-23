@@ -231,6 +231,36 @@ button {
 .explore-section .section-header h2 { font-size: 25px; }
 .explore-section .section-header p { font-size: 11px; }
 .explore-message { width: min(920px, calc(100% - 40px)); margin: 12px auto; }
+.explore-controls { display: flex; width: min(920px, calc(100% - 40px)); margin: 0 auto 4px; align-items: center; justify-content: space-between; gap: 12px; }
+.explore-filter-row { display: flex; min-width: 0; gap: 5px; overflow-x: auto; scrollbar-width: none; }
+.explore-filter-row::-webkit-scrollbar { display: none; }
+.explore-filter-row button { flex: 0 0 auto; padding: 7px 10px; border: 1px solid #cbd8df; border-radius: 999px; background: #fff; color: #526571; font-size: 9px; font-weight: 800; }
+.explore-filter-row button.active { border-color: #0877a7; background: #0877a7; color: #fff; }
+.explore-selects { display: flex; flex: 0 0 auto; gap: 6px; }
+.explore-selects label { display: flex; align-items: center; gap: 4px; padding: 5px 7px; border: 1px solid #cbd8df; border-radius: 5px; background: #fff; color: #64748b; font-size: 9px; font-weight: 700; }
+.explore-selects select { max-width: 145px; border: 0; outline: 0; background: transparent; color: #334155; font-size: 9px; }
+.explore-personal { background: #eaf6fa; }
+.related-matches { display: grid; max-width: 920px; margin: 14px auto 0; grid-template-columns: 150px repeat(2, minmax(0,1fr)); gap: 7px; align-items: center; }
+.related-matches > strong { color: #075985; font-size: 10px; }
+.explore-activity-section { background: #e8eff3; }
+.explore-activity-grid { display: grid; max-width: 920px; margin: 0 auto; grid-template-columns: 1fr 1fr; gap: 12px; }
+.explore-activity-grid > div { padding: 13px; border: 1px solid #d6e0e5; border-radius: 6px; background: #fff; }
+.explore-activity-grid h3,.recent-champions h3 { margin: 0 0 9px; font-size: 13px; }
+.explore-match-card { display: grid; width: 100%; gap: 5px; padding: 9px 0; border: 0; border-top: 1px solid #e4eaee; border-radius: 0; background: transparent; color: #334155; text-align: left; }
+.explore-match-card:first-of-type { border-top: 0; }
+.explore-match-card:hover { background: #f5fafc; }
+.explore-match-card > span { color: #0877a7; font-size: 8px; font-weight: 800; }
+.explore-match-card > div { display: grid; grid-template-columns: 1fr 42px 1fr; gap: 6px; align-items: center; }
+.explore-match-card > div strong { overflow: hidden; font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
+.explore-match-card > div strong:last-child { text-align: right; }
+.explore-match-card > div b { color: #0f172a; font-size: 12px; text-align: center; }
+.explore-match-card small { color: #64748b; font-size: 8px; }
+.recent-champions { max-width: 920px; margin: 14px auto 0; }
+.recent-champions > div { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 7px; }
+.recent-champions button { display: grid; grid-template-columns: 28px 1fr; gap: 2px 7px; align-items: center; padding: 9px; border: 1px solid #e4d394; border-radius: 5px; background: #fff9df; color: #334155; text-align: left; }
+.recent-champions button > span { grid-row: 1 / 3; font-size: 17px; }
+.recent-champions button strong { overflow: hidden; font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
+.recent-champions button small { overflow: hidden; color: #78631c; font-size: 8px; text-overflow: ellipsis; white-space: nowrap; }
 
 .stats-section {
   max-width: 920px;
@@ -758,6 +788,19 @@ button {
   .explore-heading h1 { font-size: 25px; }
   .explore-heading p { max-width: 230px; }
   .explore-section { padding: 22px 14px; }
+  .explore-controls { width: calc(100% - 28px); flex-direction: column; align-items: stretch; }
+  .explore-filter-row { margin-right: -14px; padding-right: 14px; }
+  .explore-selects { display: grid; grid-template-columns: 1fr 1fr; }
+  .explore-selects label { min-width: 0; }
+  .explore-selects select { width: 100%; min-width: 0; }
+  .explore-rail { display: flex; margin-right: -14px; padding-right: 14px; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; }
+  .explore-rail::-webkit-scrollbar { display: none; }
+  .explore-rail > * { flex: 0 0 min(82vw, 310px); scroll-snap-align: start; }
+  .explore-activity-section { padding: 22px 14px; }
+  .explore-activity-grid { grid-template-columns: 1fr; }
+  .recent-champions > div { display: flex; overflow-x: auto; scrollbar-width: none; }
+  .recent-champions button { flex: 0 0 230px; }
+  .related-matches { grid-template-columns: 1fr; }
 
   .section-header {
     display: block;
@@ -1848,6 +1891,19 @@ body,
 :root[data-theme="dark"] .home .section-soft { background-color: #1a303c; }
 :root[data-theme="dark"] .home .cta-section { background-color: #142632; }
 :root[data-theme="dark"] .explore-heading p { color: #b9c8d2; }
+:root[data-theme="dark"] .explore-filter-row button,
+:root[data-theme="dark"] .explore-selects label { border-color: #48616e; background: #213744; color: #b9c8d2; }
+:root[data-theme="dark"] .explore-filter-row button.active { border-color: #079bc8; background: #0877a7; color: #fff; }
+:root[data-theme="dark"] .explore-selects select { background: #213744; color: #f3f7f9; }
+:root[data-theme="dark"] .home .section.explore-personal { background: #193441; }
+:root[data-theme="dark"] .home .section.explore-activity-section { background: #10232e; }
+:root[data-theme="dark"] .explore-activity-grid > div { border-color: #38505d; background: #213744; }
+:root[data-theme="dark"] .explore-match-card { border-color: #38505d; color: #dbe5ea; }
+:root[data-theme="dark"] .explore-match-card:hover { background: #294654; }
+:root[data-theme="dark"] .explore-match-card > div b { color: #f3f7f9; }
+:root[data-theme="dark"] .explore-match-card small { color: #b9c8d2; }
+:root[data-theme="dark"] .recent-champions button { border-color: #77672f; background: #3b3928; color: #f3f7f9; }
+:root[data-theme="dark"] .recent-champions button small { color: #e1cf8b; }
 
 :root[data-theme="dark"] :where(
   .stat-card, .card, .step-card, .empty-state, .torneo-card, .tournament-card,

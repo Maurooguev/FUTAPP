@@ -128,6 +128,8 @@
   background: #fde8e8;
   color: #b63838;
 }
+.tournament-card-highlight { margin-top: 10px; padding: 7px 8px; border-radius: 4px; background: #eef7fa; color: #075985; font-size: 9px; font-weight: 800; }
+.tournament-organizer { display: block; margin-top: 8px; color: #16805a; font-size: 9px; font-weight: 800; }
 .tournament-code { display: inline-block; margin-top: 10px; color: #2563eb; font-size: 12px; font-weight: 900; letter-spacing: .08em; }
 .featured-tournament-card .tournament-code { color: #0877a7; font-size: 10px; }
 .tournament-card { padding: 13px; border: 1px solid #dce2e6; border-radius: 5px; box-shadow: 0 2px 5px rgba(15,23,42,.07); }
@@ -139,3 +141,5 @@
 .status-badge { padding: 4px 7px; border-radius: 3px; font-size: 9px; }
 .status-badge.small { font-size: 9px; }
 .tournament-code { margin-top: 6px; font-size: 9px; }
+:root[data-theme="dark"] .tournament-card-highlight { background: #294957; color: #9de7f4; }
+:root[data-theme="dark"] .tournament-organizer { color: #75d6ad; }
