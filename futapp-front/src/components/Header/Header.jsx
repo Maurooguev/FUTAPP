@@ -146,7 +146,7 @@ function Header() {
     <header className="main-header">
       <div className="header-inner">
         <Link to="/" className="header-logo">
-          <div className="header-logo-badge">⚽</div>
+          <img className="header-logo-badge" src="/futapp-logo.svg" alt="" />
           <span>FUTAPP</span>
         </Link>
 
