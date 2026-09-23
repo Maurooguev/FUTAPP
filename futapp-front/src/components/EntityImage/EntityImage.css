@@ -1,0 +1,5 @@
+/* Recorta el halo residual del recurso genérico sin modificar imágenes subidas por usuarios. */
+.entity-image-default {
+  transform: scale(1.075);
+  transform-origin: center;
+}
