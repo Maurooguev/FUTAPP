@@ -2,9 +2,10 @@ import { useState } from "react";
 import TeamFormModal from "./TeamFormModal";
 import TeamRosterModal from "./TeamRosterModal";
 import "./TeamManagement.css";
-import { API_URL, apiFetch, assetUrl } from "../../config/api";
+import { API_URL, apiFetch } from "../../config/api";
 import { Link } from "react-router-dom";
 import ExistingTeamEnrollmentModal from "./ExistingTeamEnrollmentModal";
+import EntityImage from "../EntityImage/EntityImage";
 
 function TeamManagement({ torneoId, equipos, canManage, onTeamSaved, onTeamDeleted }) {
   const [editingTeam, setEditingTeam] = useState(null);
@@ -37,8 +38,7 @@ function TeamManagement({ torneoId, equipos, canManage, onTeamSaved, onTeamDelet
           <article className="team-card" key={team.idEquipo}>
             <Link className="team-card-link" to={`/equipo/${team.idEquipo}`} aria-label={`Abrir perfil de ${team.nombre}`}>
               <span className="team-avatar">
-                {team.nombre.slice(0, 2).toUpperCase()}
-                {team.escudo && <img src={assetUrl(team.escudo)} alt="" onError={(event) => event.currentTarget.remove()} />}
+                <EntityImage type="team" value={team.escudo} alt="" />
               </span>
               <span className="team-card-name">{team.nombre}</span>
               {team.verificado && <span className="team-verified" title="Equipo verificado" aria-label="Equipo verificado">✓</span>}
