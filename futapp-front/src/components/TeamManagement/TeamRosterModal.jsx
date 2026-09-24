@@ -13,6 +13,7 @@ function TeamRosterModal({ equipo, torneoId, canManage, onClose }) {
   const [showForm, setShowForm] = useState(false);
   const [editingPlayer, setEditingPlayer] = useState(null);
   const [actionError, setActionError] = useState("");
+  const [actionNotice, setActionNotice] = useState("");
   const [enrollmentId, setEnrollmentId] = useState(null);
   const [showExisting, setShowExisting] = useState(false);
   const [editingEnrollment, setEditingEnrollment] = useState(null);
@@ -25,7 +26,7 @@ function TeamRosterModal({ equipo, torneoId, canManage, onClose }) {
     setEditingPlayer(null);
   };
 
-  const savePlayer = async (savedPlayer) => {
+  const savePlayer = async (savedPlayer, options = {}) => {
     if (enrollmentId) {
       const history = await fetch(`${API_URL}/inscripciones/jugadores/${savedPlayer.idJugador}`).then((res) => res.json()).catch(() => []);
       const alreadyEnrolled = Array.isArray(history) && history.some((item) => item.idInscripcionEquipo === enrollmentId);
@@ -39,6 +40,7 @@ function TeamRosterModal({ equipo, torneoId, canManage, onClose }) {
       }
     }
     closeForm();
+    if (options.privateChangeRequested) setActionNotice("Los datos deportivos se guardaron. Los datos privados quedaron pendientes de aprobación del jugador.");
     setReloadKey((current) => current + 1);
   };
 
@@ -86,8 +88,9 @@ function TeamRosterModal({ equipo, torneoId, canManage, onClose }) {
         <h2>{equipo.nombre}</h2>
         <p><strong>{tournamentName || "Torneo"}</strong> · {players.filter((player) => player.estado === "ACTIVA").length} activos · {players.filter((player) => player.estado === "INACTIVA").length} bajas.</p>
         {canManage && !showForm && !showExisting && <div className="roster-add-actions"><button type="button" className="tournament-form-save" onClick={() => { setEditingPlayer(null); setShowForm(true); }}>+ Crear jugador</button><button type="button" className="tournament-form-cancel" onClick={() => setShowExisting(true)}>Agregar jugador existente</button></div>}
-        {showForm && <PlayerForm equipoId={equipo.idEquipo} player={editingPlayer} onCancel={closeForm} onSaved={savePlayer} />}
+        {showForm && <PlayerForm equipoId={equipo.idEquipo} torneoId={torneoId} player={editingPlayer} onCancel={closeForm} onSaved={savePlayer} />}
         {showExisting && enrollmentId && <ExistingPlayerEnrollment equipoId={equipo.idEquipo} enrollmentId={enrollmentId} currentPlayers={players} onCancel={() => setShowExisting(false)} onSaved={() => { setShowExisting(false); setReloadKey((current) => current + 1); }} />}
+        {actionNotice && <p className="roster-notice">{actionNotice}</p>}
         {actionError && <p className="tournament-form-error">{actionError}</p>}
         <div className="roster-list">
           {loading ? <p>Cargando plantel...</p> : players.length === 0 ? <p className="roster-empty">Todavía no hay jugadores.</p> : players.map((player) => (

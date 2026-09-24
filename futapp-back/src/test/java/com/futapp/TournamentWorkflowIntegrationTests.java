@@ -429,6 +429,68 @@ class TournamentWorkflowIntegrationTests {
     }
 
     @Test
+    void cambiosPrivadosDeJugadorRequierenAprobacionDelJugador() throws Exception {
+        String organizador = registrarUsuario("ORGANIZADOR");
+        String director = registrarUsuario("DIRECTOR_EQUIPO");
+        String cuentaJugador = registrarUsuario("JUGADOR");
+        long torneoId = postJson("/torneos", organizador, torneo()).get("idTorneo").asLong();
+        long equipoId = postJson("/equipos", organizador, equipo("Equipo con jugador verificado", "Azul", torneoId))
+                .get("idEquipo").asLong();
+
+        Map<String, Object> original = jugador("Nombre original", "Apellido original", 5, equipoId);
+        original.put("dni", "30111222");
+        original.put("foto", "/uploads/foto-original.png");
+        long jugadorId = postJson("/jugadores", organizador, original).get("idJugador").asLong();
+
+        JsonNode reclamoEquipo = postJson("/reclamos/equipos/" + equipoId, director,
+                Map.of("idTorneo", torneoId, "mensaje", "Administro el equipo"));
+        putJson("/reclamos/" + reclamoEquipo.get("idSolicitud").asLong() + "/aprobar", organizador, null)
+                .andExpect(status().isOk());
+        JsonNode reclamoJugador = postJson("/reclamos/jugadores/" + jugadorId, cuentaJugador,
+                Map.of("idTorneo", torneoId, "mensaje", "Este jugador soy yo"));
+        putJson("/reclamos/" + reclamoJugador.get("idSolicitud").asLong() + "/aprobar", director, null)
+                .andExpect(status().isOk());
+
+        Map<String, Object> edicionDeportiva = jugador("Nombre corregido", "Apellido corregido", 8, equipoId);
+        edicionDeportiva.put("dni", "40999888");
+        edicionDeportiva.put("fechaNacimiento", "2001-02-03");
+        edicionDeportiva.put("foto", "/uploads/foto-equipo.png");
+        putJson("/jugadores/" + jugadorId, director, edicionDeportiva)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.nombre").value("Nombre Original"))
+                .andExpect(jsonPath("$.apellido").value("Apellido Original"))
+                .andExpect(jsonPath("$.dni").value("30111222"))
+                .andExpect(jsonPath("$.fechaNacimiento").value("2000-01-01"))
+                .andExpect(jsonPath("$.numeroCamiseta").value(8))
+                .andExpect(jsonPath("$.foto").value("/uploads/foto-equipo.png"));
+
+        JsonNode cambio = postJson("/reclamos/jugadores/" + jugadorId + "/cambios", director,
+                Map.of("idTorneo", torneoId, "idEquipo", equipoId,
+                        "nombre", "Nombre corregido", "apellido", "Apellido corregido",
+                        "dni", "40999888", "fechaNacimiento", "2001-02-03",
+                        "mensaje", "Corrección del registro oficial"));
+
+        putJson("/reclamos/" + cambio.get("idSolicitud").asLong() + "/aprobar", organizador, null)
+                .andExpect(status().isForbidden());
+        mockMvc.perform(get("/reclamos/pendientes")
+                        .header("Authorization", "Bearer " + cuentaJugador))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].tipo").value("CAMBIO_JUGADOR"))
+                .andExpect(jsonPath("$[0].nombrePropuesto").value("Nombre Corregido"))
+                .andExpect(jsonPath("$[0].nombreEquipo").value("Equipo Con Jugador Verificado"));
+        putJson("/reclamos/" + cambio.get("idSolicitud").asLong() + "/aprobar", cuentaJugador, null)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.estado").value("APROBADA"));
+
+        mockMvc.perform(get("/jugadores/{id}", jugadorId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.nombre").value("Nombre Corregido"))
+                .andExpect(jsonPath("$.apellido").value("Apellido Corregido"))
+                .andExpect(jsonPath("$.dni").value("40999888"))
+                .andExpect(jsonPath("$.fechaNacimiento").value("2001-02-03"));
+    }
+
+    @Test
     void creaLaEstructuraDeZonasYPlayoffsConCuposVacios() throws Exception {
         String token = registrarOrganizador();
         Map<String, Object> request = new LinkedHashMap<>(torneo());

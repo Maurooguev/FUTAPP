@@ -52,6 +52,10 @@ public class NotificacionService {
                 destinatarios.add(reclamo.getTorneo().getPropietario());
             }
         }
+        if ("CAMBIO_JUGADOR".equals(reclamo.getTipo())) {
+            destinatarios.clear();
+            if (reclamo.getJugador().getUsuario() != null) destinatarios.add(reclamo.getJugador().getUsuario());
+        }
         if ("FUSION_EQUIPO".equals(reclamo.getTipo())) {
             destinatarios.clear();
             administradores.findByEquipoIdEquipoAndEstado(reclamo.getEquipoDestino().getIdEquipo(), "ACTIVO")
@@ -65,7 +69,9 @@ public class NotificacionService {
             if (destinatarios.isEmpty() && reclamo.getEquipo().getCreador() != null) destinatarios.add(reclamo.getEquipo().getCreador());
         }
         destinatarios.forEach(user -> enviar(user, "SOLICITUD", "Nueva solicitud pendiente",
-                "INVITACION_TORNEO".equals(reclamo.getTipo())
+                "CAMBIO_JUGADOR".equals(reclamo.getTipo())
+                        ? reclamo.getSolicitante().getNombre() + " propuso modificar tus datos privados"
+                        : "INVITACION_TORNEO".equals(reclamo.getTipo())
                         ? reclamo.getSolicitante().getNombre() + " invitó a " + reclamo.getEquipo().getNombre() + " al torneo " + reclamo.getTorneo().getNombre()
                         : reclamo.getSolicitante().getNombre() + " solicita vincularse con " +
                         ("FUSION_EQUIPO".equals(reclamo.getTipo()) ? "fusionar " + reclamo.getEquipo().getNombre() + " con " + reclamo.getEquipoDestino().getNombre() : "EQUIPO".equals(reclamo.getTipo()) ? reclamo.getEquipo().getNombre() : reclamo.getJugador().getNombre() + " " + reclamo.getJugador().getApellido()),

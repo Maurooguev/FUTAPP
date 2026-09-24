@@ -10,16 +10,18 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 
 @Service @Transactional
 public class ReclamoService {
     private final SolicitudReclamoRepository reclamos; private final EquipoRepository equipos;
     private final JugadorRepository jugadores; private final TorneoRepository torneos;
     private final EquipoAdministradorRepository administradores; private final InscripcionEquipoRepository inscripciones;
+    private final InscripcionJugadorRepository planteles;
     private final NotificacionService notificaciones;
     private final EquipoAliasRepository aliases; private final FusionEquipoService fusiones; private final InscripcionService inscripcionService;
     private final FusionJugadorService fusionJugadores;
-    public ReclamoService(SolicitudReclamoRepository r, EquipoRepository e, JugadorRepository j, TorneoRepository t, EquipoAdministradorRepository a, InscripcionEquipoRepository i, NotificacionService n, EquipoAliasRepository al, FusionEquipoService f, InscripcionService is, FusionJugadorService fj) { reclamos=r; equipos=e; jugadores=j; torneos=t; administradores=a; inscripciones=i; notificaciones=n; aliases=al; fusiones=f; inscripcionService=is; fusionJugadores=fj; }
+    public ReclamoService(SolicitudReclamoRepository r, EquipoRepository e, JugadorRepository j, TorneoRepository t, EquipoAdministradorRepository a, InscripcionEquipoRepository i, InscripcionJugadorRepository ij, NotificacionService n, EquipoAliasRepository al, FusionEquipoService f, InscripcionService is, FusionJugadorService fj) { reclamos=r; equipos=e; jugadores=j; torneos=t; administradores=a; inscripciones=i; planteles=ij; notificaciones=n; aliases=al; fusiones=f; inscripcionService=is; fusionJugadores=fj; }
 
     @Transactional
     public ReclamoResponseDTO solicitarFusion(Long idDuplicado, String codigoOficial, ReclamoRequestDTO request) {
@@ -70,6 +72,35 @@ public class ReclamoService {
         SolicitudReclamo item = base(user, torneo, request.mensaje()); item.setTipo("JUGADOR"); item.setJugador(jugador); item=reclamos.save(item); notificaciones.avisarResponsablesReclamo(item); return dto(item);
     }
 
+    public ReclamoResponseDTO solicitarCambioJugador(Long idJugador, CambioJugadorRequestDTO request) {
+        Usuario user = actual();
+        Jugador jugador = jugadores.findById(idJugador).orElseThrow(() -> new ResourceNotFoundException("Jugador no encontrado"));
+        if (jugador.getUsuario() == null) throw new IllegalArgumentException("El jugador todavía no tiene dueño; podés editarlo directamente");
+        if (jugador.getUsuario().getIdUsuario().equals(user.getIdUsuario())) throw new IllegalArgumentException("El dueño puede editar sus datos personales desde su perfil");
+        Torneo torneo = torneos.findById(request.idTorneo()).orElseThrow(() -> new ResourceNotFoundException("Torneo no encontrado"));
+        Equipo equipo = equipos.findById(request.idEquipo()).orElseThrow(() -> new ResourceNotFoundException("Equipo no encontrado"));
+        if (!planteles.existsByJugadorIdJugadorAndInscripcionEquipoTorneoIdTorneoAndInscripcionEquipoEquipoIdEquipoAndEstado(
+                idJugador, torneo.getIdTorneo(), equipo.getIdEquipo(), "ACTIVA"))
+            throw new IllegalArgumentException("El jugador no integra ese plantel activo en el torneo");
+        boolean tieneDirector = administradores.existsByEquipoIdEquipoAndEstado(equipo.getIdEquipo(), "ACTIVO");
+        boolean esDirector = administradores.existsByEquipoIdEquipoAndUsuarioIdUsuarioAndEstado(equipo.getIdEquipo(), user.getIdUsuario(), "ACTIVO");
+        boolean esOrganizador = torneo.getPropietario() != null && torneo.getPropietario().getIdUsuario().equals(user.getIdUsuario());
+        if (!user.tieneRol("ADMIN") && !esDirector && !(!tieneDirector && esOrganizador)) throw new AccessDeniedException("No tenés permiso para proponer cambios privados");
+        if (reclamos.existsByJugadorIdJugadorAndTipoAndEstado(idJugador, "CAMBIO_JUGADOR", "PENDIENTE")) throw new IllegalArgumentException("Ya existe una modificación pendiente para este jugador");
+
+        String nombre = normalizar(request.nombre()), apellido = normalizar(request.apellido());
+        String dni = normalizar(request.dni()), nacimiento = normalizar(request.fechaNacimiento());
+        if (Objects.equals(jugador.getNombre(), nombre) && Objects.equals(jugador.getApellido(), apellido)
+                && Objects.equals(jugador.getDni(), dni) && Objects.equals(jugador.getFechaNacimiento(), nacimiento))
+            throw new IllegalArgumentException("No hay cambios privados para solicitar");
+
+        SolicitudReclamo item = base(user, torneo, request.mensaje());
+        item.setTipo("CAMBIO_JUGADOR"); item.setJugador(jugador); item.setEquipo(equipo);
+        item.setNombrePropuesto(nombre); item.setApellidoPropuesto(apellido);
+        item.setDniPropuesto(dni); item.setFechaNacimientoPropuesta(nacimiento);
+        item = reclamos.save(item); notificaciones.avisarResponsablesReclamo(item); return dto(item);
+    }
+
     @Transactional(readOnly=true) public List<ReclamoResponseDTO> pendientes() { Usuario user=actual(); return reclamos.findByEstadoOrderByFechaSolicitudAsc("PENDIENTE").stream().filter(r -> puedeRevisar(user,r)).map(this::dto).toList(); }
     @Transactional(readOnly=true) public List<ReclamoResponseDTO> revisables() { Usuario user=actual(); return reclamos.findAllByOrderByFechaSolicitudDesc().stream().filter(r -> puedeRevisar(user,r)).map(this::dto).toList(); }
     @Transactional(readOnly=true) public long cantidadPendientes() { return pendientes().size(); }
@@ -97,6 +128,14 @@ public class ReclamoService {
                 jugadores.save(item.getJugador());
             }
         }
+        if (aprobar && "CAMBIO_JUGADOR".equals(item.getTipo())) {
+            Jugador jugador = item.getJugador();
+            if (item.getDniPropuesto() != null && jugadores.existsByDniAndIdJugadorNot(item.getDniPropuesto(), jugador.getIdJugador()))
+                throw new IllegalArgumentException("Ese DNI ya pertenece a otro jugador");
+            jugador.setNombre(item.getNombrePropuesto()); jugador.setApellido(item.getApellidoPropuesto());
+            jugador.setDni(item.getDniPropuesto()); jugador.setFechaNacimiento(item.getFechaNacimientoPropuesta());
+            jugadores.save(jugador);
+        }
         if (aprobar && "FUSION_EQUIPO".equals(item.getTipo())) {
             fusiones.fusionarAprobada(item.getEquipoDestino().getIdEquipo(), item.getEquipo().getIdEquipo());
         }
@@ -104,10 +143,11 @@ public class ReclamoService {
             inscripcionService.inscribirEquipoAprobado(item.getEquipo().getIdEquipo(), item.getTorneo().getIdTorneo(), item.getCategoria());
         }
         item.setEstado(aprobar ? "APROBADA" : "RECHAZADA"); item.setRevisor(user); item.setMotivoResolucion(normalizar(motivo)); item.setFechaResolucion(LocalDateTime.now()); item=reclamos.save(item);
-        String objetivo = "JUGADOR".equals(item.getTipo()) ? item.getJugador().getNombre()+" "+item.getJugador().getApellido() : item.getEquipo().getNombre();
+        boolean solicitudJugador = "JUGADOR".equals(item.getTipo()) || "CAMBIO_JUGADOR".equals(item.getTipo());
+        String objetivo = solicitudJugador ? item.getJugador().getNombre()+" "+item.getJugador().getApellido() : item.getEquipo().getNombre();
         notificaciones.enviar(item.getSolicitante(), "SOLICITUD", aprobar ? "Solicitud aprobada" : "Solicitud rechazada",
                 "Tu solicitud sobre "+objetivo+" fue "+(aprobar ? "aprobada." : "rechazada."+(item.getMotivoResolucion()==null?"":" Motivo: "+item.getMotivoResolucion())),
-                "JUGADOR".equals(item.getTipo()) ? "/jugador/"+item.getJugador().getIdJugador() : "/equipo/"+item.getEquipo().getIdEquipo());
+                solicitudJugador ? "/jugador/"+item.getJugador().getIdJugador() : "/equipo/"+item.getEquipo().getIdEquipo());
         return dto(item);
     }
 
@@ -117,6 +157,8 @@ public class ReclamoService {
         boolean esPropietarioDelTorneo = reclamo.getTorneo().getPropietario() != null
                 && reclamo.getTorneo().getPropietario().getIdUsuario().equals(usuario.getIdUsuario());
         if ("EQUIPO".equals(reclamo.getTipo())) return esPropietarioDelTorneo;
+        if ("CAMBIO_JUGADOR".equals(reclamo.getTipo())) return reclamo.getJugador().getUsuario() != null
+                && reclamo.getJugador().getUsuario().getIdUsuario().equals(usuario.getIdUsuario());
         if ("FUSION_EQUIPO".equals(reclamo.getTipo())) {
             boolean tieneAdministradores=administradores.existsByEquipoIdEquipoAndEstado(reclamo.getEquipoDestino().getIdEquipo(), "ACTIVO");
             return administradores.existsByEquipoIdEquipoAndUsuarioIdUsuarioAndEstado(reclamo.getEquipoDestino().getIdEquipo(), usuario.getIdUsuario(), "ACTIVO")
@@ -150,6 +192,7 @@ public class ReclamoService {
                 r.getEquipoDestino()==null?null:r.getEquipoDestino().getNombre(),
                 r.getEquipoDestino()==null?null:r.getEquipoDestino().getCodigoPublico(),
                 r.getTorneo().getIdTorneo(),r.getTorneo().getNombre(),r.getCategoria(),r.getMensaje(),r.getMotivoResolucion(),
+                r.getNombrePropuesto(),r.getApellidoPropuesto(),r.getDniPropuesto(),r.getFechaNacimientoPropuesta(),
                 r.getRevisor()==null?null:r.getRevisor().getNombre(),r.getFechaSolicitud(),r.getFechaResolucion());
     }
 }

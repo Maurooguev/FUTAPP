@@ -5,4 +5,5 @@ public record ReclamoResponseDTO(Long idSolicitud, String tipo, String estado, L
  Long idEquipo, String nombreEquipo, String escudoEquipo, Long idJugador, String nombreJugador,
  Long idEquipoDestino, String nombreEquipoDestino, String codigoEquipoDestino,
  Long idTorneo, String nombreTorneo, String categoria, String mensaje, String motivoResolucion,
+ String nombrePropuesto, String apellidoPropuesto, String dniPropuesto, String fechaNacimientoPropuesta,
  String nombreRevisor, LocalDateTime fechaSolicitud, LocalDateTime fechaResolucion) {}

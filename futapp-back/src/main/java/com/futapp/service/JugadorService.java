@@ -16,6 +16,8 @@ import com.futapp.repository.InscripcionJugadorRepository;
 import com.futapp.repository.JugadorAliasRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.security.core.context.SecurityContextHolder;
+import com.futapp.model.Usuario;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -111,10 +113,15 @@ public class JugadorService {
 
         validarDatosUnicos(requestDTO, id);
 
-        jugador.setNombre(requestDTO.getNombre());
-        jugador.setApellido(requestDTO.getApellido());
-        jugador.setDni(normalizarOpcional(requestDTO.getDni()));
-        jugador.setFechaNacimiento(requestDTO.getFechaNacimiento());
+        Usuario actual = usuarioActual();
+        boolean identidadProtegida = jugador.getUsuario() != null
+                && !jugador.getUsuario().getIdUsuario().equals(actual.getIdUsuario());
+        if (!identidadProtegida) {
+            jugador.setNombre(requestDTO.getNombre());
+            jugador.setApellido(requestDTO.getApellido());
+            jugador.setDni(normalizarOpcional(requestDTO.getDni()));
+            jugador.setFechaNacimiento(requestDTO.getFechaNacimiento());
+        }
         jugador.setNumeroCamiseta(requestDTO.getNumeroCamiseta());
         jugador.setPosicion(requestDTO.getPosicion());
         jugador.setFoto(requestDTO.getFoto());
@@ -185,6 +192,12 @@ public class JugadorService {
 
     private String normalizarOpcional(String valor) {
         return valor == null || valor.isBlank() ? null : valor.trim();
+    }
+
+    private Usuario usuarioActual() {
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (principal instanceof Usuario usuario) return usuario;
+        throw new org.springframework.security.access.AccessDeniedException("Debés iniciar sesión");
     }
 
     private void validarDatosUnicos(JugadorRequestDTO requestDTO, Long idJugador) {

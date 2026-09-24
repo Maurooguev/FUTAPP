@@ -16,6 +16,10 @@ public class SolicitudReclamo {
     @ManyToOne(optional = false) @JoinColumn(name = "id_torneo") private Torneo torneo;
     @ManyToOne @JoinColumn(name = "id_revisor") private Usuario revisor;
     private String mensaje; private String categoria; @Column(name = "motivo_resolucion") private String motivoResolucion;
+    @Column(name = "nombre_propuesto") private String nombrePropuesto;
+    @Column(name = "apellido_propuesto") private String apellidoPropuesto;
+    @Column(name = "dni_propuesto") private String dniPropuesto;
+    @Column(name = "fecha_nacimiento_propuesta") private String fechaNacimientoPropuesta;
     @Column(name = "fecha_solicitud") private LocalDateTime fechaSolicitud = LocalDateTime.now();
     @Column(name = "fecha_resolucion") private LocalDateTime fechaResolucion;
     public Long getIdSolicitud() { return idSolicitud; } public String getTipo() { return tipo; } public void setTipo(String tipo) { this.tipo = tipo; }
@@ -29,5 +33,9 @@ public class SolicitudReclamo {
     public String getMensaje() { return mensaje; } public void setMensaje(String mensaje) { this.mensaje = mensaje; }
     public String getCategoria() { return categoria; } public void setCategoria(String categoria) { this.categoria = TextNormalizer.titleCase(categoria); }
     public String getMotivoResolucion() { return motivoResolucion; } public void setMotivoResolucion(String value) { this.motivoResolucion = value; }
+    public String getNombrePropuesto() { return nombrePropuesto; } public void setNombrePropuesto(String value) { nombrePropuesto = TextNormalizer.titleCase(value); }
+    public String getApellidoPropuesto() { return apellidoPropuesto; } public void setApellidoPropuesto(String value) { apellidoPropuesto = TextNormalizer.titleCase(value); }
+    public String getDniPropuesto() { return dniPropuesto; } public void setDniPropuesto(String value) { dniPropuesto = value; }
+    public String getFechaNacimientoPropuesta() { return fechaNacimientoPropuesta; } public void setFechaNacimientoPropuesta(String value) { fechaNacimientoPropuesta = value; }
     public LocalDateTime getFechaSolicitud() { return fechaSolicitud; } public LocalDateTime getFechaResolucion() { return fechaResolucion; } public void setFechaResolucion(LocalDateTime value) { this.fechaResolucion = value; }
 }

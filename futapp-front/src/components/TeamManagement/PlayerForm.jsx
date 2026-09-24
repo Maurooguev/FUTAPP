@@ -2,7 +2,7 @@ import { useState } from "react";
 import { API_URL, apiFetch } from "../../config/api";
 import ImageUploadField from "../ImageUploadField/ImageUploadField";
 
-function PlayerForm({ equipoId, player, onSaved, onCancel }) {
+function PlayerForm({ equipoId, torneoId, player, onSaved, onCancel }) {
   const isEditing = Boolean(player?.idJugador);
   const [form, setForm] = useState({
     nombre: player?.nombre ?? "",
@@ -25,6 +25,24 @@ function PlayerForm({ equipoId, player, onSaved, onCancel }) {
     setSaving(true);
     setError("");
     try {
+      const privateChangeRequested = isEditing && player.verificado && ["nombre", "apellido", "dni", "fechaNacimiento"]
+        .some((field) => (form[field] || "").trim() !== (player[field] || "").trim());
+      if (privateChangeRequested) {
+        const requestResponse = await apiFetch(`${API_URL}/reclamos/jugadores/${player.idJugador}/cambios`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            idTorneo: Number(torneoId), idEquipo: Number(equipoId), nombre: form.nombre, apellido: form.apellido,
+            dni: form.dni, fechaNacimiento: form.fechaNacimiento,
+            mensaje: "Solicitud de corrección de datos privados desde el plantel.",
+          }),
+        });
+        if (!requestResponse.ok) {
+          const payload = await requestResponse.json().catch(() => null);
+          throw new Error(payload?.message || "No se pudo solicitar la modificación privada");
+        }
+        window.dispatchEvent(new Event("requests-updated"));
+      }
       const response = await apiFetch(
         isEditing ? `${API_URL}/jugadores/${player.idJugador}` : `${API_URL}/jugadores`,
         {
@@ -37,7 +55,7 @@ function PlayerForm({ equipoId, player, onSaved, onCancel }) {
         const payload = await response.json().catch(() => null);
         throw new Error(payload?.message || "No se pudo guardar el jugador");
       }
-      onSaved(await response.json());
+      onSaved(await response.json(), { privateChangeRequested });
     } catch (requestError) {
       setError(requestError.message);
     } finally {
