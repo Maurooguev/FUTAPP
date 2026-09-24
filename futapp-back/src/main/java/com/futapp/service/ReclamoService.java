@@ -127,7 +127,8 @@ public class ReclamoService {
         Long idEquipo = reclamo.getJugador().getEquipo().getIdEquipo();
         boolean esDirector = administradores.existsByEquipoIdEquipoAndUsuarioIdUsuarioAndEstado(
                 idEquipo, usuario.getIdUsuario(), "ACTIVO");
-        return esDirector;
+        boolean tieneDirector = administradores.existsByEquipoIdEquipoAndEstado(idEquipo, "ACTIVO");
+        return esDirector || (!tieneDirector && esPropietarioDelTorneo);
     }
     private SolicitudReclamo base(Usuario u,Torneo t,String m){SolicitudReclamo r=new SolicitudReclamo();r.setSolicitante(u);r.setTorneo(t);r.setMensaje(normalizar(m));return r;}
     private Usuario actual(){Object p=SecurityContextHolder.getContext().getAuthentication().getPrincipal();if(p instanceof Usuario u)return u;throw new AccessDeniedException("Debés iniciar sesión");}

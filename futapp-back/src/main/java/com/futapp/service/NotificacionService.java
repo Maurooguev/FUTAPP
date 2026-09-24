@@ -48,6 +48,9 @@ public class NotificacionService {
             destinatarios.clear();
             administradores.findByEquipoIdEquipoAndEstado(reclamo.getJugador().getEquipo().getIdEquipo(), "ACTIVO")
                     .forEach(link -> destinatarios.add(link.getUsuario()));
+            if (destinatarios.isEmpty() && reclamo.getTorneo().getPropietario() != null) {
+                destinatarios.add(reclamo.getTorneo().getPropietario());
+            }
         }
         if ("FUSION_EQUIPO".equals(reclamo.getTipo())) {
             destinatarios.clear();

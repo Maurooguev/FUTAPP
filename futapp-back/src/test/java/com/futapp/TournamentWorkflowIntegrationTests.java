@@ -395,6 +395,28 @@ class TournamentWorkflowIntegrationTests {
     }
 
     @Test
+    void organizadorPuedeRevisarJugadorCuandoElEquipoNoTieneDirector() throws Exception {
+        String organizador = registrarUsuario("ORGANIZADOR");
+        String cuentaJugador = registrarUsuario("JUGADOR");
+        long torneoId = postJson("/torneos", organizador, torneo()).get("idTorneo").asLong();
+        long equipoId = postJson("/equipos", organizador, equipo("Equipo sin director", "Azul", torneoId))
+                .get("idEquipo").asLong();
+        long jugadorId = postJson("/jugadores", organizador,
+                jugador("Jugador", "Sin director", 5, equipoId)).get("idJugador").asLong();
+
+        JsonNode solicitud = postJson("/reclamos/jugadores/" + jugadorId, cuentaJugador,
+                Map.of("idTorneo", torneoId, "mensaje", "Este perfil soy yo"));
+
+        mockMvc.perform(get("/reclamos/pendientes")
+                        .header("Authorization", "Bearer " + organizador))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].idSolicitud").value(solicitud.get("idSolicitud").asInt()));
+        putJson("/reclamos/" + solicitud.get("idSolicitud").asLong() + "/aprobar", organizador, null)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.estado").value("APROBADA"));
+    }
+
+    @Test
     void creaLaEstructuraDeZonasYPlayoffsConCuposVacios() throws Exception {
         String token = registrarOrganizador();
         Map<String, Object> request = new LinkedHashMap<>(torneo());
