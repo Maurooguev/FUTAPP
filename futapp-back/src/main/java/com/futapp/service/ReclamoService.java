@@ -86,6 +86,11 @@ public class ReclamoService {
         }
         if (aprobar && "JUGADOR".equals(item.getTipo())) {
             if (item.getJugador().getUsuario() != null) throw new IllegalArgumentException("Este jugador ya tiene una cuenta verificada");
+            Jugador vinculado = jugadores.findByUsuarioIdUsuario(item.getSolicitante().getIdUsuario()).orElse(null);
+            if (vinculado != null && !vinculado.getIdJugador().equals(item.getJugador().getIdJugador())) {
+                vinculado.setUsuario(null);
+                jugadores.saveAndFlush(vinculado);
+            }
             item.getJugador().setUsuario(item.getSolicitante()); jugadores.save(item.getJugador());
         }
         if (aprobar && "FUSION_EQUIPO".equals(item.getTipo())) {

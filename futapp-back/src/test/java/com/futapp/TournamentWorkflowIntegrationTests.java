@@ -348,6 +348,45 @@ class TournamentWorkflowIntegrationTests {
     }
 
     @Test
+    void permiteAlOrganizadorAprobarUnJugadorSiElEquipoNoTieneDirector() throws Exception {
+        String organizador = registrarUsuario("ORGANIZADOR");
+        String cuentaJugador = registrarUsuario("JUGADOR");
+        long torneoId = postJson("/torneos", organizador, torneo()).get("idTorneo").asLong();
+        long equipoId = postJson("/equipos", organizador, equipo("Equipo sin director", "Azul", torneoId))
+                .get("idEquipo").asLong();
+        long jugadorId = postJson("/jugadores", organizador,
+                jugador("Jugador", "Reclamado", 5, equipoId)).get("idJugador").asLong();
+        long otroJugadorId = postJson("/jugadores", organizador,
+                jugador("Otro", "Jugador", 6, equipoId)).get("idJugador").asLong();
+
+        JsonNode solicitud = postJson("/reclamos/jugadores/" + jugadorId, cuentaJugador,
+                Map.of("idTorneo", torneoId, "mensaje", "Este perfil soy yo"));
+        putJson("/reclamos/" + solicitud.get("idSolicitud").asLong() + "/aprobar", organizador, null)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.estado").value("APROBADA"));
+
+        mockMvc.perform(get("/perfil-jugador/mio").header("Authorization", "Bearer " + cuentaJugador))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.idJugador").value((int) jugadorId));
+
+        String segundoReclamo = mockMvc.perform(post("/reclamos/jugadores/{id}", otroJugadorId)
+                        .header("Authorization", "Bearer " + cuentaJugador)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonMapper.writeValueAsString(Map.of(
+                                "idTorneo", torneoId, "mensaje", "Solicito cambiar mi perfil"))))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+        long segundaSolicitud = jsonMapper.readTree(segundoReclamo).get("idSolicitud").asLong();
+        putJson("/reclamos/" + segundaSolicitud + "/aprobar", organizador, null)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.estado").value("APROBADA"));
+
+        mockMvc.perform(get("/perfil-jugador/mio").header("Authorization", "Bearer " + cuentaJugador))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.idJugador").value((int) otroJugadorId));
+    }
+
+    @Test
     void creaLaEstructuraDeZonasYPlayoffsConCuposVacios() throws Exception {
         String token = registrarOrganizador();
         Map<String, Object> request = new LinkedHashMap<>(torneo());
