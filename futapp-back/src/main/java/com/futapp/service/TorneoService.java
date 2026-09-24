@@ -312,6 +312,13 @@ public class TorneoService {
             default -> "Zonas + Playoffs";
         });
         torneo.setIdaVuelta(Boolean.TRUE.equals(request.getIdaVuelta()) && !"ELIMINACION_DIRECTA".equals(formato));
+        if ("ELIMINACION_DIRECTA".equals(formato)) {
+            torneo.setPuntosVictoria(0);
+            torneo.setPuntosEmpate(0);
+            torneo.setPuntosDerrota(0);
+            torneo.setCriterioDesempate("PENALES");
+            return;
+        }
         torneo.setPuntosVictoria(request.getPuntosVictoria() == null ? 3 : request.getPuntosVictoria());
         torneo.setPuntosEmpate(request.getPuntosEmpate() == null ? 1 : request.getPuntosEmpate());
         torneo.setPuntosDerrota(request.getPuntosDerrota() == null ? 0 : request.getPuntosDerrota());

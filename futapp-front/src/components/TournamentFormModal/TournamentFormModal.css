@@ -198,3 +198,11 @@
 :root[data-theme="dark"] .fixture-estimate { background: #294957; }
 :root[data-theme="dark"] .format-card { background: #29414f; border-color: #48616e; color: #e7eef2; }
 :root[data-theme="dark"] .format-card.selected { background: #214b55; border-color: #38b9d5; }
+.knockout-rule { display: flex; align-items: center; gap: 10px; padding: 12px; border: 1px solid #bae6fd; background: #eef9fc; }
+.knockout-rule > span { font-size: 22px; }
+.knockout-rule div { display: grid; gap: 3px; }
+.knockout-rule strong { color: #075985; font-size: 12px; }
+.knockout-rule small { color: #64748b; font-size: 10px; }
+:root[data-theme="dark"] .knockout-rule { border-color: #48616e; background: #294957; }
+:root[data-theme="dark"] .knockout-rule strong { color: #67d7ee; }
+:root[data-theme="dark"] .knockout-rule small { color: #b9c8d2; }

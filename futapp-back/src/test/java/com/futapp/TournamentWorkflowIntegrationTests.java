@@ -312,7 +312,12 @@ class TournamentWorkflowIntegrationTests {
         request.put("formato", "Eliminación directa");
         request.put("cantidadEquipos", 8);
         request.put("generarEquiposPrueba", true);
-        long torneoId = postJson("/torneos", token, request).get("idTorneo").asLong();
+        JsonNode torneoCreado = postJson("/torneos", token, request);
+        long torneoId = torneoCreado.get("idTorneo").asLong();
+        org.junit.jupiter.api.Assertions.assertEquals(0, torneoCreado.get("puntosVictoria").asInt());
+        org.junit.jupiter.api.Assertions.assertEquals(0, torneoCreado.get("puntosEmpate").asInt());
+        org.junit.jupiter.api.Assertions.assertEquals(0, torneoCreado.get("puntosDerrota").asInt());
+        org.junit.jupiter.api.Assertions.assertEquals("PENALES", torneoCreado.get("criterioDesempate").asString());
 
         JsonNode partidos = postJson("/partidos/torneo/" + torneoId + "/generar-fixture", token, Map.of(
                 "fechaInicio", "2026-09-05", "horaInicio", "14:00", "diasEntreJornadas", 7,
