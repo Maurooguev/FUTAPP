@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { API_URL, apiFetch } from "../config/api";
 import { Link } from "react-router-dom";
-import ImageUploadField from "../components/ImageUploadField/ImageUploadField";
 import ArgentinaLocationInput from "../components/TournamentFormModal/ArgentinaLocationInput";
 import "./Profiles.css";
 
@@ -53,7 +52,6 @@ function MiPerfilJugador() {
     <Link className="profile-back-link" to={`/jugador/${form.idJugador}`}>← Volver a mi perfil</Link>
     <h1>Editar perfil</h1>
     <form className="profile-panel personal-profile-form" onSubmit={save}>
-      <ImageUploadField label="Foto de perfil" value={form.foto} shape="avatar" onUploaded={(foto) => setForm((current) => ({ ...current, foto }))} />
       <label>Apodo<input name="apodo" value={form.apodo || ""} onChange={change} /></label>
       <label>Fecha de nacimiento<input type="date" name="fechaNacimiento" value={form.fechaNacimiento || ""} onChange={change} /></label>
       <label>Pierna hábil<select name="piernaHabil" value={form.piernaHabil || ""} onChange={change}><option value="">Seleccionar</option>{PIERNAS.map((pierna) => <option key={pierna}>{pierna}</option>)}</select></label>

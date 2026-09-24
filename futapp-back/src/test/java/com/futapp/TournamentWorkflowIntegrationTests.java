@@ -355,8 +355,9 @@ class TournamentWorkflowIntegrationTests {
         long torneoId = postJson("/torneos", organizador, torneo()).get("idTorneo").asLong();
         long equipoId = postJson("/equipos", organizador, equipo("Equipo sin director", "Azul", torneoId))
                 .get("idEquipo").asLong();
-        long jugadorId = postJson("/jugadores", organizador,
-                jugador("Jugador", "Reclamado", 5, equipoId)).get("idJugador").asLong();
+        Map<String, Object> jugadorConFoto = jugador("Jugador", "Reclamado", 5, equipoId);
+        jugadorConFoto.put("foto", "/uploads/foto-oficial.png");
+        long jugadorId = postJson("/jugadores", organizador, jugadorConFoto).get("idJugador").asLong();
         long otroJugadorId = postJson("/jugadores", organizador,
                 jugador("Otro", "Jugador", 6, equipoId)).get("idJugador").asLong();
 
@@ -376,6 +377,9 @@ class TournamentWorkflowIntegrationTests {
         mockMvc.perform(get("/perfil-jugador/mio").header("Authorization", "Bearer " + cuentaJugador))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.idJugador").value((int) jugadorId));
+        putJson("/perfil-jugador/mio", cuentaJugador, Map.of("foto", "/uploads/foto-no-autorizada.png"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.foto").value("/uploads/foto-oficial.png"));
 
         String segundoReclamo = mockMvc.perform(post("/reclamos/jugadores/{id}", otroJugadorId)
                         .header("Authorization", "Bearer " + cuentaJugador)

@@ -5,7 +5,7 @@ import org.springframework.security.access.AccessDeniedException; import org.spr
 public class PerfilJugadorService {
  private final JugadorRepository jugadores; public PerfilJugadorService(JugadorRepository j){jugadores=j;}
  @Transactional(readOnly=true) public PerfilJugadorResponseDTO mio(){return dto(vinculado());}
- public PerfilJugadorResponseDTO actualizar(PerfilJugadorPersonalDTO r){Jugador j=vinculado();j.setFoto(n(r.foto()));j.setApodo(n(r.apodo()));j.setFechaNacimiento(n(r.fechaNacimiento()));j.setPiernaHabil(n(r.piernaHabil()));j.setEquipoFavorito(n(r.equipoFavorito()));j.setBarrio(n(r.barrio()));j.setAlturaCm(r.alturaCm());j.setNacionalidad(n(r.nacionalidad()));j.setBiografia(n(r.biografia()));j.setInstagram(n(r.instagram()));return dto(jugadores.save(j));}
+ public PerfilJugadorResponseDTO actualizar(PerfilJugadorPersonalDTO r){Jugador j=vinculado();j.setApodo(n(r.apodo()));j.setFechaNacimiento(n(r.fechaNacimiento()));j.setPiernaHabil(n(r.piernaHabil()));j.setEquipoFavorito(n(r.equipoFavorito()));j.setBarrio(n(r.barrio()));j.setAlturaCm(r.alturaCm());j.setNacionalidad(n(r.nacionalidad()));j.setBiografia(n(r.biografia()));j.setInstagram(n(r.instagram()));return dto(jugadores.save(j));}
  private Jugador vinculado(){Usuario u=actual();return jugadores.findByUsuarioIdUsuario(u.getIdUsuario()).orElseThrow(()->new ResourceNotFoundException("Tu cuenta todavía no está vinculada con un jugador"));}
  private Usuario actual(){Object p=SecurityContextHolder.getContext().getAuthentication().getPrincipal();if(p instanceof Usuario u)return u;throw new AccessDeniedException("Debés iniciar sesión");}
  private String n(String v){return v==null||v.isBlank()?null:v.trim();}
