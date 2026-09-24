@@ -46,7 +46,9 @@
 .profile-action-message { margin: 8px 0; padding: 10px; background: #e8f7ef; color: #17603a; font-size: 12px; text-align: center; }
 .personal-profile-form { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
 .personal-profile-form label { display: grid; gap: 4px; font-size: 11px; }
-.personal-profile-form input, .personal-profile-form textarea { padding: 9px; border: 1px solid #ccd6dc; background: #fff; color: #0f172a; }
+.personal-profile-form input, .personal-profile-form select, .personal-profile-form textarea { width: 100%; padding: 9px; border: 1px solid #ccd6dc; background: #fff; color: #0f172a; }
+.personal-profile-form select { min-height: 40px; }
+.personal-profile-form textarea { min-height: 120px; resize: vertical; }
 .personal-profile-form button { background: #0877a7; color: #fff; }
 .personal-profile-form p, .personal-profile-form label:last-of-type { grid-column: 1 / -1; }
 .personal-profile-form > .image-upload-field { grid-column: 1 / -1; }
