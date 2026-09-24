@@ -4,6 +4,7 @@ import { API_URL, apiFetch } from "../../config/api";
 import MatchIncidentForm from "./MatchIncidentForm";
 import { Link } from "react-router-dom";
 import MatchMvpSelector from "./MatchMvpSelector";
+import EntityImage from "../EntityImage/EntityImage";
 
 function MatchModal({ partido, onClose, canManage, onChanged }) {
   const [goles, setGoles] = useState([]);
@@ -63,6 +64,7 @@ function MatchModal({ partido, onClose, canManage, onChanged }) {
 
         <div className="match-score">
           <div>
+            <EntityImage className="match-score-shield" type="team" value={partido.escudoEquipoLocal} alt="" />
             <h3><Link to={`/equipo/${partido.idEquipoLocal}`} onClick={onClose}>{partido.nombreEquipoLocal}</Link></h3>
             <strong>{partido.golesLocal}</strong>
             {isFinalized && <small>{golesLocalAsignados} asignados</small>}
@@ -71,6 +73,7 @@ function MatchModal({ partido, onClose, canManage, onChanged }) {
           <span>VS</span>
 
           <div>
+            <EntityImage className="match-score-shield" type="team" value={partido.escudoEquipoVisitante} alt="" />
             <h3><Link to={`/equipo/${partido.idEquipoVisitante}`} onClick={onClose}>{partido.nombreEquipoVisitante}</Link></h3>
             <strong>{partido.golesVisitante}</strong>
             {isFinalized && <small>{golesVisitanteAsignados} asignados</small>}

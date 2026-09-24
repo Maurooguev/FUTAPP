@@ -154,6 +154,8 @@
     font-size: 24px;
   }
 }
+
+.match-score-shield { width: 42px; height: 42px; margin: 0 auto 6px; border-radius: 50%; object-fit: cover; }
 .match-modal a { color: inherit; text-decoration: none; }
 .match-modal a:hover { color: #0877a7; text-decoration: underline; }
 .match-add-event { margin: 10px 0; padding: 8px 11px; background: #2563eb; color: #fff; }
@@ -203,3 +205,26 @@
 .match-mvp-selector select,.match-mvp-selector button { padding: 7px 8px; border-radius: 3px; font-size: 9px; }.match-mvp-selector select { border: 1px solid #dbe3e8; background: #fff; }.match-mvp-selector button { background: #0877a7; color: #fff; }.match-mvp-selector .tournament-form-error { grid-column: 1 / -1; }
 @media (max-width: 650px) { .match-mvp-selector { grid-template-columns: 1fr; } }
 .match-full-link { display: block; margin: 0 16px 16px; padding: 8px; border-radius: 3px; background: #fff; color: #0877a7 !important; font-size: 10px; font-weight: 800; text-align: center; }
+
+:root[data-theme="dark"] .match-modal { background: #1b313d; color: #e7eef2; }
+:root[data-theme="dark"] .match-modal-close { background: rgba(8, 25, 36, .45); color: #f3f7f9; }
+:root[data-theme="dark"] .match-score > div,
+:root[data-theme="dark"] .match-modal-grid section { background: #29414f; border-color: #48616e; color: #f3f7f9; }
+:root[data-theme="dark"] .match-score h3,
+:root[data-theme="dark"] .match-modal-grid section h3,
+:root[data-theme="dark"] .match-event h4 { color: #f3f7f9; }
+:root[data-theme="dark"] .match-score strong,
+:root[data-theme="dark"] .match-score > span { color: #67d7ee; }
+:root[data-theme="dark"] .match-score small,
+:root[data-theme="dark"] .match-event p,
+:root[data-theme="dark"] .match-empty { color: #b9c8d2; }
+:root[data-theme="dark"] .match-event { border-color: #48616e; }
+:root[data-theme="dark"] .match-full-link { background: #29414f; color: #67d7ee !important; }
+:root[data-theme="dark"] .match-incident-form { background: #213744; }
+:root[data-theme="dark"] .match-incident-form input,
+:root[data-theme="dark"] .match-incident-form select,
+:root[data-theme="dark"] .match-mvp-selector select { border-color: #58717f; background: #142632; color: #f3f7f9; }
+:root[data-theme="dark"] .match-mvp-block { border-color: #77672f; background: #3b3928; }
+:root[data-theme="dark"] .match-mvp-block > p { color: #f1dc8f; }
+:root[data-theme="dark"] .match-mvp-selector strong { color: #f3f7f9; }
+:root[data-theme="dark"] .match-mvp-selector small { color: #b9c8d2; }
