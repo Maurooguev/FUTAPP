@@ -74,6 +74,10 @@ public class FechaService {
                 .orElseThrow(() -> new ResourceNotFoundException("Fecha no encontrada con id: " + id));
         authorization.verificarGestion(fecha.getTorneo());
 
+        if (!fecha.getTorneo().getIdTorneo().equals(requestDTO.getIdTorneo())) {
+            throw new IllegalArgumentException("Una jornada no se puede mover a otro torneo");
+        }
+
         Torneo torneo = torneoRepository.findById(requestDTO.getIdTorneo())
                 .orElseThrow(() -> new ResourceNotFoundException("Torneo no encontrado con id: " + requestDTO.getIdTorneo()));
 

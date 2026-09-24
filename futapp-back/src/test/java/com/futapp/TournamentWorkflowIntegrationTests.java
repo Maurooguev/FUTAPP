@@ -266,6 +266,88 @@ class TournamentWorkflowIntegrationTests {
     }
 
     @Test
+    void bloqueaCambiosDeRelacionMedianteIdsManipulados() throws Exception {
+        String propietarioA = registrarUsuario("ORGANIZADOR");
+        String propietarioB = registrarUsuario("ORGANIZADOR");
+        long torneoA = postJson("/torneos", propietarioA, torneo()).get("idTorneo").asLong();
+        long torneoB = postJson("/torneos", propietarioB, torneo()).get("idTorneo").asLong();
+        long equipoA = postJson("/equipos", propietarioA, equipo("Equipo A", "Azul", torneoA))
+                .get("idEquipo").asLong();
+        long equipoB = postJson("/equipos", propietarioB, equipo("Equipo B", "Rojo", torneoB))
+                .get("idEquipo").asLong();
+        long jugadorA = postJson("/jugadores", propietarioA,
+                jugador("Jugador", "Protegido", 7, equipoA)).get("idJugador").asLong();
+        long fechaA = postJson("/fechas", propietarioA, Map.of(
+                "numeroFecha", 1, "descripcion", "Fecha protegida", "estado", "PROGRAMADA", "idTorneo", torneoA))
+                .get("idFecha").asLong();
+
+        putJson("/equipos/" + equipoA, propietarioA, equipo("Equipo A", "Azul", torneoB))
+                .andExpect(status().isBadRequest());
+        putJson("/jugadores/" + jugadorA, propietarioA,
+                jugador("Jugador", "Protegido", 7, equipoB))
+                .andExpect(status().isBadRequest());
+        putJson("/fechas/" + fechaA, propietarioA, Map.of(
+                "numeroFecha", 1, "descripcion", "Intento de traslado", "estado", "PROGRAMADA", "idTorneo", torneoB))
+                .andExpect(status().isBadRequest());
+
+        mockMvc.perform(get("/equipos/{id}", equipoA))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.idTorneo").value((int) torneoA));
+        mockMvc.perform(get("/jugadores/{id}", jugadorA))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.idEquipo").value((int) equipoA));
+        mockMvc.perform(get("/fechas/{id}", fechaA))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.idTorneo").value((int) torneoA));
+    }
+
+    @Test
+    void rechazaMutacionesDePartidosYEstadisticasDeOtroOrganizador() throws Exception {
+        String propietario = registrarUsuario("ORGANIZADOR");
+        String atacante = registrarUsuario("ORGANIZADOR");
+        long torneoId = postJson("/torneos", propietario, torneo()).get("idTorneo").asLong();
+        JsonNode local = postJson("/equipos", propietario, equipo("Local seguro", "Azul", torneoId));
+        JsonNode visitante = postJson("/equipos", propietario, equipo("Visitante seguro", "Rojo", torneoId));
+        JsonNode jugador = postJson("/jugadores", propietario,
+                jugador("Jugador", "Seguro", 10, local.get("idEquipo").asLong()));
+        JsonNode fixture = postJson("/partidos/torneo/" + torneoId + "/generar-fixture", propietario, Map.of(
+                "fechaInicio", "2026-09-05", "horaInicio", "14:00", "diasEntreJornadas", 7,
+                "minutosEntrePartidos", 60, "cancha", "Cancha segura"));
+        long partidoId = fixture.get(0).get("idPartido").asLong();
+
+        putJson("/partidos/" + partidoId + "/resultado", atacante,
+                Map.of("golesLocal", 1, "golesVisitante", 0)).andExpect(status().isForbidden());
+        putJson("/partidos/" + partidoId + "/estado", atacante,
+                Map.of("estado", "EN_JUEGO")).andExpect(status().isForbidden());
+        mockMvc.perform(delete("/partidos/{id}", partidoId)
+                        .header("Authorization", "Bearer " + atacante))
+                .andExpect(status().isForbidden());
+        mockMvc.perform(post("/goles").header("Authorization", "Bearer " + atacante)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonMapper.writeValueAsString(Map.of(
+                                "minuto", 10, "tipoGol", "Jugada", "idPartido", partidoId,
+                                "idJugador", jugador.get("idJugador").asLong(),
+                                "idEquipo", local.get("idEquipo").asLong()))))
+                .andExpect(status().isForbidden());
+        mockMvc.perform(post("/tarjetas").header("Authorization", "Bearer " + atacante)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonMapper.writeValueAsString(Map.of(
+                                "minuto", 20, "tipoTarjeta", "AMARILLA", "motivo", "Falta",
+                                "idPartido", partidoId, "idJugador", jugador.get("idJugador").asLong(),
+                                "idEquipo", local.get("idEquipo").asLong()))))
+                .andExpect(status().isForbidden());
+        mockMvc.perform(delete("/jugadores/{id}", jugador.get("idJugador").asLong())
+                        .header("Authorization", "Bearer " + atacante))
+                .andExpect(status().isForbidden());
+        mockMvc.perform(delete("/equipos/{id}", visitante.get("idEquipo").asLong())
+                        .header("Authorization", "Bearer " + atacante))
+                .andExpect(status().isForbidden());
+
+        mockMvc.perform(get("/partidos/{id}", partidoId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.estado").value("PROGRAMADO"))
+                .andExpect(jsonPath("$.golesLocal").value(0))
+                .andExpect(jsonPath("$.golesVisitante").value(0));
+    }
+
+    @Test
     void creaLaEstructuraDeZonasYPlayoffsConCuposVacios() throws Exception {
         String token = registrarOrganizador();
         Map<String, Object> request = new LinkedHashMap<>(torneo());

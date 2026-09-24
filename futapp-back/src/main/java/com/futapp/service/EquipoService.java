@@ -143,6 +143,10 @@ public class EquipoService {
                 .orElseThrow(() -> new ResourceNotFoundException("Equipo no encontrado con id: " + id));
         equipoAuthorization.verificarGestion(equipo);
 
+        if (!equipo.getTorneo().getIdTorneo().equals(requestDTO.getIdTorneo())) {
+            throw new IllegalArgumentException("Un equipo no se puede mover a otro torneo desde la edición");
+        }
+
         Torneo torneo = torneoRepository.findById(requestDTO.getIdTorneo())
                 .orElseThrow(() -> new ResourceNotFoundException("Torneo no encontrado con id: " + requestDTO.getIdTorneo()));
 
