@@ -27,7 +27,40 @@ while ($true) {
         -WindowStyle Hidden `
         -PassThru
 
-    $backendProcess.WaitForExit()
-    Add-Content -LiteralPath $stderrLog -Value "`n[$(Get-Date -Format s)] El backend se detuvo con codigo $($backendProcess.ExitCode). Se reiniciara en 3 segundos."
+    $startupDeadline = (Get-Date).AddSeconds(120)
+    $wasHealthy = $false
+    $unhealthySince = $null
+
+    while (-not $backendProcess.HasExited) {
+        $healthy = $false
+        try {
+            $health = Invoke-RestMethod -Uri $healthUrl -TimeoutSec 2
+            $healthy = $health.status -eq "UP" -and $health.database -eq "UP"
+        } catch {
+            $healthy = $false
+        }
+
+        if ($healthy) {
+            $wasHealthy = $true
+            $unhealthySince = $null
+        } elseif ($wasHealthy) {
+            if ($null -eq $unhealthySince) { $unhealthySince = Get-Date }
+            if ((Get-Date) -gt $unhealthySince.AddSeconds(25)) {
+                Add-Content -LiteralPath $stderrLog -Value "`n[$(Get-Date -Format s)] El proceso sigue vivo pero la API no responde. Reiniciando el arbol de procesos."
+                & taskkill.exe /PID $backendProcess.Id /T /F | Out-Null
+                break
+            }
+        } elseif ((Get-Date) -gt $startupDeadline) {
+            Add-Content -LiteralPath $stderrLog -Value "`n[$(Get-Date -Format s)] El backend no completo el inicio en 120 segundos. Reiniciando."
+            & taskkill.exe /PID $backendProcess.Id /T /F | Out-Null
+            break
+        }
+
+        Start-Sleep -Seconds 3
+        $backendProcess.Refresh()
+    }
+
+    $exitCode = if ($backendProcess.HasExited) { $backendProcess.ExitCode } else { "forzado" }
+    Add-Content -LiteralPath $stderrLog -Value "`n[$(Get-Date -Format s)] El backend se detuvo con codigo $exitCode. Se reiniciara en 3 segundos."
     Start-Sleep -Seconds 3
 }
