@@ -1,6 +1,8 @@
 package com.futapp;
 
 import com.futapp.dto.RegisterRequestDTO;
+import com.futapp.repository.AuthTokenRepository;
+import com.futapp.security.TokenSecurity;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -23,6 +25,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class AuthControllerIntegrationTests {
     @Autowired private MockMvc mockMvc;
     @Autowired private JsonMapper jsonMapper;
+    @Autowired private AuthTokenRepository authTokens;
 
     @Test
     void devuelveLaSesionActualYLaInvalidaAlCerrarSesion() throws Exception {
@@ -33,6 +36,9 @@ class AuthControllerIntegrationTests {
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
         String token = jsonMapper.readTree(registration).get("token").asString();
+
+        org.junit.jupiter.api.Assertions.assertFalse(authTokens.existsById(token));
+        org.junit.jupiter.api.Assertions.assertTrue(authTokens.existsById(TokenSecurity.hash(token)));
 
         mockMvc.perform(get("/auth/me").header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk())

@@ -7,16 +7,12 @@ import com.futapp.model.Usuario;
 import com.futapp.repository.AuthTokenRepository;
 import com.futapp.repository.PasswordResetTokenRepository;
 import com.futapp.repository.UsuarioRepository;
+import com.futapp.security.TokenSecurity;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
-import java.util.HexFormat;
-import java.util.UUID;
 
 @Service
 @Transactional
@@ -54,9 +50,9 @@ public class AuthService {
     public PasswordResetResponseDTO forgotPassword(ForgotPasswordRequestDTO request) {
         String rawToken = usuarios.findByEmailIgnoreCase(request.email().trim()).map(user -> {
             resetTokens.deleteByUsuarioIdUsuario(user.getIdUsuario());
-            String token = UUID.randomUUID().toString().replace("-", "") + UUID.randomUUID().toString().replace("-", "");
+            String token = TokenSecurity.generate();
             PasswordResetToken reset = new PasswordResetToken();
-            reset.setTokenHash(hash(token));
+            reset.setTokenHash(TokenSecurity.hash(token));
             reset.setUsuario(user);
             reset.setExpiresAt(LocalDateTime.now().plusMinutes(30));
             resetTokens.save(reset);
@@ -67,7 +63,7 @@ public class AuthService {
                 exposeResetToken ? rawToken : null);
     }
     public PasswordResetResponseDTO resetPassword(ResetPasswordRequestDTO request) {
-        PasswordResetToken reset = resetTokens.findByTokenHashAndUsedAtIsNull(hash(request.token()))
+        PasswordResetToken reset = resetTokens.findByTokenHashAndUsedAtIsNull(TokenSecurity.hash(request.token()))
                 .orElseThrow(() -> new IllegalArgumentException("El enlace de recuperación no es válido"));
         if (reset.getExpiresAt().isBefore(LocalDateTime.now())) throw new IllegalArgumentException("El enlace de recuperación venció");
         Usuario user = reset.getUsuario();
@@ -91,16 +87,18 @@ public class AuthService {
         resetTokens.deleteByUsuarioIdUsuario(user.getIdUsuario());
         return new PasswordResetResponseDTO("Contraseña actualizada. Volvé a iniciar sesión.", null);
     }
-    public void logout(String token) { tokens.deleteById(token); }
-    private AuthResponseDTO createToken(Usuario user) {
-        AuthToken authToken = new AuthToken(); authToken.setToken(UUID.randomUUID().toString().replace("-", "")); authToken.setUsuario(user); authToken.setExpiresAt(LocalDateTime.now().plusDays(7)); tokens.save(authToken);
-        return new AuthResponseDTO(authToken.getToken(), user.getIdUsuario(), user.getNombre(), user.getEmail(), user.getRol(), user.getRoles());
+    public void logout(String token) {
+        String tokenHash = TokenSecurity.hash(token);
+        if (tokens.existsById(tokenHash)) tokens.deleteById(tokenHash);
+        else tokens.deleteById(token); // Compatibilidad temporal con sesiones creadas antes del hash.
     }
-    private String hash(String value) {
-        try {
-            return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(value.getBytes(StandardCharsets.UTF_8)));
-        } catch (NoSuchAlgorithmException exception) {
-            throw new IllegalStateException("No se pudo proteger el token", exception);
-        }
+    private AuthResponseDTO createToken(Usuario user) {
+        String rawToken = TokenSecurity.generate();
+        AuthToken authToken = new AuthToken();
+        authToken.setToken(TokenSecurity.hash(rawToken));
+        authToken.setUsuario(user);
+        authToken.setExpiresAt(LocalDateTime.now().plusDays(7));
+        tokens.save(authToken);
+        return new AuthResponseDTO(rawToken, user.getIdUsuario(), user.getNombre(), user.getEmail(), user.getRol(), user.getRoles());
     }
 }
