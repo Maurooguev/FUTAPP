@@ -348,8 +348,9 @@ class TournamentWorkflowIntegrationTests {
     }
 
     @Test
-    void permiteAlOrganizadorAprobarUnJugadorSiElEquipoNoTieneDirector() throws Exception {
+    void soloElDirectorDelEquipoPuedeAprobarYUnificarUnJugador() throws Exception {
         String organizador = registrarUsuario("ORGANIZADOR");
+        String director = registrarUsuario("DIRECTOR_EQUIPO");
         String cuentaJugador = registrarUsuario("JUGADOR");
         long torneoId = postJson("/torneos", organizador, torneo()).get("idTorneo").asLong();
         long equipoId = postJson("/equipos", organizador, equipo("Equipo sin director", "Azul", torneoId))
@@ -359,9 +360,16 @@ class TournamentWorkflowIntegrationTests {
         long otroJugadorId = postJson("/jugadores", organizador,
                 jugador("Otro", "Jugador", 6, equipoId)).get("idJugador").asLong();
 
+        JsonNode reclamoEquipo = postJson("/reclamos/equipos/" + equipoId, director,
+                Map.of("idTorneo", torneoId, "mensaje", "Soy el dueño del equipo"));
+        putJson("/reclamos/" + reclamoEquipo.get("idSolicitud").asLong() + "/aprobar", organizador, null)
+                .andExpect(status().isOk());
+
         JsonNode solicitud = postJson("/reclamos/jugadores/" + jugadorId, cuentaJugador,
                 Map.of("idTorneo", torneoId, "mensaje", "Este perfil soy yo"));
         putJson("/reclamos/" + solicitud.get("idSolicitud").asLong() + "/aprobar", organizador, null)
+                .andExpect(status().isForbidden());
+        putJson("/reclamos/" + solicitud.get("idSolicitud").asLong() + "/aprobar", director, null)
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.estado").value("APROBADA"));
 
@@ -377,7 +385,7 @@ class TournamentWorkflowIntegrationTests {
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
         long segundaSolicitud = jsonMapper.readTree(segundoReclamo).get("idSolicitud").asLong();
-        putJson("/reclamos/" + segundaSolicitud + "/aprobar", organizador, null)
+        putJson("/reclamos/" + segundaSolicitud + "/aprobar", director, null)
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.estado").value("APROBADA"));
 

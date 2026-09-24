@@ -45,6 +45,7 @@ public class NotificacionService {
         Set<Usuario> destinatarios = new LinkedHashSet<>();
         if (reclamo.getTorneo().getPropietario() != null) destinatarios.add(reclamo.getTorneo().getPropietario());
         if ("JUGADOR".equals(reclamo.getTipo())) {
+            destinatarios.clear();
             administradores.findByEquipoIdEquipoAndEstado(reclamo.getJugador().getEquipo().getIdEquipo(), "ACTIVO")
                     .forEach(link -> destinatarios.add(link.getUsuario()));
         }
