@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import "./ResultModal.css";
 import { API_URL, apiFetch } from "../../config/api";
+import EntityImage from "../EntityImage/EntityImage";
 
 function ResultModal({ partidos, partidoInicial, onClose, onResultadoGuardado, onFechaCerrada }) {
   const partidosDisponibles = partidos.filter((partido) => ["PROGRAMADO", "EN_JUEGO", "FINALIZADO"].includes(partido.estado?.toUpperCase()));
@@ -116,9 +117,9 @@ const guardarResultado = async (e, accion = "CERRAR") => {
           <label>Partido</label>
           {partidoInicial ? (
             <div className="result-selected-match">
-              <strong>{partidoSeleccionado?.nombreEquipoLocal}</strong>
+              <strong><EntityImage type="team" value={partidoSeleccionado?.escudoEquipoLocal} alt="" /><span>{partidoSeleccionado?.nombreEquipoLocal}</span></strong>
               <span>vs</span>
-              <strong>{partidoSeleccionado?.nombreEquipoVisitante}</strong>
+              <strong><EntityImage type="team" value={partidoSeleccionado?.escudoEquipoVisitante} alt="" /><span>{partidoSeleccionado?.nombreEquipoVisitante}</span></strong>
             </div>
           ) : <select
             value={idPartido}
