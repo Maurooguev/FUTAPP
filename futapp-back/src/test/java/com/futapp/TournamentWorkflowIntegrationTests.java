@@ -387,11 +387,14 @@ class TournamentWorkflowIntegrationTests {
         long segundaSolicitud = jsonMapper.readTree(segundoReclamo).get("idSolicitud").asLong();
         putJson("/reclamos/" + segundaSolicitud + "/aprobar", director, null)
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.estado").value("APROBADA"));
+                .andExpect(jsonPath("$.estado").value("APROBADA"))
+                .andExpect(jsonPath("$.idJugador").value((int) jugadorId));
 
         mockMvc.perform(get("/perfil-jugador/mio").header("Authorization", "Bearer " + cuentaJugador))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.idJugador").value((int) otroJugadorId));
+                .andExpect(jsonPath("$.idJugador").value((int) jugadorId));
+        mockMvc.perform(get("/jugadores/{id}", otroJugadorId))
+                .andExpect(status().isNotFound());
     }
 
     @Test

@@ -18,7 +18,8 @@ public class ReclamoService {
     private final EquipoAdministradorRepository administradores; private final InscripcionEquipoRepository inscripciones;
     private final NotificacionService notificaciones;
     private final EquipoAliasRepository aliases; private final FusionEquipoService fusiones; private final InscripcionService inscripcionService;
-    public ReclamoService(SolicitudReclamoRepository r, EquipoRepository e, JugadorRepository j, TorneoRepository t, EquipoAdministradorRepository a, InscripcionEquipoRepository i, NotificacionService n, EquipoAliasRepository al, FusionEquipoService f, InscripcionService is) { reclamos=r; equipos=e; jugadores=j; torneos=t; administradores=a; inscripciones=i; notificaciones=n; aliases=al; fusiones=f; inscripcionService=is; }
+    private final FusionJugadorService fusionJugadores;
+    public ReclamoService(SolicitudReclamoRepository r, EquipoRepository e, JugadorRepository j, TorneoRepository t, EquipoAdministradorRepository a, InscripcionEquipoRepository i, NotificacionService n, EquipoAliasRepository al, FusionEquipoService f, InscripcionService is, FusionJugadorService fj) { reclamos=r; equipos=e; jugadores=j; torneos=t; administradores=a; inscripciones=i; notificaciones=n; aliases=al; fusiones=f; inscripcionService=is; fusionJugadores=fj; }
 
     @Transactional
     public ReclamoResponseDTO solicitarFusion(Long idDuplicado, String codigoOficial, ReclamoRequestDTO request) {
@@ -88,10 +89,13 @@ public class ReclamoService {
             if (item.getJugador().getUsuario() != null) throw new IllegalArgumentException("Este jugador ya tiene una cuenta verificada");
             Jugador vinculado = jugadores.findByUsuarioIdUsuario(item.getSolicitante().getIdUsuario()).orElse(null);
             if (vinculado != null && !vinculado.getIdJugador().equals(item.getJugador().getIdJugador())) {
-                vinculado.setUsuario(null);
-                jugadores.saveAndFlush(vinculado);
+                Jugador duplicado = item.getJugador();
+                fusionJugadores.fusionar(vinculado.getIdJugador(), duplicado.getIdJugador());
+                item.setJugador(vinculado);
+            } else {
+                item.getJugador().setUsuario(item.getSolicitante());
+                jugadores.save(item.getJugador());
             }
-            item.getJugador().setUsuario(item.getSolicitante()); jugadores.save(item.getJugador());
         }
         if (aprobar && "FUSION_EQUIPO".equals(item.getTipo())) {
             fusiones.fusionarAprobada(item.getEquipoDestino().getIdEquipo(), item.getEquipo().getIdEquipo());
