@@ -22,6 +22,14 @@ public class FusionJugadorService {
         entityManager.flush();
 
         jdbc.update("""
+                insert into jugador_alias (codigo, id_jugador)
+                select duplicado.codigo_publico, ? from jugador duplicado
+                where duplicado.id_jugador = ?
+                  and not exists (select 1 from jugador_alias alias where upper(alias.codigo) = upper(duplicado.codigo_publico))
+                """, idPrincipal, idDuplicado);
+        jdbc.update("update jugador_alias set id_jugador = ? where id_jugador = ?", idPrincipal, idDuplicado);
+
+        jdbc.update("""
                 delete from inscripcion_jugador duplicada
                 where duplicada.id_jugador = ?
                   and exists (

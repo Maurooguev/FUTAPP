@@ -358,8 +358,10 @@ class TournamentWorkflowIntegrationTests {
         Map<String, Object> jugadorConFoto = jugador("Jugador", "Reclamado", 5, equipoId);
         jugadorConFoto.put("foto", "/uploads/foto-oficial.png");
         long jugadorId = postJson("/jugadores", organizador, jugadorConFoto).get("idJugador").asLong();
-        long otroJugadorId = postJson("/jugadores", organizador,
-                jugador("Otro", "Jugador", 6, equipoId)).get("idJugador").asLong();
+        JsonNode otroJugador = postJson("/jugadores", organizador,
+                jugador("Otro", "Jugador", 6, equipoId));
+        long otroJugadorId = otroJugador.get("idJugador").asLong();
+        String codigoDuplicado = otroJugador.get("codigoPublico").asText();
 
         JsonNode reclamoEquipo = postJson("/reclamos/equipos/" + equipoId, director,
                 Map.of("idTorneo", torneoId, "mensaje", "Soy el dueño del equipo"));
@@ -399,6 +401,9 @@ class TournamentWorkflowIntegrationTests {
                 .andExpect(jsonPath("$.idJugador").value((int) jugadorId));
         mockMvc.perform(get("/jugadores/{id}", otroJugadorId))
                 .andExpect(status().isNotFound());
+        mockMvc.perform(get("/jugadores/codigo/{codigo}", codigoDuplicado))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.idJugador").value((int) jugadorId));
     }
 
     @Test

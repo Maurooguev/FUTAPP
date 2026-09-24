@@ -13,6 +13,7 @@ import com.futapp.repository.GolRepository;
 import com.futapp.repository.TarjetaRepository;
 import com.futapp.repository.InscripcionEquipoRepository;
 import com.futapp.repository.InscripcionJugadorRepository;
+import com.futapp.repository.JugadorAliasRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,12 +33,14 @@ public class JugadorService {
     private final InscripcionEquipoRepository inscripcionesEquipo;
     private final InscripcionJugadorRepository inscripcionesJugador;
     private final EquipoAuthorizationService equipoAuthorization;
+    private final JugadorAliasRepository aliases;
 
     public JugadorService(JugadorRepository jugadorRepository, EquipoRepository equipoRepository,
                           GolRepository golRepository, TarjetaRepository tarjetaRepository,
                           InscripcionEquipoRepository inscripcionesEquipo,
                           InscripcionJugadorRepository inscripcionesJugador,
-                          EquipoAuthorizationService equipoAuthorization) {
+                          EquipoAuthorizationService equipoAuthorization,
+                          JugadorAliasRepository aliases) {
         this.jugadorRepository = jugadorRepository;
         this.equipoRepository = equipoRepository;
         this.golRepository = golRepository;
@@ -45,6 +48,7 @@ public class JugadorService {
         this.inscripcionesEquipo = inscripcionesEquipo;
         this.inscripcionesJugador = inscripcionesJugador;
         this.equipoAuthorization = equipoAuthorization;
+        this.aliases = aliases;
     }
 
     public List<JugadorResponseDTO> listarJugadores() {
@@ -172,8 +176,11 @@ public class JugadorService {
     }
 
     public JugadorResponseDTO buscarPorCodigo(String codigo) {
-        return convertirAResponseDTO(jugadorRepository.findByCodigoPublicoIgnoreCase(codigo.trim())
-                .orElseThrow(() -> new ResourceNotFoundException("No encontramos un jugador con ese código")));
+        String normalizado = codigo.trim();
+        Jugador jugador = jugadorRepository.findByCodigoPublicoIgnoreCase(normalizado)
+                .orElseGet(() -> aliases.findByCodigoIgnoreCase(normalizado).map(item -> item.getJugador())
+                        .orElseThrow(() -> new ResourceNotFoundException("No encontramos un jugador con ese código")));
+        return convertirAResponseDTO(jugador);
     }
 
     private String normalizarOpcional(String valor) {
