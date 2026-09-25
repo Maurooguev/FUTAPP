@@ -12,7 +12,6 @@ import com.futapp.repository.TorneoRepository;
 import com.futapp.repository.PartidoRepository;
 import com.futapp.repository.InscripcionEquipoRepository;
 import com.futapp.repository.InscripcionJugadorRepository;
-import com.futapp.repository.UsuarioRepository;
 import com.futapp.repository.EquipoRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,14 +30,13 @@ public class TorneoService {
     private final PartidoRepository partidos;
     private final InscripcionEquipoRepository inscripcionesEquipo;
     private final InscripcionJugadorRepository inscripcionesJugador;
-    private final UsuarioRepository usuarios;
     private final EstructuraCompetenciaService estructuraCompetencia;
     private final EquipoRepository equipos;
     private final TablaPosicionService tablaPosiciones;
 
     public TorneoService(TorneoRepository torneoRepository, TorneoAuthorizationService authorization,
                          PartidoRepository partidos, InscripcionEquipoRepository inscripcionesEquipo,
-                         InscripcionJugadorRepository inscripcionesJugador, UsuarioRepository usuarios,
+                         InscripcionJugadorRepository inscripcionesJugador,
                          EstructuraCompetenciaService estructuraCompetencia, EquipoRepository equipos,
                          TablaPosicionService tablaPosiciones) {
         this.torneoRepository = torneoRepository;
@@ -46,7 +44,6 @@ public class TorneoService {
         this.partidos = partidos;
         this.inscripcionesEquipo = inscripcionesEquipo;
         this.inscripcionesJugador = inscripcionesJugador;
-        this.usuarios = usuarios;
         this.estructuraCompetencia = estructuraCompetencia;
         this.equipos = equipos;
         this.tablaPosiciones = tablaPosiciones;
@@ -147,10 +144,9 @@ public class TorneoService {
 
     @Transactional
     public TorneoResponseDTO crearTorneo(TorneoRequestDTO requestDTO, Usuario propietario) {
-        if (!propietario.tieneRol("ORGANIZADOR")) {
-            propietario.agregarRol("ORGANIZADOR");
-            propietario = usuarios.save(propietario);
-        }
+        if (!propietario.tieneRol("ORGANIZADOR") && !propietario.tieneRol("ADMIN"))
+            throw new org.springframework.security.access.AccessDeniedException(
+                    "Debés crear una cuenta de organizador de torneos para realizar esta acción");
         Torneo torneo = new Torneo();
         torneo.setNombre(requestDTO.getNombre());
         torneo.setDescripcion(requestDTO.getDescripcion());

@@ -26,7 +26,7 @@ public class SecurityConfig {
                 .requestMatchers("/auth/login", "/auth/register", "/auth/password/forgot", "/auth/password/reset", "/status", "/hola").permitAll()
                 .requestMatchers("/auth/me", "/auth/logout", "/auth/password", "/torneos/mios", "/torneos/mios/**", "/equipos/mios").authenticated()
                 .requestMatchers("/perfiles-organizador/mio").authenticated()
-                .requestMatchers(HttpMethod.POST, "/torneos").authenticated()
+                .requestMatchers(HttpMethod.POST, "/torneos").hasAnyRole("ORGANIZADOR", "ADMIN")
                 .requestMatchers(HttpMethod.POST, "/torneos/*/visitas", "/jugadores/*/visitas").permitAll()
                 .requestMatchers(HttpMethod.PUT, "/torneos/**").authenticated()
                 .requestMatchers(HttpMethod.DELETE, "/torneos/**").authenticated()
@@ -54,8 +54,11 @@ public class SecurityConfig {
                 .accessDeniedHandler((request, response, exception) -> {
                     response.setStatus(HttpServletResponse.SC_FORBIDDEN);
                     response.setContentType("application/json");
+                    String message = "POST".equals(request.getMethod()) && request.getRequestURI().endsWith("/torneos")
+                            ? "Debés crear una cuenta de organizador de torneos para realizar esta acción"
+                            : "No tenés permisos para realizar esta acción";
                     jsonMapper.writeValue(response.getOutputStream(),
-                            new ErrorResponse(403, "No tenés permisos para realizar esta acción"));
+                            new ErrorResponse(403, message));
                 }))
             .addFilterBefore(new BearerTokenFilter(tokens), UsernamePasswordAuthenticationFilter.class)
             .build();

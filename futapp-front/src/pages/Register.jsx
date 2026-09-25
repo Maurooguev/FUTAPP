@@ -6,7 +6,7 @@ function Register() {
   const [nombre, setNombre] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [rol, setRol] = useState("JUGADOR");
+  const [rol, setRol] = useState(() => new URLSearchParams(window.location.search).get("intent") === "crear-torneo" ? "ORGANIZADOR" : "JUGADOR");
   const [error, setError] = useState("");
 
   const { register } = useAuth();
@@ -55,6 +55,7 @@ function Register() {
 
           <label>Contraseña</label><input type="password" minLength="8" value={password} onChange={(e) => setPassword(e.target.value)} required />
           <label>Tipo de cuenta</label><select value={rol} onChange={(e) => setRol(e.target.value)}><option value="JUGADOR">Jugador</option><option value="DIRECTOR_EQUIPO">Director de equipo</option><option value="ORGANIZADOR">Organizador de torneo</option></select>
+          <small>Elegí con atención: el tipo de cuenta no se puede cambiar después.</small>
           {error && <p className="tournament-form-error">{error}</p>}
 
           <button type="submit" className="auth-btn">

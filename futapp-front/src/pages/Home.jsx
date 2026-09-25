@@ -35,13 +35,15 @@ function MatchActivityCard({ partido, result, onClick }) {
 
 function Home() {
   const { usuario, refreshSession } = useAuth();
+  const canCreateTournament = tieneRol(usuario, "ORGANIZADOR") || tieneRol(usuario, "ADMIN");
   const [exploreData, setExploreData] = useState({ torneos: [], ultimosResultados: [], proximosPartidos: [], ubicaciones: [] });
   const [favorites, setFavorites] = useState({ equipos: [], torneos: [], jugadores: [] });
   const [loading, setLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState("TODOS");
   const [sort, setSort] = useState("RELEVANTES");
   const [location, setLocation] = useState(() => window.localStorage.getItem("futapp-explore-location") || "");
-  const [showTournamentForm, setShowTournamentForm] = useState(() => Boolean(usuario && new URLSearchParams(window.location.search).get("crearTorneo") === "1"));
+  const [showTournamentForm, setShowTournamentForm] = useState(() => Boolean(canCreateTournament && new URLSearchParams(window.location.search).get("crearTorneo") === "1"));
+  const [roleMessage, setRoleMessage] = useState("");
   const [loadError, setLoadError] = useState("");
   const [reloadKey, setReloadKey] = useState(0);
   const navigate = useNavigate();
@@ -49,10 +51,11 @@ function Home() {
 
   useEffect(() => {
     if (!usuario || searchParams.get("crearTorneo") !== "1") return;
+    if (!canCreateTournament) setRoleMessage("Debés crear una cuenta de organizador de torneos para crear una competencia.");
     const nextParams = new URLSearchParams(searchParams);
     nextParams.delete("crearTorneo");
     setSearchParams(nextParams, { replace: true });
-  }, [searchParams, setSearchParams, usuario]);
+  }, [canCreateTournament, searchParams, setSearchParams, usuario]);
 
   useEffect(() => {
     let active = true;
@@ -124,6 +127,11 @@ function Home() {
 
   const createTournament = () => {
     if (!usuario) return navigate(`/register?next=${encodeURIComponent("/?crearTorneo=1")}&intent=crear-torneo`);
+    if (!canCreateTournament) {
+      setRoleMessage("Debés crear una cuenta de organizador de torneos. Los roles de las cuentas no se pueden cambiar.");
+      return;
+    }
+    setRoleMessage("");
     setShowTournamentForm(true);
   };
   const retry = () => { setLoading(true); setLoadError(""); setReloadKey((value) => value + 1); };
@@ -140,6 +148,7 @@ function Home() {
         <div><span>Explorar</span><h1>Descubrí el fútbol de tu zona</h1><p>Torneos, resultados y próximos partidos en un solo lugar.</p></div>
         <button type="button" className="home-btn-primary" onClick={createTournament}>+ Crear torneo</button>
       </section>
+      {roleMessage && <div className="empty-state explore-message account-role-message" role="status"><h3>Cuenta de organizador requerida</h3><p>{roleMessage}</p><Link to="/register?intent=crear-torneo">Crear otra cuenta como organizador</Link></div>}
 
       <section className="explore-controls" aria-label="Filtros de torneos">
         <div className="explore-filter-row">{FILTERS.map(([value, label]) => <button type="button" className={activeFilter === value ? "active" : ""} key={value} onClick={() => setActiveFilter(value)}>{label}</button>)}</div>

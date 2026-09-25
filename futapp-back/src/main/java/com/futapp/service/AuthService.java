@@ -34,12 +34,11 @@ public class AuthService {
     public AuthResponseDTO register(RegisterRequestDTO request) {
         String email = request.email().trim().toLowerCase();
         if (usuarios.existsByEmailIgnoreCase(email)) throw new IllegalArgumentException("Ya existe una cuenta con ese email");
-        String rol = request.rol() == null || request.rol().isBlank() ? "ORGANIZADOR" : request.rol().trim().toUpperCase();
+        String rol = request.rol() == null || request.rol().isBlank() ? "JUGADOR" : request.rol().trim().toUpperCase();
         if (!java.util.Set.of("ORGANIZADOR", "DIRECTOR_EQUIPO", "JUGADOR").contains(rol)) {
             throw new IllegalArgumentException("Tipo de cuenta inválido");
         }
         Usuario user = new Usuario(); user.setNombre(request.nombre().trim()); user.setEmail(email); user.setPasswordHash(encoder.encode(request.password())); user.setRol(rol);
-        if (!"ADMIN".equals(rol)) user.agregarRol("JUGADOR");
         return createToken(usuarios.save(user));
     }
     public AuthResponseDTO login(LoginRequestDTO request) {

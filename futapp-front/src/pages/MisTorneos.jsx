@@ -4,6 +4,7 @@ import { API_URL, apiFetch } from "../config/api";
 import useAuth from "../context/useAuth";
 import "./MisTorneos.css";
 import "./OrganizerProfile.css";
+import { tieneRol } from "../utils/roles";
 
 function MisTorneos() {
   const { usuario } = useAuth();
@@ -15,7 +16,7 @@ function MisTorneos() {
   const [perfilOrganizador, setPerfilOrganizador] = useState(null);
 
   useEffect(() => {
-    if (!usuario) return;
+    if (!usuario || (!tieneRol(usuario, "ORGANIZADOR") && !tieneRol(usuario, "ADMIN"))) return;
     Promise.all([
       apiFetch(`${API_URL}/torneos/mios/panel`).then(async (response) => {
         if (!response.ok) throw new Error("No se pudo cargar el panel");
@@ -42,6 +43,7 @@ function MisTorneos() {
   }), { equipos: 0, partidos: 0, alertas: 0 }), [resumenes]);
 
   if (!usuario) return <Navigate to="/login" replace />;
+  if (!tieneRol(usuario, "ORGANIZADOR") && !tieneRol(usuario, "ADMIN")) return <main className="organizer-page"><div className="organizer-shell"><section className="organizer-empty"><h2>Cuenta de organizador requerida</h2><p>Debés crear una cuenta de organizador de torneos. El tipo de una cuenta existente no se puede cambiar.</p><Link to="/register?intent=crear-torneo">Crear cuenta de organizador</Link></section></div></main>;
 
   return <main className="organizer-page"><div className="organizer-shell">
     <header className="organizer-heading"><div><span>Panel del organizador</span><h1>Mis torneos</h1><p>Lo importante para continuar cada competencia, en un solo lugar.</p></div><button onClick={() => navigate("/")}>+ Crear torneo</button></header>

@@ -155,7 +155,9 @@ function Header() {
         <nav className={`header-nav ${usuario ? "" : "guest"}`}>
           <Link to="/">Explorar</Link>
 
-          {usuario ? <Link to="/mis-torneos">Mis torneos</Link> : <Link className="guest-nav-link" to={registrationLink("/?crearTorneo=1", "crear-torneo")}>Crear torneo</Link>}
+          {usuario && (tieneRol(usuario, "ORGANIZADOR") || tieneRol(usuario, "ADMIN"))
+            ? <Link to="/mis-torneos">Mis torneos</Link>
+            : <Link className="guest-nav-link" to={usuario ? "/?crearTorneo=1" : registrationLink("/?crearTorneo=1", "crear-torneo")}>Crear torneo</Link>}
           {(tieneRol(usuario, "ADMIN") || tieneRol(usuario, "DIRECTOR_EQUIPO")) && <Link to="/mis-equipos">Mis equipos</Link>}
           {usuario && <Link className="requests-nav-link" to="/solicitudes">Solicitudes{pendingRequests > 0 && <span>{pendingRequests > 99 ? "99+" : pendingRequests}</span>}</Link>}
           {usuario ? <Link to="/favoritos">Favoritos</Link> : <Link className="guest-nav-link" to={registrationLink("/favoritos", "guardar-favoritos")}>Favoritos</Link>}

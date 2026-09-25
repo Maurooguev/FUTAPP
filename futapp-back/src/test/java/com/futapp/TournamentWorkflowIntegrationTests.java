@@ -192,7 +192,7 @@ class TournamentWorkflowIntegrationTests {
     }
 
     @Test
-    void convierteAlJugadorEnOrganizadorAlCrearSuPrimerTorneo() throws Exception {
+    void crearTorneoNoCambiaElRolDeUnaCuentaJugador() throws Exception {
         String response = mockMvc.perform(post("/auth/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonMapper.writeValueAsString(new RegisterRequestDTO(
@@ -207,21 +207,18 @@ class TournamentWorkflowIntegrationTests {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.roles", org.hamcrest.Matchers.hasItem("JUGADOR")));
 
-        long torneoId = postJson("/torneos", token, torneo()).get("idTorneo").asLong();
+        mockMvc.perform(post("/torneos")
+                        .header("Authorization", "Bearer " + token)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(jsonMapper.writeValueAsString(torneo())))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.message").value("Debés crear una cuenta de organizador de torneos para realizar esta acción"));
 
         mockMvc.perform(get("/auth/me").header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.rol").value("ORGANIZADOR"))
+                .andExpect(jsonPath("$.rol").value("JUGADOR"))
                 .andExpect(jsonPath("$.roles").isArray())
-                .andExpect(jsonPath("$.roles", org.hamcrest.Matchers.hasItems("JUGADOR", "ORGANIZADOR")));
-
-        mockMvc.perform(get("/torneos/mios").header("Authorization", "Bearer " + token))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].idTorneo").value(torneoId));
-
-        putJson("/torneos/" + torneoId, token, torneo())
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.nombre").value("Liga Integral"));
+                .andExpect(jsonPath("$.roles", org.hamcrest.Matchers.contains("JUGADOR")));
     }
 
     @Test
@@ -488,6 +485,29 @@ class TournamentWorkflowIntegrationTests {
                 .andExpect(jsonPath("$.apellido").value("Apellido Corregido"))
                 .andExpect(jsonPath("$.dni").value("40999888"))
                 .andExpect(jsonPath("$.fechaNacimiento").value("2001-02-03"));
+    }
+
+    @Test
+    void soloUnaCuentaOrganizadoraPuedeCrearTorneos() throws Exception {
+        String jugador = registrarUsuario("JUGADOR");
+        String director = registrarUsuario("DIRECTOR_EQUIPO");
+        String organizador = registrarUsuario("ORGANIZADOR");
+
+        mockMvc.perform(post("/torneos")
+                        .header("Authorization", "Bearer " + jugador)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonMapper.writeValueAsString(torneo())))
+                .andExpect(status().isForbidden());
+        mockMvc.perform(post("/torneos")
+                        .header("Authorization", "Bearer " + director)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonMapper.writeValueAsString(torneo())))
+                .andExpect(status().isForbidden());
+        mockMvc.perform(post("/torneos")
+                        .header("Authorization", "Bearer " + organizador)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonMapper.writeValueAsString(torneo())))
+                .andExpect(status().isOk());
     }
 
     @Test
