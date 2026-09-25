@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import SectionTitle from "../components/SectionTitle/SectionTitle";
 import TournamentCard from "../components/TournamentCard/TournamentCard";
 import TournamentFormModal from "../components/TournamentFormModal/TournamentFormModal";
@@ -51,6 +51,8 @@ function Home() {
 
   useEffect(() => {
     if (!usuario || searchParams.get("crearTorneo") !== "1") return;
+    // This state mirrors an explicit navigation intent before the query flag is consumed.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (!canCreateTournament) setRoleMessage("Debés crear una cuenta de organizador de torneos para crear una competencia.");
     const nextParams = new URLSearchParams(searchParams);
     nextParams.delete("crearTorneo");
