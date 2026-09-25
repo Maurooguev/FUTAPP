@@ -83,6 +83,9 @@ public class EquipoService {
     public List<EquipoResponseDTO> listarMisEquipos() {
         Usuario usuario = usuarioActual();
         if (usuario.tieneRol("ADMIN")) return listarEquipos();
+        if (!usuario.tieneRol("DIRECTOR_EQUIPO")) {
+            throw new AccessDeniedException("Solo una cuenta de director puede administrar equipos");
+        }
         return administradores.findByUsuarioIdUsuarioAndEstado(usuario.getIdUsuario(), "ACTIVO")
                 .stream().map(item -> convertirAResponseDTO(item.getEquipo())).toList();
     }

@@ -24,7 +24,7 @@ public class EquipoAuthorizationService {
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (!(principal instanceof Usuario usuario)) return false;
         if (usuario.tieneRol("ADMIN")) return true;
-        if (administradores.existsByEquipoIdEquipoAndUsuarioIdUsuarioAndEstado(
+        if (usuario.tieneRol("DIRECTOR_EQUIPO") && administradores.existsByEquipoIdEquipoAndUsuarioIdUsuarioAndEstado(
                 equipo.getIdEquipo(), usuario.getIdUsuario(), "ACTIVO")) return true;
         if (administradores.existsByEquipoIdEquipoAndEstado(equipo.getIdEquipo(), "ACTIVO")) return false;
         if (equipo.getCreador() != null && equipo.getCreador().getIdUsuario().equals(usuario.getIdUsuario())) return true;
@@ -38,8 +38,8 @@ public class EquipoAuthorizationService {
         if (usuario.tieneRol("ADMIN")
                 || (inscripcion.getTorneo().getPropietario() != null
                     && inscripcion.getTorneo().getPropietario().getIdUsuario().equals(usuario.getIdUsuario()))
-                || administradores.existsByEquipoIdEquipoAndUsuarioIdUsuarioAndEstado(
-                        inscripcion.getEquipo().getIdEquipo(), usuario.getIdUsuario(), "ACTIVO")) return;
+                || (usuario.tieneRol("DIRECTOR_EQUIPO") && administradores.existsByEquipoIdEquipoAndUsuarioIdUsuarioAndEstado(
+                        inscripcion.getEquipo().getIdEquipo(), usuario.getIdUsuario(), "ACTIVO"))) return;
         throw new AccessDeniedException("No tenés permiso para gestionar este plantel");
     }
 

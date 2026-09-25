@@ -13,6 +13,7 @@ import com.futapp.repository.PartidoRepository;
 import com.futapp.repository.InscripcionEquipoRepository;
 import com.futapp.repository.InscripcionJugadorRepository;
 import com.futapp.repository.EquipoRepository;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -78,6 +79,7 @@ public class TorneoService {
 
     public List<TorneoResponseDTO> listarPropios(Usuario usuario) {
         if (usuario.tieneRol("ADMIN")) return torneoRepository.findAll().stream().map(this::convertirAResponseDTO).toList();
+        if (!usuario.tieneRol("ORGANIZADOR")) throw new AccessDeniedException("Solo una cuenta de organizador puede administrar torneos");
         return torneoRepository.findByPropietarioIdUsuario(usuario.getIdUsuario()).stream().map(this::convertirAResponseDTO).toList();
     }
 
@@ -88,6 +90,9 @@ public class TorneoService {
     }
 
     public List<TorneoPanelDTO> obtenerPanel(Usuario usuario) {
+        if (!usuario.tieneRol("ADMIN") && !usuario.tieneRol("ORGANIZADOR")) {
+            throw new AccessDeniedException("Solo una cuenta de organizador puede administrar torneos");
+        }
         List<Torneo> propios = usuario.tieneRol("ADMIN")
                 ? torneoRepository.findAll()
                 : torneoRepository.findByPropietarioIdUsuario(usuario.getIdUsuario());

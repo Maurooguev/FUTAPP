@@ -6,6 +6,7 @@ import "./MisEquipos.css";
 import TeamMergeModal from "../components/TeamManagement/TeamMergeModal";
 import plantelGenerico from "../assets/plantel-generico.png";
 import EntityImage from "../components/EntityImage/EntityImage";
+import { tieneRol } from "../utils/roles";
 
 function MisEquipos() {
   const { usuario } = useAuth();
@@ -27,6 +28,7 @@ function MisEquipos() {
   }, [usuario]);
 
   if (!usuario) return <Navigate to="/login" replace />;
+  if (!tieneRol(usuario, "DIRECTOR_EQUIPO") && !tieneRol(usuario, "ADMIN")) return <Navigate to="/" replace />;
 
   return <main className="my-teams-page"><div className="my-teams-shell">
     <div className="my-teams-heading"><div><span>Panel del director</span><h1>Mis equipos</h1><p>Gestioná los perfiles y planteles de los clubes que tenés aprobados.</p></div><div className="my-teams-heading-actions">{equipos.length >= 2 && <button onClick={() => setShowMerge(true)}>Fusionar duplicados</button>}<Link to="/solicitudes">Solicitudes de jugadores</Link></div></div>

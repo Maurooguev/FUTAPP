@@ -7,7 +7,7 @@ export const ROLES = {
 };
 
 export function tieneRol(usuario, rol) {
-  return usuario?.roles?.includes(rol) || usuario?.rol === rol;
+  return usuario?.rol === rol;
 }
 
 export function puedeAdministrar(usuario) {

@@ -24,12 +24,11 @@ public class Usuario {
     public String getPasswordHash() { return passwordHash; }
     public void setPasswordHash(String passwordHash) { this.passwordHash = passwordHash; }
     public String getRol() { return rol; }
-    public void setRol(String rol) { this.rol = rol; this.roles.add(rol); }
-    public java.util.Set<String> getRoles() { return java.util.Set.copyOf(roles); }
-    public boolean tieneRol(String rol) { return roles.contains(rol) || rol.equals(this.rol); }
+    public void setRol(String rol) { this.rol = rol; this.roles.clear(); this.roles.add(rol); }
+    public java.util.Set<String> getRoles() { return this.rol == null ? java.util.Set.of() : java.util.Set.of(this.rol); }
+    public boolean tieneRol(String rol) { return rol.equals(this.rol); }
     public void agregarRol(String rol) {
-        roles.add(rol);
-        if (this.rol == null || prioridad(rol) > prioridad(this.rol)) this.rol = rol;
+        if (this.rol == null || prioridad(rol) > prioridad(this.rol)) setRol(rol);
     }
     private int prioridad(String value) {
         return switch (value) { case "ADMIN" -> 4; case "ORGANIZADOR" -> 3; case "DIRECTOR_EQUIPO" -> 2; default -> 1; };

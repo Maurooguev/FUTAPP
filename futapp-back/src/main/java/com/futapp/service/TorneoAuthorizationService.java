@@ -19,6 +19,9 @@ public class TorneoAuthorizationService {
             throw new IllegalArgumentException("El torneo está finalizado y su historial ya no se puede modificar");
         }
         if (usuario.tieneRol("ADMIN")) return;
+        if (!usuario.tieneRol("ORGANIZADOR")) {
+            throw new AccessDeniedException("Solo una cuenta de organizador puede administrar torneos");
+        }
         if (torneo.getPropietario() == null || !torneo.getPropietario().getIdUsuario().equals(usuario.getIdUsuario())) {
             throw new AccessDeniedException("No tienes permiso para administrar este torneo");
         }
