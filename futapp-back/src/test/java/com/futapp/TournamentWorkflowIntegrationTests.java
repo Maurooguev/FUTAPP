@@ -426,6 +426,50 @@ class TournamentWorkflowIntegrationTests {
     }
 
     @Test
+    void directorAprobadoEsElUnicoGestorDelPerfilDelEquipo() throws Exception {
+        String organizador = registrarUsuario("ORGANIZADOR");
+        String otroOrganizador = registrarUsuario("ORGANIZADOR");
+        String director = registrarUsuario("DIRECTOR_EQUIPO");
+        String otroDirector = registrarUsuario("DIRECTOR_EQUIPO");
+
+        long torneoId = postJson("/torneos", organizador, torneo()).get("idTorneo").asLong();
+        long otroTorneoId = postJson("/torneos", otroOrganizador, torneo()).get("idTorneo").asLong();
+        long equipoId = postJson("/equipos", organizador,
+                equipo("Club con dueño", "Azul", torneoId)).get("idEquipo").asLong();
+        long equipoAjenoId = postJson("/equipos", otroOrganizador,
+                equipo("Club ajeno", "Rojo", otroTorneoId)).get("idEquipo").asLong();
+
+        JsonNode reclamo = postJson("/reclamos/equipos/" + equipoId, director,
+                Map.of("idTorneo", torneoId, "mensaje", "Administro este equipo"));
+        putJson("/reclamos/" + reclamo.get("idSolicitud").asLong() + "/aprobar", organizador, null)
+                .andExpect(status().isOk());
+
+        putJson("/equipos/" + equipoId, director,
+                equipo("Club administrado", "Verde", torneoId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.nombre").value("Club Administrado"));
+
+        putJson("/equipos/" + equipoId, organizador,
+                equipo("Cambio del organizador", "Negro", torneoId))
+                .andExpect(status().isForbidden());
+        putJson("/equipos/" + equipoId, otroDirector,
+                equipo("Cambio de otro director", "Negro", torneoId))
+                .andExpect(status().isForbidden());
+        putJson("/equipos/" + equipoAjenoId, director,
+                equipo("Cambio sobre club ajeno", "Negro", otroTorneoId))
+                .andExpect(status().isForbidden());
+
+        mockMvc.perform(get("/equipos/{id}/permisos", equipoId)
+                        .header("Authorization", "Bearer " + director))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.puedeGestionar").value(true));
+        mockMvc.perform(get("/equipos/{id}/permisos", equipoId)
+                        .header("Authorization", "Bearer " + organizador))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.puedeGestionar").value(false));
+        mockMvc.perform(get("/equipos/{id}", equipoId))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.nombre").value("Club Administrado"));
+    }
+
+    @Test
     void cambiosPrivadosDeJugadorRequierenAprobacionDelJugador() throws Exception {
         String organizador = registrarUsuario("ORGANIZADOR");
         String director = registrarUsuario("DIRECTOR_EQUIPO");
