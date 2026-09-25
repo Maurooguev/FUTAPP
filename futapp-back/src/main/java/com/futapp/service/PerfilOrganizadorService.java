@@ -32,7 +32,7 @@ public class PerfilOrganizadorService {
 
     @Transactional(readOnly = true)
     public PerfilOrganizadorResponseDTO obtenerMio() {
-        Usuario usuario = actual();
+        Usuario usuario = organizadorActual();
         return dto(perfiles.findByUsuarioIdUsuario(usuario.getIdUsuario())
                 .orElseThrow(() -> new ResourceNotFoundException("Todavía no creaste tu perfil de organizador")));
     }
