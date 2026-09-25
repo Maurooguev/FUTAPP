@@ -27,6 +27,7 @@ function TeamRosterModal({ equipo, torneoId, canManage, onClose }) {
   };
 
   const savePlayer = async (savedPlayer, options = {}) => {
+    setActionError("");
     if (enrollmentId) {
       const history = await fetch(`${API_URL}/inscripciones/jugadores/${savedPlayer.idJugador}`).then((res) => res.json()).catch(() => []);
       const alreadyEnrolled = Array.isArray(history) && history.some((item) => item.idInscripcionEquipo === enrollmentId);
@@ -40,7 +41,9 @@ function TeamRosterModal({ equipo, torneoId, canManage, onClose }) {
       }
     }
     closeForm();
-    if (options.privateChangeRequested) setActionNotice("Los datos deportivos se guardaron. Los datos privados quedaron pendientes de aprobación del jugador.");
+    setActionNotice(options.message || (options.privateChangeRequested
+      ? "Se envió una solicitud al jugador. Los cambios se aplicarán cuando la apruebe."
+      : "La operación se realizó correctamente."));
     setReloadKey((current) => current + 1);
   };
 

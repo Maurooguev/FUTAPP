@@ -27,6 +27,8 @@ function PlayerForm({ equipoId, torneoId, player, onSaved, onCancel }) {
     try {
       const privateChangeRequested = isEditing && player.verificado && ["nombre", "apellido", "dni", "fechaNacimiento"]
         .some((field) => (form[field] || "").trim() !== (player[field] || "").trim());
+      const managedChangeRequested = !isEditing || ["numeroCamiseta", "posicion", "foto", "apodo", "piernaHabil", "estado"]
+        .some((field) => String(form[field] ?? "").trim() !== String(player?.[field] ?? "").trim());
       if (privateChangeRequested) {
         const requestResponse = await apiFetch(`${API_URL}/reclamos/jugadores/${player.idJugador}/cambios`, {
           method: "POST",
@@ -39,9 +41,20 @@ function PlayerForm({ equipoId, torneoId, player, onSaved, onCancel }) {
         });
         if (!requestResponse.ok) {
           const payload = await requestResponse.json().catch(() => null);
-          throw new Error(payload?.message || "No se pudo solicitar la modificación privada");
+          if (!payload?.message?.includes("Ya existe una modificación pendiente")) {
+            throw new Error(payload?.message || "No se pudo solicitar la modificación privada");
+          }
         }
         window.dispatchEvent(new Event("requests-updated"));
+      }
+      if (isEditing && !managedChangeRequested) {
+        onSaved(player, {
+          privateChangeRequested,
+          message: privateChangeRequested
+            ? "Se envió una solicitud al jugador. Los cambios se aplicarán cuando la apruebe."
+            : "No había cambios para guardar.",
+        });
+        return;
       }
       const response = await apiFetch(
         isEditing ? `${API_URL}/jugadores/${player.idJugador}` : `${API_URL}/jugadores`,
@@ -55,7 +68,12 @@ function PlayerForm({ equipoId, torneoId, player, onSaved, onCancel }) {
         const payload = await response.json().catch(() => null);
         throw new Error(payload?.message || "No se pudo guardar el jugador");
       }
-      onSaved(await response.json(), { privateChangeRequested });
+      onSaved(await response.json(), {
+        privateChangeRequested,
+        message: privateChangeRequested
+          ? "Los cambios del plantel se guardaron y se envió una solicitud al jugador por sus datos privados."
+          : isEditing ? "Los cambios se guardaron correctamente." : "El jugador se agregó correctamente.",
+      });
     } catch (requestError) {
       setError(requestError.message);
     } finally {

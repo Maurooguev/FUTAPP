@@ -12,17 +12,19 @@ function TeamManagement({ torneoId, equipos, canManage, onTeamSaved, onTeamDelet
   const [showTeamForm, setShowTeamForm] = useState(false);
   const [rosterTeam, setRosterTeam] = useState(null);
   const [error, setError] = useState("");
+  const [message, setMessage] = useState("");
   const [showExistingTeam, setShowExistingTeam] = useState(false);
 
-  const openNewTeam = () => { setEditingTeam(null); setShowTeamForm(true); };
-  const openEditTeam = (team) => { setEditingTeam(team); setShowTeamForm(true); };
+  const openNewTeam = () => { setMessage(""); setEditingTeam(null); setShowTeamForm(true); };
+  const openEditTeam = (team) => { setMessage(""); setEditingTeam(team); setShowTeamForm(true); };
   const removeTeam = async (team) => {
     if (!window.confirm(`¿Quitar a ${team.nombre} de este torneo? El perfil del club y sus otros torneos se conservarán.`)) return;
-    setError("");
+    setError(""); setMessage("");
     try {
       const response = await apiFetch(`${API_URL}/inscripciones/equipos/torneo/${torneoId}/equipo/${team.idEquipo}`, { method: "DELETE" });
       if (!response.ok) { const payload = await response.json().catch(() => null); throw new Error(payload?.message || "No se pudo quitar el equipo del torneo"); }
       onTeamDeleted(team.idEquipo);
+      setMessage(`${team.nombre} se quitó correctamente del torneo.`);
     } catch (requestError) { setError(requestError.message); }
   };
 
@@ -33,6 +35,7 @@ function TeamManagement({ torneoId, equipos, canManage, onTeamSaved, onTeamDelet
         {canManage && <div className="team-head-actions"><button type="button" onClick={() => setShowExistingTeam(true)}>Inscribir club existente</button><button type="button" onClick={openNewTeam}>+ Crear club nuevo</button></div>}
       </div>
       {error && <p className="tournament-form-error">{error}</p>}
+      {message && <p className="profile-action-message">{message}</p>}
       {equipos.length === 0 ? <div className="team-empty"><h3>Este torneo todavía no tiene equipos</h3><p>Agregá al menos dos para poder programar partidos.</p></div> : (
         <div className={`team-grid ${canManage ? "manageable" : ""}`}>{equipos.map((team) => (
           <article className="team-card" key={team.idEquipo}>
@@ -52,9 +55,9 @@ function TeamManagement({ torneoId, equipos, canManage, onTeamSaved, onTeamDelet
           </article>
         ))}</div>
       )}
-      {showTeamForm && <TeamFormModal torneoId={torneoId} equipo={editingTeam} onClose={() => setShowTeamForm(false)} onSaved={onTeamSaved} onLinked={(officialTeam, duplicateId) => { onTeamDeleted(duplicateId); onTeamSaved(officialTeam); }} />}
+      {showTeamForm && <TeamFormModal torneoId={torneoId} equipo={editingTeam} onClose={() => setShowTeamForm(false)} onSaved={(savedTeam) => { onTeamSaved(savedTeam); setMessage(editingTeam ? "Los cambios del equipo se guardaron correctamente." : "El equipo se creó correctamente."); }} onLinked={(officialTeam, duplicateId) => { onTeamDeleted(duplicateId); onTeamSaved(officialTeam); setMessage("Los equipos se vincularon correctamente."); }} />}
       {rosterTeam && <TeamRosterModal equipo={rosterTeam} torneoId={torneoId} canManage={canManage} onClose={() => setRosterTeam(null)} />}
-      {showExistingTeam && <ExistingTeamEnrollmentModal torneoId={torneoId} currentTeams={equipos} onClose={() => setShowExistingTeam(false)} onSaved={onTeamSaved} />}
+      {showExistingTeam && <ExistingTeamEnrollmentModal torneoId={torneoId} currentTeams={equipos} onClose={() => setShowExistingTeam(false)} onSaved={(savedTeam) => { onTeamSaved(savedTeam); setMessage("El equipo se inscribió correctamente en el torneo."); }} />}
     </section>
   );
 }
