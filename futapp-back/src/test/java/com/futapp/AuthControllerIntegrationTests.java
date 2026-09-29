@@ -59,7 +59,12 @@ class AuthControllerIntegrationTests {
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.status").value(401))
                 .andExpect(jsonPath("$.requestId").isNotEmpty())
-                .andExpect(header().exists("X-Request-ID"));
+                .andExpect(header().exists("X-Request-ID"))
+                .andExpect(header().string("X-Frame-Options", "DENY"))
+                .andExpect(header().string("X-Content-Type-Options", "nosniff"))
+                .andExpect(header().string("Referrer-Policy", "no-referrer"))
+                .andExpect(header().string("Permissions-Policy", "camera=(), microphone=(), geolocation=()"))
+                .andExpect(header().string("Cache-Control", "no-store, max-age=0"));
     }
 
     @Test
@@ -68,7 +73,8 @@ class AuthControllerIntegrationTests {
                         .header("Origin", "http://localhost:5173")
                         .header("Access-Control-Request-Method", "GET"))
                 .andExpect(status().isOk())
-                .andExpect(header().string("Access-Control-Allow-Origin", "http://localhost:5173"));
+                .andExpect(header().string("Access-Control-Allow-Origin", "http://localhost:5173"))
+                .andExpect(header().string("Access-Control-Max-Age", "3600"));
     }
 
     @Test
