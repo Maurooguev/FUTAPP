@@ -13,7 +13,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@SpringBootTest
+@SpringBootTest(properties = "futapp.rate-limit.enabled=true")
 @AutoConfigureMockMvc
 class RateLimitIntegrationTests {
     @Autowired MockMvc mockMvc;

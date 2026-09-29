@@ -179,6 +179,31 @@ modifican los datos creados manualmente.
 
 ## Verificacion
 
+Antes de publicar, ejecutar el control integral desde la raíz:
+
+```powershell
+.\preflight.ps1
+```
+
+Este control busca secretos versionados, audita dependencias de producción,
+ejecuta el lint y build del frontend y verifica el backend. La integración
+continua repite estas verificaciones y Dependabot revisa semanalmente Maven y
+npm.
+
+Para desplegar, copiar `.env.production.example` como un archivo de entorno
+fuera del repositorio y reemplazar todos los valores de ejemplo. Con el perfil
+`prod`, el backend se niega a iniciar si la contraseña de base de datos es débil,
+si CORS apunta a localhost o HTTP, si los datos demo están activos, si Swagger
+está expuesto o si se devuelven tokens de recuperación.
+
+También se puede ejecutar únicamente el escáner local:
+
+```powershell
+.\security-check.ps1
+```
+
+Verificaciones individuales:
+
 ```powershell
 .\futapp-back\mvnw.cmd -f .\futapp-back\pom.xml test
 .\futapp-back\mvnw.cmd -f .\futapp-back\pom.xml verify

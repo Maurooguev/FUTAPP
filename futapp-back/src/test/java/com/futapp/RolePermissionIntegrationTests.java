@@ -15,6 +15,7 @@ import tools.jackson.databind.json.JsonMapper;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
@@ -31,6 +32,14 @@ class RolePermissionIntegrationTests {
         mockMvc.perform(get("/favoritos")).andExpect(status().isUnauthorized());
         mockMvc.perform(get("/torneos/mios")).andExpect(status().isUnauthorized());
         mockMvc.perform(get("/equipos/mios")).andExpect(status().isUnauthorized());
+        mockMvc.perform(post("/torneos").contentType(MediaType.APPLICATION_JSON).content("{}"))
+                .andExpect(status().isUnauthorized());
+        mockMvc.perform(post("/equipos").contentType(MediaType.APPLICATION_JSON).content("{}"))
+                .andExpect(status().isUnauthorized());
+        mockMvc.perform(post("/jugadores").contentType(MediaType.APPLICATION_JSON).content("{}"))
+                .andExpect(status().isUnauthorized());
+        mockMvc.perform(post("/partidos").contentType(MediaType.APPLICATION_JSON).content("{}"))
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
@@ -45,6 +54,9 @@ class RolePermissionIntegrationTests {
         mockMvc.perform(multipart("/archivos/imagenes")
                         .file(imagen()).header("Authorization", bearer(token)))
                 .andExpect(status().isForbidden());
+        mockMvc.perform(post("/torneos").header("Authorization", bearer(token))
+                        .contentType(MediaType.APPLICATION_JSON).content("{}"))
+                .andExpect(status().isForbidden());
     }
 
     @Test
@@ -56,6 +68,9 @@ class RolePermissionIntegrationTests {
         mockMvc.perform(get("/equipos/creados").header("Authorization", bearer(token))).andExpect(status().isForbidden());
         mockMvc.perform(get("/perfil-jugador/mio").header("Authorization", bearer(token))).andExpect(status().isForbidden());
         mockMvc.perform(get("/perfiles-organizador/mio").header("Authorization", bearer(token))).andExpect(status().isForbidden());
+        mockMvc.perform(post("/torneos").header("Authorization", bearer(token))
+                        .contentType(MediaType.APPLICATION_JSON).content("{}"))
+                .andExpect(status().isForbidden());
     }
 
     @Test
