@@ -77,8 +77,16 @@ function AuthProvider({ children }) {
     localStorage.removeItem("authToken");
   };
 
+  const logoutAll = async () => {
+    const response = await apiFetch(`${API_URL}/auth/logout-all`, { method: "POST" });
+    if (!response.ok) throw new Error("No se pudieron cerrar todas las sesiones");
+    setUsuario(null);
+    localStorage.removeItem("usuario");
+    localStorage.removeItem("authToken");
+  };
+
   return (
-    <AuthContext.Provider value={{ usuario, login, register, logout, refreshSession }}>
+    <AuthContext.Provider value={{ usuario, login, register, logout, logoutAll, refreshSession }}>
       {children}
     </AuthContext.Provider>
   );

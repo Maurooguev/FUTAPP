@@ -26,6 +26,8 @@ public class BearerTokenFilter extends OncePerRequestFilter {
                 var authorities = user.getRoles().stream().map(role -> new SimpleGrantedAuthority("ROLE_" + role)).toList();
                 SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(user, null, authorities));
             });
+            storedToken.filter(token -> !token.getExpiresAt().isAfter(LocalDateTime.now()))
+                    .ifPresent(token -> tokens.deleteById(token.getToken()));
         }
         chain.doFilter(request, response);
     }

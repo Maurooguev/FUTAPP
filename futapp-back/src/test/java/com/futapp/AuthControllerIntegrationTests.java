@@ -70,4 +70,53 @@ class AuthControllerIntegrationTests {
                 .andExpect(status().isOk())
                 .andExpect(header().string("Access-Control-Allow-Origin", "http://localhost:5173"));
     }
+
+    @Test
+    void conservaSoloLasCincoSesionesMasRecientes() throws Exception {
+        String email = "sesiones@test.local";
+        mockMvc.perform(post("/auth/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonMapper.writeValueAsString(new RegisterRequestDTO(
+                                "Sesiones", email, "password123", "JUGADOR"))))
+                .andExpect(status().isOk());
+
+        String oldestLoginToken = null;
+        String newestLoginToken = null;
+        for (int index = 0; index < 6; index++) {
+            String response = mockMvc.perform(post("/auth/login")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("{\"email\":\"" + email + "\",\"password\":\"password123\"}"))
+                    .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+            String token = jsonMapper.readTree(response).get("token").asString();
+            if (index == 0) oldestLoginToken = token;
+            newestLoginToken = token;
+        }
+
+        mockMvc.perform(get("/auth/me").header("Authorization", "Bearer " + oldestLoginToken))
+                .andExpect(status().isUnauthorized());
+        mockMvc.perform(get("/auth/me").header("Authorization", "Bearer " + newestLoginToken))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void permiteCerrarTodasLasSesionesDeLaCuenta() throws Exception {
+        String registration = mockMvc.perform(post("/auth/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonMapper.writeValueAsString(new RegisterRequestDTO(
+                                "Cerrar sesiones", "cerrar-sesiones@test.local", "password123", "JUGADOR"))))
+                .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+        String firstToken = jsonMapper.readTree(registration).get("token").asString();
+        String login = mockMvc.perform(post("/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"email\":\"cerrar-sesiones@test.local\",\"password\":\"password123\"}"))
+                .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+        String secondToken = jsonMapper.readTree(login).get("token").asString();
+
+        mockMvc.perform(post("/auth/logout-all").header("Authorization", "Bearer " + secondToken))
+                .andExpect(status().isOk());
+        mockMvc.perform(get("/auth/me").header("Authorization", "Bearer " + firstToken))
+                .andExpect(status().isUnauthorized());
+        mockMvc.perform(get("/auth/me").header("Authorization", "Bearer " + secondToken))
+                .andExpect(status().isUnauthorized());
+    }
 }

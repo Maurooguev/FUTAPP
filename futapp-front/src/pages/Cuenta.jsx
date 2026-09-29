@@ -4,7 +4,7 @@ import { API_URL, apiFetch } from "../config/api";
 import useAuth from "../context/useAuth";
 
 function Cuenta() {
-  const { usuario, logout } = useAuth();
+  const { usuario, logout, logoutAll } = useAuth();
   const navigate = useNavigate();
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -20,6 +20,11 @@ function Cuenta() {
     setMessage(data?.mensaje || data?.message || "No se pudo cambiar la contraseña");
     if (response.ok) { await logout(); navigate("/login"); }
   };
-  return <main className="profile-page"><div className="account-heading"><span>Mi cuenta</span><h1>{usuario.nombre}</h1><p>{usuario.email} · {roles}</p></div><section className="profile-panel account-security"><h2>Seguridad</h2><p>Cambiar la contraseña cerrará tus sesiones abiertas.</p><form className="personal-profile-form" onSubmit={submit}><label>Contraseña actual<input type="password" required value={currentPassword} onChange={(event) => setCurrentPassword(event.target.value)} /></label><label>Nueva contraseña<input type="password" minLength="8" required value={newPassword} onChange={(event) => setNewPassword(event.target.value)} /></label><label>Repetir nueva contraseña<input type="password" minLength="8" required value={confirmation} onChange={(event) => setConfirmation(event.target.value)} /></label>{message && <p className="profile-action-message">{message}</p>}<button type="submit">Cambiar contraseña</button></form></section></main>;
+  const closeAllSessions = async () => {
+    setMessage("");
+    try { await logoutAll(); navigate("/login", { replace: true }); }
+    catch (error) { setMessage(error.message); }
+  };
+  return <main className="profile-page"><div className="account-heading"><span>Mi cuenta</span><h1>{usuario.nombre}</h1><p>{usuario.email} · {roles}</p></div><section className="profile-panel account-security"><h2>Seguridad</h2><p>Cambiar la contraseña cerrará tus sesiones abiertas.</p><form className="personal-profile-form" onSubmit={submit}><label>Contraseña actual<input type="password" required value={currentPassword} onChange={(event) => setCurrentPassword(event.target.value)} /></label><label>Nueva contraseña<input type="password" minLength="8" required value={newPassword} onChange={(event) => setNewPassword(event.target.value)} /></label><label>Repetir nueva contraseña<input type="password" minLength="8" required value={confirmation} onChange={(event) => setConfirmation(event.target.value)} /></label>{message && <p className="profile-action-message">{message}</p>}<button type="submit">Cambiar contraseña</button></form><div className="account-session-actions"><h3>Sesiones abiertas</h3><p>Si no reconocés una actividad o usaste otro dispositivo, cerrá todas las sesiones de la cuenta.</p><button type="button" onClick={closeAllSessions}>Cerrar todas las sesiones</button></div></section></main>;
 }
 export default Cuenta;

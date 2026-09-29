@@ -46,4 +46,9 @@ public class AuthController {
     public void logout(@RequestHeader("Authorization") String header) {
         auth.logout(header.substring("Bearer ".length()));
     }
+
+    @PostMapping("/logout-all")
+    public void logoutAll(@AuthenticationPrincipal Usuario usuario) {
+        auth.logoutAll(usuario);
+    }
 }

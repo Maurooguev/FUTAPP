@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import java.time.Duration;
 import java.time.LocalDateTime;
 
 @Service
@@ -22,14 +23,22 @@ public class AuthService {
     private final PasswordResetTokenRepository resetTokens;
     private final PasswordEncoder encoder;
     private final boolean exposeResetToken;
+    private final Duration sessionDuration;
+    private final int maximumSessions;
     public AuthService(UsuarioRepository usuarios, AuthTokenRepository tokens,
                        PasswordResetTokenRepository resetTokens, PasswordEncoder encoder,
-                       @Value("${futapp.password-reset.expose-token:false}") boolean exposeResetToken) {
+                       @Value("${futapp.password-reset.expose-token:false}") boolean exposeResetToken,
+                       @Value("${futapp.auth.session-duration:7d}") Duration sessionDuration,
+                       @Value("${futapp.auth.maximum-sessions:5}") int maximumSessions) {
         this.usuarios = usuarios;
         this.tokens = tokens;
         this.resetTokens = resetTokens;
         this.encoder = encoder;
         this.exposeResetToken = exposeResetToken;
+        if (sessionDuration.isZero() || sessionDuration.isNegative()) throw new IllegalArgumentException("La duración de sesión debe ser positiva");
+        if (maximumSessions < 1) throw new IllegalArgumentException("Debe permitirse al menos una sesión por cuenta");
+        this.sessionDuration = sessionDuration;
+        this.maximumSessions = maximumSessions;
     }
     public AuthResponseDTO register(RegisterRequestDTO request) {
         String email = request.email().trim().toLowerCase();
@@ -91,13 +100,20 @@ public class AuthService {
         if (tokens.existsById(tokenHash)) tokens.deleteById(tokenHash);
         else tokens.deleteById(token); // Compatibilidad temporal con sesiones creadas antes del hash.
     }
+    public void logoutAll(Usuario user) {
+        tokens.deleteByUsuarioIdUsuario(user.getIdUsuario());
+    }
     private AuthResponseDTO createToken(Usuario user) {
         String rawToken = TokenSecurity.generate();
         AuthToken authToken = new AuthToken();
         authToken.setToken(TokenSecurity.hash(rawToken));
         authToken.setUsuario(user);
-        authToken.setExpiresAt(LocalDateTime.now().plusDays(7));
+        authToken.setExpiresAt(LocalDateTime.now().plus(sessionDuration));
         tokens.save(authToken);
+        var userTokens = tokens.findByUsuarioIdUsuarioOrderByExpiresAtDesc(user.getIdUsuario());
+        if (userTokens.size() > maximumSessions) {
+            tokens.deleteAll(userTokens.subList(maximumSessions, userTokens.size()));
+        }
         return new AuthResponseDTO(rawToken, user.getIdUsuario(), user.getNombre(), user.getEmail(), user.getRol(), user.getRoles());
     }
 }
