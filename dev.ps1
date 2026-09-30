@@ -18,11 +18,13 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 $healthUrl = "http://localhost:8080/api/v1/status"
+$smokeUrl = "http://localhost:8080/api/v1/torneos/pagina?pagina=0&cantidad=1"
 $backendReady = $false
 $backendAlreadyRunning = $false
 try {
     $health = Invoke-RestMethod -Uri $healthUrl -TimeoutSec 2
-    $backendAlreadyRunning = $health.status -eq "UP" -and $health.database -eq "UP"
+    $smoke = Invoke-WebRequest -UseBasicParsing -Uri $smokeUrl -TimeoutSec 3
+    $backendAlreadyRunning = $health.status -eq "UP" -and $health.database -eq "UP" -and $smoke.StatusCode -eq 200
 } catch {
     $backendAlreadyRunning = $false
 }
@@ -42,7 +44,8 @@ for ($attempt = 1; $attempt -le 90; $attempt++) {
     }
     try {
         $health = Invoke-RestMethod -Uri $healthUrl -TimeoutSec 2
-        if ($health.status -eq "UP" -and $health.database -eq "UP") {
+        $smoke = Invoke-WebRequest -UseBasicParsing -Uri $smokeUrl -TimeoutSec 3
+        if ($health.status -eq "UP" -and $health.database -eq "UP" -and $smoke.StatusCode -eq 200) {
             $backendReady = $true
             break
         }

@@ -5,18 +5,23 @@ $backendPath = Join-Path $projectRoot "futapp-back"
 $stdoutLog = Join-Path $backendPath "backend-dev.log"
 $stderrLog = Join-Path $backendPath "backend-dev-error.log"
 $healthUrl = "http://localhost:8080/api/v1/status"
+$smokeUrl = "http://localhost:8080/api/v1/torneos/pagina?pagina=0&cantidad=1"
+
+function Test-BackendReady {
+    try {
+        $health = Invoke-RestMethod -Uri $healthUrl -TimeoutSec 2
+        if ($health.status -ne "UP" -or $health.database -ne "UP") { return $false }
+        $smoke = Invoke-WebRequest -UseBasicParsing -Uri $smokeUrl -TimeoutSec 3
+        return $smoke.StatusCode -eq 200
+    } catch {
+        return $false
+    }
+}
 
 Set-Location -LiteralPath $backendPath
 
 while ($true) {
-    try {
-        $health = Invoke-RestMethod -Uri $healthUrl -TimeoutSec 2
-        if ($health.status -eq "UP" -and $health.database -eq "UP") {
-            exit 0
-        }
-    } catch {
-        # El backend no esta disponible: el supervisor lo inicia abajo.
-    }
+    if (Test-BackendReady) { exit 0 }
 
     Add-Content -LiteralPath $stdoutLog -Value "`n[$(Get-Date -Format s)] Iniciando backend de desarrollo..."
     $backendProcess = Start-Process -FilePath (Join-Path $backendPath "mvnw.cmd") `
@@ -32,13 +37,7 @@ while ($true) {
     $unhealthySince = $null
 
     while (-not $backendProcess.HasExited) {
-        $healthy = $false
-        try {
-            $health = Invoke-RestMethod -Uri $healthUrl -TimeoutSec 2
-            $healthy = $health.status -eq "UP" -and $health.database -eq "UP"
-        } catch {
-            $healthy = $false
-        }
+        $healthy = Test-BackendReady
 
         if ($healthy) {
             $wasHealthy = $true
