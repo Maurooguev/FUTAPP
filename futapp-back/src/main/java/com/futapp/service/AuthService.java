@@ -14,6 +14,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 
 @Service
 @Transactional
@@ -22,25 +24,34 @@ public class AuthService {
     private final AuthTokenRepository tokens;
     private final PasswordResetTokenRepository resetTokens;
     private final PasswordEncoder encoder;
+    private final PasswordResetMailService passwordResetMail;
     private final boolean exposeResetToken;
     private final Duration sessionDuration;
     private final int maximumSessions;
+    private final String registrationInviteCode;
     public AuthService(UsuarioRepository usuarios, AuthTokenRepository tokens,
                        PasswordResetTokenRepository resetTokens, PasswordEncoder encoder,
+                       PasswordResetMailService passwordResetMail,
                        @Value("${futapp.password-reset.expose-token:false}") boolean exposeResetToken,
                        @Value("${futapp.auth.session-duration:7d}") Duration sessionDuration,
-                       @Value("${futapp.auth.maximum-sessions:5}") int maximumSessions) {
+                       @Value("${futapp.auth.maximum-sessions:5}") int maximumSessions,
+                       @Value("${futapp.registration.invite-code:}") String registrationInviteCode) {
         this.usuarios = usuarios;
         this.tokens = tokens;
         this.resetTokens = resetTokens;
         this.encoder = encoder;
+        this.passwordResetMail = passwordResetMail;
         this.exposeResetToken = exposeResetToken;
         if (sessionDuration.isZero() || sessionDuration.isNegative()) throw new IllegalArgumentException("La duración de sesión debe ser positiva");
         if (maximumSessions < 1) throw new IllegalArgumentException("Debe permitirse al menos una sesión por cuenta");
         this.sessionDuration = sessionDuration;
         this.maximumSessions = maximumSessions;
+        this.registrationInviteCode = registrationInviteCode == null ? "" : registrationInviteCode;
     }
     public AuthResponseDTO register(RegisterRequestDTO request) {
+        if (!registrationInviteCode.isBlank() && !secureEquals(registrationInviteCode, request.codigoInvitacion())) {
+            throw new IllegalArgumentException("El código de invitación no es válido");
+        }
         String email = request.email().trim().toLowerCase();
         if (usuarios.existsByEmailIgnoreCase(email)) throw new IllegalArgumentException("Ya existe una cuenta con ese email");
         String rol = request.rol() == null || request.rol().isBlank() ? "JUGADOR" : request.rol().trim().toUpperCase();
@@ -56,7 +67,8 @@ public class AuthService {
         return createToken(user);
     }
     public PasswordResetResponseDTO forgotPassword(ForgotPasswordRequestDTO request) {
-        String rawToken = usuarios.findByEmailIgnoreCase(request.email().trim()).map(user -> {
+        final String[] generatedToken = new String[1];
+        usuarios.findByEmailIgnoreCase(request.email().trim()).ifPresent(user -> {
             resetTokens.deleteByUsuarioIdUsuario(user.getIdUsuario());
             String token = TokenSecurity.generate();
             PasswordResetToken reset = new PasswordResetToken();
@@ -64,11 +76,12 @@ public class AuthService {
             reset.setUsuario(user);
             reset.setExpiresAt(LocalDateTime.now().plusMinutes(30));
             resetTokens.save(reset);
-            return token;
-        }).orElse(null);
+            passwordResetMail.send(user, token);
+            generatedToken[0] = token;
+        });
         return new PasswordResetResponseDTO(
                 "Si el email está registrado, generamos un enlace válido durante 30 minutos.",
-                exposeResetToken ? rawToken : null);
+                exposeResetToken ? generatedToken[0] : null);
     }
     public PasswordResetResponseDTO resetPassword(ResetPasswordRequestDTO request) {
         PasswordResetToken reset = resetTokens.findByTokenHashAndUsedAtIsNull(TokenSecurity.hash(request.token()))
@@ -115,5 +128,9 @@ public class AuthService {
             tokens.deleteAll(userTokens.subList(maximumSessions, userTokens.size()));
         }
         return new AuthResponseDTO(rawToken, user.getIdUsuario(), user.getNombre(), user.getEmail(), user.getRol(), user.getRoles());
+    }
+    private boolean secureEquals(String expected, String received) {
+        if (received == null) return false;
+        return MessageDigest.isEqual(expected.getBytes(StandardCharsets.UTF_8), received.getBytes(StandardCharsets.UTF_8));
     }
 }

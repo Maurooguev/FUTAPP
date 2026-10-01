@@ -196,6 +196,39 @@ fuera del repositorio y reemplazar todos los valores de ejemplo. Con el perfil
 si CORS apunta a localhost o HTTP, si los datos demo están activos, si Swagger
 está expuesto o si se devuelven tokens de recuperación.
 
+La recuperación de contraseña de producción envía un enlace por correo. Se
+debe configurar una cuenta SMTP mediante `MAIL_HOST`, `MAIL_PORT`,
+`MAIL_USERNAME`, `MAIL_PASSWORD` y `MAIL_FROM`. Usá una contraseña de
+aplicación o una clave específica del proveedor; nunca la contraseña personal
+del correo ni un secreto escrito dentro del repositorio.
+
+Mientras FUTAPP esté en beta privada, `BETA_INVITE_CODE` limita la creación de
+cuentas a las personas invitadas. La guía de salida y los recorridos de prueba
+están en `BETA_CHECKLIST.md`.
+
+### Ejecutar la beta en un servidor
+
+El paquete productivo incluye PostgreSQL, API y frontend. En el servidor, crear
+`.env.production` a partir del ejemplo, completar todos los secretos y ejecutar:
+
+```bash
+docker compose --env-file .env.production -f compose.prod.yaml up -d --build
+docker compose --env-file .env.production -f compose.prod.yaml ps
+```
+
+Solamente el frontend publica un puerto (`HTTP_PORT`). PostgreSQL y la API se
+mantienen dentro de la red privada de contenedores. El proveedor o proxy HTTPS
+debe dirigir el dominio configurado en `PUBLIC_URL` hacia ese puerto. Las fotos
+y la base se conservan en volúmenes persistentes; aun así deben incluirse en
+las copias de seguridad del proveedor.
+
+Para actualizar sin borrar los volúmenes:
+
+```bash
+git pull
+docker compose --env-file .env.production -f compose.prod.yaml up -d --build
+```
+
 También se puede ejecutar únicamente el escáner local:
 
 ```powershell

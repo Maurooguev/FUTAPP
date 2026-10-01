@@ -7,6 +7,7 @@ function Register() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rol, setRol] = useState(() => new URLSearchParams(window.location.search).get("intent") === "crear-torneo" ? "ORGANIZADOR" : "JUGADOR");
+  const [codigoInvitacion, setCodigoInvitacion] = useState("");
   const [error, setError] = useState("");
 
   const { register } = useAuth();
@@ -25,7 +26,7 @@ function Register() {
     e.preventDefault();
 
     setError("");
-    try { await register(nombre, email, password, rol); navigate(safeNext, { replace: true }); } catch (registerError) { setError(registerError.message); }
+    try { await register(nombre, email, password, rol, codigoInvitacion); navigate(safeNext, { replace: true }); } catch (registerError) { setError(registerError.message); }
   };
 
   return (
@@ -53,7 +54,9 @@ function Register() {
             required
           />
 
-          <label>Contraseña</label><input type="password" minLength="8" value={password} onChange={(e) => setPassword(e.target.value)} required />
+          <label>Contraseña</label><input type="password" minLength="10" value={password} onChange={(e) => setPassword(e.target.value)} required />
+          <label>Código de invitación <small>(beta privada)</small></label>
+          <input type="text" autoComplete="off" value={codigoInvitacion} onChange={(e) => setCodigoInvitacion(e.target.value)} />
           <label>Tipo de cuenta</label><select value={rol} onChange={(e) => setRol(e.target.value)}><option value="JUGADOR">Jugador</option><option value="DIRECTOR_EQUIPO">Director de equipo</option><option value="ORGANIZADOR">Organizador de torneo</option></select>
           <small>Elegí con atención: el tipo de cuenta no se puede cambiar después.</small>
           {error && <p className="tournament-form-error">{error}</p>}

@@ -63,8 +63,8 @@ function AuthProvider({ children }) {
     saveSession(payload);
   };
 
-  const register = async (nombre, email, password, rol) => {
-    const response = await fetch(`${API_URL}/auth/register`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ nombre, email, password, rol }) });
+  const register = async (nombre, email, password, rol, codigoInvitacion) => {
+    const response = await fetch(`${API_URL}/auth/register`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ nombre, email, password, rol, codigoInvitacion }) });
     const payload = await response.json().catch(() => null);
     if (!response.ok) throw new Error(payload?.message || "No se pudo crear la cuenta");
     saveSession(payload);
