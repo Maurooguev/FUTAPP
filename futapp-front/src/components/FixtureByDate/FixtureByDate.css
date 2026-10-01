@@ -213,3 +213,23 @@
 :root[data-theme="dark"] .fixture-admin-actions .danger { background: #572f35; color: #ffb4bc; }
 :root[data-theme="dark"] .fixture-admin-actions .close-date { background: #23483f; color: #8ce0b3; }
 :root[data-theme="dark"] .fixture-admin-actions .next-result { background: #0877a7; color: #fff; }
+
+@media (max-width: 768px) {
+  .fixture-tabs { margin-inline: -12px; padding-inline: 12px; scroll-snap-type: x proximity; scrollbar-width: none; }
+  .fixture-tabs::-webkit-scrollbar { display: none; }
+  .fixture-tab { min-height: 42px; scroll-snap-align: start; }
+  .fixture-match-card { padding: 14px 12px; }
+  .fixture-score-line { grid-template-columns: minmax(0,1fr) auto minmax(0,1fr); gap: 6px; }
+  .fixture-score-line .fixture-team { flex-direction: column; gap: 5px; font-size: 12px; line-height: 1.25; }
+  .fixture-score-line .fixture-team-away { flex-direction: column; }
+  .fixture-score-line .fixture-team img { width: 42px; height: 42px; }
+  .fixture-score-line .fixture-team span { display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; white-space: normal; }
+  .fixture-score-line strong { min-width: 45px; font-size: 17px; }
+  .fixture-match-card p { line-height: 1.45; }
+  .fixture-quick-actions button { min-height: 42px; }
+  .fixture-admin-actions { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .fixture-admin-actions button { min-height: 42px; }
+  .fixture-inline-result { grid-template-columns: minmax(0,1fr) auto minmax(0,1fr); }
+  .fixture-score-stepper { grid-template-columns: 38px 38px 38px; }
+  .fixture-score-stepper button,.fixture-score-stepper strong { width: 38px; height: 38px; }
+}

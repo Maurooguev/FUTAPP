@@ -64,6 +64,7 @@
 
 body {
   margin: 0;
+  min-width: 320px;
 }
 
 #root {
@@ -120,4 +121,47 @@ code {
   line-height: 135%;
   padding: 4px 8px;
   background: var(--code-bg);
+}
+
+@media (max-width: 768px) {
+  :root { font-size: 16px; }
+
+  #root {
+    width: 100%;
+    border-inline: 0;
+  }
+
+  body {
+    min-height: 100dvh;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  button,
+  a,
+  input,
+  select,
+  textarea {
+    touch-action: manipulation;
+  }
+
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+
+  h1,
+  h2,
+  h3,
+  p,
+  a,
+  strong,
+  span {
+    overflow-wrap: anywhere;
+  }
+
+  :focus-visible {
+    outline: 3px solid #22b8e6;
+    outline-offset: 2px;
+  }
 }

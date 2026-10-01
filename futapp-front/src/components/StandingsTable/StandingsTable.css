@@ -59,6 +59,38 @@
   .standings-header h2 {
     font-size: 24px;
   }
+
+  .standings-wrap {
+    margin-inline: -12px;
+    padding-inline: 12px;
+    overscroll-behavior-inline: contain;
+    scrollbar-width: thin;
+  }
+
+  .standings-table { min-width: 690px; }
+  .standings-table th,
+  .standings-table td { height: 44px; }
+  .standings-table th:first-child,
+  .standings-table td:first-child {
+    position: sticky;
+    left: 0;
+    z-index: 2;
+    width: 40px;
+    background: #075c83;
+  }
+  .standings-table td:first-child { background: #f7fafb; }
+  .standings-table .top-row td:first-child { background: #eefbf3; }
+  .standings-table th:nth-child(2),
+  .standings-table td:nth-child(2) {
+    position: sticky;
+    left: 40px;
+    z-index: 2;
+    min-width: 150px;
+    box-shadow: 7px 0 10px -10px #0f172a;
+  }
+  .standings-table th:nth-child(2) { background: #075c83; }
+  .standings-table td:nth-child(2) { background: #f7fafb; }
+  .standings-table .top-row td:nth-child(2) { background: #eefbf3; }
 }
 .team-cell a { color: inherit; text-decoration: none; }
 .team-cell a:hover { color: #0877a7; text-decoration: underline; }
@@ -76,3 +108,9 @@
 :root[data-theme="dark"] .standings-table .top-row { background: #23483f; }
 :root[data-theme="dark"] .standings-table tbody tr:hover { background: #294957; }
 :root[data-theme="dark"] .standings-table .top-row:hover { background: #295447; }
+@media (max-width: 768px) {
+  :root[data-theme="dark"] .standings-table td:first-child,
+  :root[data-theme="dark"] .standings-table td:nth-child(2) { background: #213744; }
+  :root[data-theme="dark"] .standings-table .top-row td:first-child,
+  :root[data-theme="dark"] .standings-table .top-row td:nth-child(2) { background: #23483f; }
+}

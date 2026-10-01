@@ -109,6 +109,7 @@ function HeaderSearch() {
 function Header() {
   const { usuario, logout } = useAuth();
   const [theme, setTheme] = useState(() => window.localStorage.getItem("futapp-theme") === "dark" ? "dark" : "light");
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [pendingRequests, setPendingRequests] = useState(0);
   const [unreadNotifications, setUnreadNotifications] = useState(0);
   const canReview = tieneRol(usuario, "ADMIN") || tieneRol(usuario, "ORGANIZADOR") || tieneRol(usuario, "DIRECTOR_EQUIPO");
@@ -121,6 +122,20 @@ function Header() {
     document.documentElement.dataset.theme = theme;
     window.localStorage.setItem("futapp-theme", theme);
   }, [theme]);
+
+  useEffect(() => {
+    if (!mobileMenuOpen) return undefined;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const closeOnEscape = (event) => {
+      if (event.key === "Escape") setMobileMenuOpen(false);
+    };
+    window.addEventListener("keydown", closeOnEscape);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [mobileMenuOpen]);
 
   useEffect(() => {
     loadPendingRequests();
@@ -180,8 +195,51 @@ function Header() {
           ) : (
             <><Link to="/login" className="header-link-button outline">Ingresar</Link><Link to="/register" className="header-link-button primary">Registrarse</Link></>
           )}
+          <button
+            type="button"
+            className="mobile-menu-toggle"
+            aria-label={mobileMenuOpen ? "Cerrar menú" : "Abrir menú"}
+            aria-expanded={mobileMenuOpen}
+            aria-controls="mobile-navigation"
+            onClick={() => setMobileMenuOpen((current) => !current)}
+          >
+            <span aria-hidden="true">{mobileMenuOpen ? "×" : "☰"}</span>
+          </button>
         </div>
       </div>
+
+      {mobileMenuOpen && (
+        <>
+          <button type="button" className="mobile-menu-scrim" aria-label="Cerrar menú" onClick={() => setMobileMenuOpen(false)} />
+          <aside id="mobile-navigation" className="mobile-menu" aria-label="Navegación principal">
+            <div className="mobile-menu-head">
+              <div>
+                <strong>{usuario ? usuario.nombre : "FUTAPP"}</strong>
+                <small>{usuario ? usuario.rol : "Fútbol de tu zona"}</small>
+              </div>
+              <button type="button" aria-label="Cerrar menú" onClick={() => setMobileMenuOpen(false)}>×</button>
+            </div>
+            <nav onClick={() => setMobileMenuOpen(false)}>
+              <Link to="/"><span>⌂</span>Explorar</Link>
+              {usuario && (tieneRol(usuario, "ORGANIZADOR") || tieneRol(usuario, "ADMIN"))
+                ? <Link to="/mis-torneos"><span>🏆</span>Mis torneos</Link>
+                : <Link to={usuario ? "/?crearTorneo=1" : registrationLink("/?crearTorneo=1", "crear-torneo")}><span>＋</span>Crear torneo</Link>}
+              {(tieneRol(usuario, "ADMIN") || tieneRol(usuario, "DIRECTOR_EQUIPO")) && <Link to="/mis-equipos"><span>🛡</span>Mis equipos</Link>}
+              {usuario && <Link to="/solicitudes"><span>↔</span>Solicitudes{pendingRequests > 0 && <b>{pendingRequests > 99 ? "99+" : pendingRequests}</b>}</Link>}
+              <Link to={usuario ? "/favoritos" : registrationLink("/favoritos", "guardar-favoritos")}><span>☆</span>Favoritos</Link>
+              {(tieneRol(usuario, "JUGADOR") || tieneRol(usuario, "ORGANIZADOR")) && <Link to={usuario?.rol === "ORGANIZADOR" || !tieneRol(usuario, "JUGADOR") ? "/mi-perfil-organizador" : "/mi-perfil-jugador"}><span>●</span>Mi perfil</Link>}
+              {!usuario && <Link to={registrationLink("/mi-perfil-jugador", "crear-perfil")}><span>●</span>Crear perfil</Link>}
+              {usuario && <Link to="/notificaciones"><span>🔔</span>Notificaciones{unreadNotifications > 0 && <b>{unreadNotifications > 99 ? "99+" : unreadNotifications}</b>}</Link>}
+              {usuario && <Link to="/cuenta"><span>⚙</span>Mi cuenta</Link>}
+            </nav>
+            <div className="mobile-menu-session">
+              {usuario
+                ? <button type="button" onClick={() => { setMobileMenuOpen(false); logout(); }}>Cerrar sesión</button>
+                : <><Link to="/login">Ingresar</Link><Link className="primary" to="/register">Crear cuenta</Link></>}
+            </div>
+          </aside>
+        </>
+      )}
     </header>
   );
 }
