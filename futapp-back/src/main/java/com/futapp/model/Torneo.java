@@ -20,6 +20,10 @@ public class Torneo {
     private String direccionSede;
     @Column(name = "google_maps_url", length = 1000)
     private String googleMapsUrl;
+    @Column(name = "reglas_texto", columnDefinition = "TEXT")
+    private String reglasTexto;
+    @Column(name = "premios_texto", columnDefinition = "TEXT")
+    private String premiosTexto;
     private String estado;
     private String formato;
     @Column(name = "ida_vuelta", nullable = false) private Boolean idaVuelta = false;
@@ -82,6 +86,12 @@ public class Torneo {
     public void setDireccionSede(String direccionSede) { this.direccionSede = TextNormalizer.titleCase(direccionSede); }
     public String getGoogleMapsUrl() { return googleMapsUrl; }
     public void setGoogleMapsUrl(String googleMapsUrl) { this.googleMapsUrl = googleMapsUrl == null || googleMapsUrl.isBlank() ? null : googleMapsUrl.trim(); }
+    public String getReglasTexto() { return reglasTexto; }
+    public void setReglasTexto(String reglasTexto) { this.reglasTexto = limpiarTextoLibre(reglasTexto); }
+    public String getPremiosTexto() { return premiosTexto; }
+    public void setPremiosTexto(String premiosTexto) { this.premiosTexto = limpiarTextoLibre(premiosTexto); }
+
+    private String limpiarTextoLibre(String value) { return value == null || value.isBlank() ? null : value.trim(); }
 
     public String getEstado() {
         return estado;

@@ -28,6 +28,12 @@ public class TorneoRequestDTO {
     @Pattern(regexp = "^$|https://((www\\.)?google\\.[a-z.]+/maps|maps\\.app\\.goo\\.gl|goo\\.gl/maps)(/.*)?$", message = "Ingresá un enlace válido de Google Maps")
     private String googleMapsUrl;
 
+    @Size(max = 5000, message = "Las reglas no pueden superar los 5000 caracteres")
+    private String reglasTexto;
+
+    @Size(max = 3000, message = "Los premios no pueden superar los 3000 caracteres")
+    private String premiosTexto;
+
     @NotBlank(message = "El estado es obligatorio")
     private String estado;
 
@@ -83,6 +89,10 @@ public class TorneoRequestDTO {
     public void setDireccionSede(String direccionSede) { this.direccionSede = direccionSede; }
     public String getGoogleMapsUrl() { return googleMapsUrl; }
     public void setGoogleMapsUrl(String googleMapsUrl) { this.googleMapsUrl = googleMapsUrl; }
+    public String getReglasTexto() { return reglasTexto; }
+    public void setReglasTexto(String reglasTexto) { this.reglasTexto = reglasTexto; }
+    public String getPremiosTexto() { return premiosTexto; }
+    public void setPremiosTexto(String premiosTexto) { this.premiosTexto = premiosTexto; }
 
     public String getEstado() {
         return estado;

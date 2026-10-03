@@ -158,6 +158,8 @@ public class TorneoService {
         torneo.setUbicacion(requestDTO.getUbicacion());
         torneo.setDireccionSede(requestDTO.getDireccionSede());
         torneo.setGoogleMapsUrl(requestDTO.getGoogleMapsUrl());
+        torneo.setReglasTexto(requestDTO.getReglasTexto());
+        torneo.setPremiosTexto(requestDTO.getPremiosTexto());
         torneo.setEstado("BORRADOR");
         torneo.setFormato(requestDTO.getFormato());
         torneo.setCantidadEquipos(requestDTO.getCantidadEquipos());
@@ -180,6 +182,8 @@ public class TorneoService {
         torneo.setUbicacion(requestDTO.getUbicacion());
         torneo.setDireccionSede(requestDTO.getDireccionSede());
         torneo.setGoogleMapsUrl(requestDTO.getGoogleMapsUrl());
+        torneo.setReglasTexto(requestDTO.getReglasTexto());
+        torneo.setPremiosTexto(requestDTO.getPremiosTexto());
         torneo.setFormato(requestDTO.getFormato());
         torneo.setCantidadEquipos(requestDTO.getCantidadEquipos());
         cargarReglas(torneo, requestDTO);
@@ -268,6 +272,8 @@ public class TorneoService {
         response.setVisitas(torneo.getVisitas());
         response.setDireccionSede(torneo.getDireccionSede());
         response.setGoogleMapsUrl(torneo.getGoogleMapsUrl());
+        response.setReglasTexto(torneo.getReglasTexto());
+        response.setPremiosTexto(torneo.getPremiosTexto());
         return response;
     }
 

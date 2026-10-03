@@ -8,6 +8,8 @@ public class TorneoResponseDTO {
     private String ubicacion;
     private String direccionSede;
     private String googleMapsUrl;
+    private String reglasTexto;
+    private String premiosTexto;
     private String estado;
     private String formato;
     private Integer cantidadEquipos;
@@ -81,6 +83,10 @@ public class TorneoResponseDTO {
     public void setDireccionSede(String direccionSede) { this.direccionSede = direccionSede; }
     public String getGoogleMapsUrl() { return googleMapsUrl; }
     public void setGoogleMapsUrl(String googleMapsUrl) { this.googleMapsUrl = googleMapsUrl; }
+    public String getReglasTexto() { return reglasTexto; }
+    public void setReglasTexto(String reglasTexto) { this.reglasTexto = reglasTexto; }
+    public String getPremiosTexto() { return premiosTexto; }
+    public void setPremiosTexto(String premiosTexto) { this.premiosTexto = premiosTexto; }
 
     public String getEstado() {
         return estado;

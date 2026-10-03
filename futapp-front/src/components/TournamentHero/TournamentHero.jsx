@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { useState } from "react";
 import "./TournamentHero.css";
 import FavoriteButton from "../FavoriteButton/FavoriteButton";
 import torneoGenerico from "../../assets/torneo-generico.png";
@@ -8,6 +9,8 @@ const TABS = [["resumen", "Resumen"], ["tabla", "Tabla"], ["equipos", "Equipos"]
 
 function TournamentHero({ torneo, fechaActual, perfilOrganizador, activeTab = "resumen", onTabChange }) {
   const tabs = torneo.formato?.toLowerCase() === "eliminación directa" ? TABS.filter(([id]) => id !== "tabla") : TABS;
+  const [infoPanel, setInfoPanel] = useState(null);
+  const infoContent = infoPanel === "reglas" ? torneo.reglasTexto : torneo.premiosTexto;
 
   return (
     <>
@@ -31,6 +34,11 @@ function TournamentHero({ torneo, fechaActual, perfilOrganizador, activeTab = "r
           <FavoriteButton type="torneos" id={torneo.idTorneo} />
         </div>
 
+        <div className="tournament-public-info-actions">
+          <button type="button" onClick={() => setInfoPanel("reglas")}><span>📋</span><strong>Reglas</strong></button>
+          <button type="button" onClick={() => setInfoPanel("premios")}><span>🏅</span><strong>Premios</strong></button>
+        </div>
+
         <div className="tournament-meta">
           <span><small>Estado</small><strong>{torneo.estado}</strong></span>
           <span><small>Ubicación</small><strong>{torneo.direccionSede || torneo.ubicacion}</strong>{torneo.googleMapsUrl && <a className="tournament-map-link" href={torneo.googleMapsUrl} target="_blank" rel="noopener noreferrer">📍 Cómo llegar</a>}</span>
@@ -46,6 +54,7 @@ function TournamentHero({ torneo, fechaActual, perfilOrganizador, activeTab = "r
         {tabs.map(([id, label]) => <button key={id} type="button" className={activeTab === id ? "active" : ""} aria-current={activeTab === id ? "page" : undefined} onClick={() => onTabChange?.(id)}>{label}</button>)}
       </div>
     </nav>
+    {infoPanel && <div className="tournament-info-backdrop" onMouseDown={() => setInfoPanel(null)}><section className="tournament-info-modal" role="dialog" aria-modal="true" aria-labelledby="tournament-info-title" onMouseDown={(event) => event.stopPropagation()}><button type="button" className="tournament-info-close" onClick={() => setInfoPanel(null)} aria-label="Cerrar">×</button><span>{infoPanel === "reglas" ? "Información del torneo" : "Reconocimientos"}</span><h2 id="tournament-info-title">{infoPanel === "reglas" ? "Reglas" : "Premios"}</h2>{infoContent ? <p>{infoContent}</p> : <div className="tournament-info-empty"><strong>Todavía no hay información</strong><p>El organizador aún no cargó esta sección.</p></div>}</section></div>}
     </>
   );
 }
