@@ -22,7 +22,7 @@ import TournamentReadiness from "../components/TournamentReadiness/TournamentRea
 import TournamentExports from "../components/TournamentExports/TournamentExports";
 import KnockoutBracket from "../components/KnockoutBracket/KnockoutBracket";
 
-const TOURNAMENT_TABS = new Set(["resumen", "tabla", "equipos", "stats", "fixture"]);
+const TOURNAMENT_TABS = new Set(["resumen", "info", "tabla", "equipos", "stats", "fixture"]);
 
 function TorneoDetalle() {
   const { id } = useParams();
@@ -376,6 +376,7 @@ const recargarDatosTorneo = () => {
             {activeTab === "fixture" && <><button type="button" onClick={() => setMostrarFecha(true)}>+ Jornada</button><button type="button" onClick={() => setMostrarPartido(true)}>+ Partido</button><button type="button" onClick={partidos.length > 0 ? rehacerFixture : abrirGeneradorFixture} disabled={generandoFixture}>{partidos.length > 0 ? "Rehacer fixture" : "Generar fixture"}</button></>}
             {activeTab === "equipos" && <span>Administrá los clubes desde esta sección</span>}
             {activeTab === "stats" && <span>Goles y tarjetas se cargan desde cada partido</span>}
+            {activeTab === "info" && <span>La información pública se modifica desde Editar torneo</span>}
           </div>
           <div className="admin-more-wrap">
             <button className="admin-more-toggle" type="button" aria-expanded={showMoreActions} onClick={() => setShowMoreActions((value) => !value)}>Más <span>⋯</span></button>
@@ -415,6 +416,16 @@ const recargarDatosTorneo = () => {
             <button type="button" onClick={() => changeTab("equipos")}><span>Participantes</span><strong>{equipos.length} equipos</strong><b>Ver equipos ›</b></button>
             <button type="button" onClick={() => changeTab("stats")}><span>Rendimiento</span><strong>{topGoleadores[0]?.nombreJugador || "Sin estadísticas"}</strong><b>Ver estadísticas ›</b></button>
           </div>}
+
+          {activeTab === "info" && <section className="tournament-info-page" id="info">
+            <div className="tournament-info-page-heading"><span>Información del torneo</span><h2>Todo lo que necesitás saber</h2><p>Organización, sede, reglamento y premios de la competencia.</p></div>
+            <div className="tournament-info-page-grid">
+              <article className="tournament-info-card"><span className="tournament-info-card-icon">⚽</span><div><small>Organización</small><h3>{perfilOrganizador?.nombrePublico || torneo.nombrePropietario || "Organizador no informado"}</h3>{perfilOrganizador ? <Link to={`/organizador/${perfilOrganizador.idUsuario}`}>Ver perfil del organizador →</Link> : <p>El torneo todavía no publicó un perfil de organizador.</p>}</div></article>
+              <article className="tournament-info-card"><span className="tournament-info-card-icon">📍</span><div><small>Ubicación</small><h3>{torneo.direccionSede || "Complejo o predio no informado"}</h3><p>{torneo.ubicacion || "Ciudad o barrio no informado"}</p>{torneo.googleMapsUrl ? <a className="tournament-info-map" href={torneo.googleMapsUrl} target="_blank" rel="noopener noreferrer">Cómo llegar con Google Maps →</a> : <p className="tournament-info-missing">El organizador todavía no agregó el enlace de ubicación.</p>}</div></article>
+              <article className="tournament-info-card tournament-info-card-wide"><span className="tournament-info-card-icon">📋</span><div><small>Reglamento</small><h3>Reglas de la competencia</h3>{torneo.reglasTexto ? <p className="tournament-info-long-text">{torneo.reglasTexto}</p> : <p className="tournament-info-missing">Todavía no hay información sobre las reglas.</p>}</div></article>
+              <article className="tournament-info-card tournament-info-card-wide"><span className="tournament-info-card-icon">🏅</span><div><small>Premios</small><h3>Reconocimientos del torneo</h3>{torneo.premiosTexto ? <p className="tournament-info-long-text">{torneo.premiosTexto}</p> : <p className="tournament-info-missing">Todavía no hay información sobre los premios.</p>}</div></article>
+            </div>
+          </section>}
 
           {activeTab === "tabla" && torneo.formato?.toLowerCase() !== "eliminación directa" && torneo.formato?.toLowerCase() !== "zonas + playoffs" && <StandingsTable tabla={tabla} />}
           {activeTab === "tabla" && torneo.formato?.toLowerCase() === "zonas + playoffs" && estructura?.divisiones?.[0]?.fases?.[0]?.zonas?.map((zona) => {
