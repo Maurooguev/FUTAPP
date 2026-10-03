@@ -1,4 +1,4 @@
-.tournament-hero { background: #fff; color: #17212b; border-bottom: 1px solid #d9e0e5; }
+.tournament-hero { background: #d5e3e9; color: #17212b; border-bottom: 1px solid #c2d3da; }
 .tournament-shell { width: min(920px, calc(100% - 32px)); margin: 0 auto; }
 .tournament-hero > .tournament-shell { padding: 18px 0 22px; }
 .tournament-back { display: inline-flex; margin-bottom: 18px; color: #567080; font-size: 13px; font-weight: 700; }
