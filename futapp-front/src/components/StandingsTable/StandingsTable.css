@@ -55,6 +55,17 @@
   font-weight: 700;
 }
 
+.standings-full-button { display: none; }
+.standings-modal-backdrop { position: fixed; inset: 0; z-index: 300; display: grid; place-items: center; padding: 16px; background: rgba(6,24,36,.76); backdrop-filter: blur(4px); }
+.standings-modal { width: min(920px,100%); max-height: min(82vh,680px); overflow: hidden; border-radius: 10px; background: #f5f8fa; box-shadow: 0 24px 70px rgba(0,0,0,.3); }
+.standings-modal > header { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 16px; background: #075c83; color: #fff; }
+.standings-modal > header span { display: block; color: #bfe8f6; font-size: 9px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; }
+.standings-modal > header h2 { margin: 2px 0 0; color: #fff; font-size: 19px; }
+.standings-modal > header button { display: grid; width: 40px; height: 40px; flex: 0 0 auto; padding: 0; place-items: center; border-radius: 6px; background: #fff; color: #173447; font-size: 25px; }
+.standings-swipe-hint { margin: 0; padding: 10px 14px; color: #526571; font-size: 11px; }
+.standings-modal-scroll { overflow-x: auto; padding: 0 14px 14px; overscroll-behavior-inline: contain; }
+.standings-modal .standings-table-full { min-width: 720px; table-layout: auto; }
+
 @media (max-width: 768px) {
   .standings-header h2 {
     font-size: 24px;
@@ -88,6 +99,14 @@
   .standings-table th:nth-child(10),
   .standings-table td:nth-child(10) { width: 38px; }
   .standings-table .team-cell a { display: block; overflow: hidden; font-size: 10px; line-height: 1.25; text-overflow: ellipsis; white-space: nowrap; }
+  .standings-full-button { display: block; width: 100%; min-height: 44px; margin-top: 10px; border: 1px solid #0877a7; border-radius: 5px; background: #fff; color: #0877a7; font-size: 11px; font-weight: 900; }
+  .standings-modal-backdrop { align-items: end; padding: 0; }
+  .standings-modal { width: 100%; max-height: 88vh; border-radius: 12px 12px 0 0; padding-bottom: env(safe-area-inset-bottom); }
+  .standings-modal-scroll .standings-table-full { width: 720px; min-width: 720px; table-layout: auto; }
+  .standings-modal-scroll .standings-table-full th,
+  .standings-modal-scroll .standings-table-full td { display: table-cell; position: static; width: auto; min-width: 52px; padding: 10px 8px; }
+  .standings-modal-scroll .standings-table-full th:nth-child(2),
+  .standings-modal-scroll .standings-table-full td:nth-child(2) { min-width: 190px; }
 }
 .team-cell a { color: inherit; text-decoration: none; }
 .team-cell a:hover { color: #0877a7; text-decoration: underline; }
@@ -105,6 +124,9 @@
 :root[data-theme="dark"] .standings-table .top-row { background: #23483f; }
 :root[data-theme="dark"] .standings-table tbody tr:hover { background: #294957; }
 :root[data-theme="dark"] .standings-table .top-row:hover { background: #295447; }
+:root[data-theme="dark"] .standings-modal { background: #1b303c; }
+:root[data-theme="dark"] .standings-swipe-hint { color: #b9c8d2; }
+:root[data-theme="dark"] .standings-full-button { border-color: #67d7ee; background: #29414f; color: #67d7ee; }
 @media (max-width: 768px) {
   :root[data-theme="dark"] .standings-table td:first-child,
   :root[data-theme="dark"] .standings-table td:nth-child(2) { background: #213744; }
