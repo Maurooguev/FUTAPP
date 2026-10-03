@@ -1724,6 +1724,25 @@ button {
 .tournament-overview-actions span { color: #7b8a95; font-size: 9px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; }
 .tournament-overview-actions strong { overflow: hidden; font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
 .tournament-overview-actions b { margin-top: 5px; color: #0877a7; font-size: 9px; }
+.tournament-summary-highlights { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 10px; margin: 12px 0; }
+.summary-highlight-card { display: flex; min-width: 0; min-height: 210px; flex-direction: column; padding: 14px; border: 1px solid #c5d6de; border-radius: 7px; background: #fff; }
+.summary-highlight-card header > span { color: #0877a7; font-size: 8px; font-weight: 900; letter-spacing: .07em; text-transform: uppercase; }
+.summary-highlight-card header h2 { margin: 3px 0 12px; color: #17212b; font-size: 16px; }
+.summary-highlight-card > button { margin-top: auto; padding: 7px 0 0; border: 0; background: transparent; color: #0877a7; font-size: 9px; text-align: left; }
+.summary-podium > div { display: grid; gap: 5px; }
+.summary-podium a { display: grid; grid-template-columns: 22px 30px minmax(0,1fr) auto; align-items: center; gap: 6px; padding: 6px; border-radius: 4px; background: #f5f8fa; color: #334155; }
+.summary-podium a:first-child { background: #fff8dc; }
+.summary-podium a > b { color: #0877a7; font-size: 12px; text-align: center; }
+.summary-podium a > img { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; }
+.summary-podium a > strong { overflow: hidden; font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
+.summary-podium a > span { color: #0877a7; font-size: 9px; font-weight: 900; }
+.summary-match-teams,.summary-result-row { display: grid; grid-template-columns: minmax(0,1fr) auto minmax(0,1fr); align-items: center; gap: 7px; color: #334155; text-align: center; }
+.summary-match-teams > span,.summary-result-row > span { display: grid; min-width: 0; justify-items: center; gap: 5px; }
+.summary-match-teams img,.summary-result-row img { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; }
+.summary-match-teams strong,.summary-result-row strong { display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; font-size: 10px; line-height: 1.2; }
+.summary-match-teams > b { color: #71808b; font-size: 9px; }
+.summary-result-row > b { color: #0877a7; font-size: 20px; white-space: nowrap; }
+.summary-highlight-empty,.summary-knockout > p { color: #64748b; font-size: 11px; line-height: 1.55; }
 .tournament-info-page { padding: 4px 0 28px; }
 .tournament-info-page-heading { margin-bottom: 16px; }
 .tournament-info-page-heading > span { color: #0877a7; font-size: 9px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; }
@@ -1801,6 +1820,8 @@ button {
   .tournament-info-card-wide { grid-column: auto; }
   .tournament-info-card { grid-template-columns: 36px minmax(0,1fr); padding: 13px; }
   .tournament-info-card-icon { width: 36px; height: 36px; font-size: 17px; }
+  .tournament-summary-highlights { grid-template-columns: 1fr; }
+  .summary-highlight-card { min-height: 0; }
 }
 
 /* Tema claro descansado: evita el blanco puro sin perder legibilidad. */
@@ -1950,6 +1971,14 @@ body,
 :root[data-theme="dark"] .tournament-info-card p,
 :root[data-theme="dark"] .tournament-info-card .tournament-info-long-text { color: #c8d5dc; }
 :root[data-theme="dark"] .tournament-info-card .tournament-info-missing { background: #29414f; color: #9fb2bd; }
+:root[data-theme="dark"] .summary-highlight-card { border-color: #38505d; background: #213744; }
+:root[data-theme="dark"] .summary-highlight-card header h2 { color: #f3f7f9; }
+:root[data-theme="dark"] .summary-podium a { background: #29414f; color: #e7eef2; }
+:root[data-theme="dark"] .summary-podium a:first-child { background: #403b25; }
+:root[data-theme="dark"] .summary-match-teams,
+:root[data-theme="dark"] .summary-result-row { color: #e7eef2; }
+:root[data-theme="dark"] .summary-highlight-empty,
+:root[data-theme="dark"] .summary-knockout > p { color: #b9c8d2; }
 :root[data-theme="dark"] .recent-champions button small { color: #e1cf8b; }
 
 :root[data-theme="dark"] :where(

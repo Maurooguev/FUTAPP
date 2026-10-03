@@ -21,8 +21,11 @@ import FixtureGeneratorModal from "../components/FixtureGeneratorModal/FixtureGe
 import TournamentReadiness from "../components/TournamentReadiness/TournamentReadiness";
 import TournamentExports from "../components/TournamentExports/TournamentExports";
 import KnockoutBracket from "../components/KnockoutBracket/KnockoutBracket";
+import EntityImage from "../components/EntityImage/EntityImage";
 
 const TOURNAMENT_TABS = new Set(["resumen", "info", "tabla", "equipos", "stats", "fixture"]);
+
+const formatMatchDate = (value) => value ? new Intl.DateTimeFormat("es-AR", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" }).format(new Date(value)) : "Horario a confirmar";
 
 function TorneoDetalle() {
   const { id } = useParams();
@@ -237,6 +240,11 @@ function TorneoDetalle() {
   const siguientePartidoPendiente = useMemo(() => [...partidos]
     .filter((partido) => ["PROGRAMADO", "EN_JUEGO"].includes(partido.estado?.toUpperCase()))
     .sort((a, b) => (a.fechaHora || "9999-12-31T23:59").localeCompare(b.fechaHora || "9999-12-31T23:59"))[0] || null, [partidos]);
+  const ultimoResultado = useMemo(() => [...partidos]
+    .filter((partido) => partido.estado?.toUpperCase() === "FINALIZADO")
+    .sort((a, b) => (b.fechaHora || "").localeCompare(a.fechaHora || "") || b.idPartido - a.idPartido)[0] || null, [partidos]);
+  const podio = useMemo(() => tabla.slice(0, 3), [tabla]);
+  const buscarEquipo = (teamId) => equipos.find((equipo) => equipo.idEquipo === teamId);
   const cantidadEquiposLlave = estructura?.divisiones?.[0]?.fases?.find((fase) => fase.tipo === "ELIMINACION_DIRECTA")?.clasificados || equipos.length;
   const usaLlave = torneo?.formato?.toLowerCase() === "eliminación directa" || torneo?.formato?.toLowerCase().includes("playoffs");
   const filaCampeon = tabla.find((fila) => fila.idEquipo === torneo?.idCampeon) || tabla[0];
@@ -411,6 +419,11 @@ const recargarDatosTorneo = () => {
               }
             />
           </div>}
+          {activeTab === "resumen" && <section className="tournament-summary-highlights">
+            {!usaLlave ? <article className="summary-highlight-card summary-podium"><header><span>Clasificación</span><h2>Podio actual</h2></header><div>{podio.length > 0 ? podio.map((fila, index) => { const team = buscarEquipo(fila.idEquipo); return <Link to={`/equipo/${fila.idEquipo}`} key={fila.idEquipo}><b>{index + 1}</b><EntityImage type="team" value={team?.escudo} alt="" /><strong>{fila.nombreEquipo}</strong><span>{fila.puntos} pts</span></Link>; }) : <p className="summary-highlight-empty">La tabla todavía no tiene posiciones.</p>}</div><button type="button" onClick={() => changeTab("tabla")}>Ver tabla completa →</button></article> : <article className="summary-highlight-card summary-knockout"><header><span>Eliminación directa</span><h2>{siguientePartidoPendiente?.observaciones || ultimoResultado?.observaciones || "Llave del torneo"}</h2></header><p>{siguientePartidoPendiente ? "La competencia continúa con el próximo cruce programado." : torneo.idCampeon ? `Campeón: ${torneo.nombreCampeon}` : "Revisá los cruces y resultados de cada fase."}</p><button type="button" onClick={() => changeTab("fixture")}>Ver llave completa →</button></article>}
+            <article className="summary-highlight-card summary-featured-match"><header><span>Próximo partido</span><h2>{siguientePartidoPendiente ? formatMatchDate(siguientePartidoPendiente.fechaHora) : "Sin partidos programados"}</h2></header>{siguientePartidoPendiente ? <Link to={`/partido/${siguientePartidoPendiente.idPartido}`} className="summary-match-teams"><span><EntityImage type="team" value={siguientePartidoPendiente.escudoEquipoLocal} alt="" /><strong>{siguientePartidoPendiente.nombreEquipoLocal}</strong></span><b>VS</b><span><EntityImage type="team" value={siguientePartidoPendiente.escudoEquipoVisitante} alt="" /><strong>{siguientePartidoPendiente.nombreEquipoVisitante}</strong></span></Link> : <p className="summary-highlight-empty">No hay un próximo encuentro confirmado.</p>}<button type="button" onClick={() => changeTab("fixture")}>Ver fixture →</button></article>
+            <article className="summary-highlight-card summary-last-result"><header><span>Último resultado</span><h2>{ultimoResultado ? formatMatchDate(ultimoResultado.fechaHora) : "Sin resultados"}</h2></header>{ultimoResultado ? <Link to={`/partido/${ultimoResultado.idPartido}`} className="summary-result-row"><span><EntityImage type="team" value={ultimoResultado.escudoEquipoLocal} alt="" /><strong>{ultimoResultado.nombreEquipoLocal}</strong></span><b>{ultimoResultado.golesLocal} - {ultimoResultado.golesVisitante}</b><span><EntityImage type="team" value={ultimoResultado.escudoEquipoVisitante} alt="" /><strong>{ultimoResultado.nombreEquipoVisitante}</strong></span></Link> : <p className="summary-highlight-empty">Todavía no se cargaron resultados.</p>}<button type="button" onClick={() => changeTab("fixture")}>Ver resultados →</button></article>
+          </section>}
           {activeTab === "resumen" && <div className="tournament-overview-actions" aria-label="Accesos rápidos del torneo">
             <button type="button" onClick={() => changeTab("fixture")}><span>Próximo partido</span><strong>{proximosPartidos[0] ? `${proximosPartidos[0].nombreEquipoLocal} vs ${proximosPartidos[0].nombreEquipoVisitante}` : "Ver fixture"}</strong><b>Ir al fixture ›</b></button>
             <button type="button" onClick={() => changeTab("equipos")}><span>Participantes</span><strong>{equipos.length} equipos</strong><b>Ver equipos ›</b></button>
