@@ -6,9 +6,9 @@
 .tournament-summary { display: flex; align-items: center; gap: 20px; }
 .tournament-emblem { width: 62px; height: 62px; flex: 0 0 62px; overflow: hidden; border: 1px solid #38505d; border-radius: 15px; background: #062432; }
 .tournament-emblem img { width: 100%; height: 100%; object-fit: cover; }
-.tournament-kicker { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; }
-.tournament-chip, .tournament-public-code { display: inline-flex; min-height: 36px; box-sizing: border-box; align-items: center; justify-content: center; margin: 0; padding: 4px 10px; border-radius: 3px; background: #e9f3f7; color: #0877a7; font-size: 11px; font-weight: 800; line-height: 1; letter-spacing: .04em; text-transform: uppercase; }
-.tournament-public-code.copyable-code { display: inline-flex; min-height: 36px; align-self: center; border-color: #dbe3e8; background: #fff; color: #596875; }
+.tournament-kicker { display: grid; grid-auto-flow: column; grid-auto-columns: max-content; align-items: stretch; justify-content: start; gap: 8px; margin-bottom: 5px; }
+.tournament-chip, .tournament-public-code { display: inline-flex; width: auto; height: 36px; min-height: 36px; box-sizing: border-box; align-items: center; justify-content: center; margin: 0; padding: 4px 10px; border-radius: 3px; background: #e9f3f7; color: #0877a7; font-size: 11px; font-weight: 800; line-height: 1; letter-spacing: .04em; text-transform: uppercase; vertical-align: middle; }
+.tournament-public-code.copyable-code { display: inline-flex; height: 36px; min-height: 36px; margin: 0; align-self: stretch; border-color: #dbe3e8; background: #fff; color: #596875; }
 .tournament-hero h1 { margin: 0 0 4px; color: #17212b; font-size: 25px; line-height: 1.15; font-weight: 800; }
 .tournament-hero p { color: #687884; font-size: 14px; line-height: 1.45; }
 .tournament-creator { display: inline-flex; align-items: center; gap: 6px; margin-top: 7px; padding: 6px 8px; border: 1px solid #c8e1e9; border-radius: 4px; background: #f4fafc; color: #526273; font-size: 10px; }.tournament-creator strong { color: #0877a7; }.tournament-creator b { margin-left: 4px; color: #0877a7; font-size: 9px; }
