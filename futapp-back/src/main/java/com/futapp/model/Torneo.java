@@ -16,6 +16,10 @@ public class Torneo {
     @Column(length = 500)
     private String descripcion;
     private String ubicacion;
+    @Column(name = "direccion_sede", length = 200)
+    private String direccionSede;
+    @Column(name = "google_maps_url", length = 1000)
+    private String googleMapsUrl;
     private String estado;
     private String formato;
     @Column(name = "ida_vuelta", nullable = false) private Boolean idaVuelta = false;
@@ -73,6 +77,11 @@ public class Torneo {
     public void setUbicacion(String ubicacion) {
         this.ubicacion = TextNormalizer.titleCase(ubicacion);
     }
+
+    public String getDireccionSede() { return direccionSede; }
+    public void setDireccionSede(String direccionSede) { this.direccionSede = TextNormalizer.titleCase(direccionSede); }
+    public String getGoogleMapsUrl() { return googleMapsUrl; }
+    public void setGoogleMapsUrl(String googleMapsUrl) { this.googleMapsUrl = googleMapsUrl == null || googleMapsUrl.isBlank() ? null : googleMapsUrl.trim(); }
 
     public String getEstado() {
         return estado;

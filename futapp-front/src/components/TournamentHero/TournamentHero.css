@@ -18,6 +18,8 @@
 .tournament-meta small, .tournament-meta strong { display: block; }
 .tournament-meta small { margin-bottom: 2px; color: #89959d; font-size: 11px; text-transform: uppercase; }
 .tournament-meta strong { color: #26343e; font-size: 14px; }
+.tournament-map-link { display: inline-flex; margin-top: 5px; align-items: center; gap: 3px; color: #0877a7; font-size: 10px; font-weight: 900; }
+.tournament-map-link:hover { text-decoration: underline; }
 .tournament-tabs { position: sticky; top: 0; z-index: 35; border-top: 1px solid #e3e8eb; border-bottom: 1px solid #d9e0e5; background: rgba(248,249,250,.97); backdrop-filter: blur(8px); }
 .tournament-tabs .tournament-shell { display: flex; overflow-x: auto; }
 .tournament-tabs button { flex: 0 0 auto; padding: 13px 18px 11px; border: 0; border-bottom: 3px solid transparent; border-radius: 0; background: transparent; color: #50616d; font-size: 13px; font-weight: 700; white-space: nowrap; }
@@ -42,6 +44,7 @@
 :root[data-theme="dark"] .tournament-meta > span { border-color: #48616e; }
 :root[data-theme="dark"] .tournament-meta small { color: #9fb2bd; }
 :root[data-theme="dark"] .tournament-meta strong { color: #f3f7f9; }
+:root[data-theme="dark"] .tournament-map-link { color: #67d7ee; }
 :root[data-theme="dark"] .tournament-tabs { background: rgba(26,48,60,.97); border-color: #38505d; }
 :root[data-theme="dark"] .tournament-tabs button { color: #b9c8d2; }
 :root[data-theme="dark"] .tournament-tabs button.active,

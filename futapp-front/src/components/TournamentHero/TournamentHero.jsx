@@ -33,7 +33,7 @@ function TournamentHero({ torneo, fechaActual, perfilOrganizador, activeTab = "r
 
         <div className="tournament-meta">
           <span><small>Estado</small><strong>{torneo.estado}</strong></span>
-          <span><small>Ubicación</small><strong>{torneo.ubicacion}</strong></span>
+          <span><small>Ubicación</small><strong>{torneo.direccionSede || torneo.ubicacion}</strong>{torneo.googleMapsUrl && <a className="tournament-map-link" href={torneo.googleMapsUrl} target="_blank" rel="noopener noreferrer">📍 Cómo llegar</a>}</span>
           <span><small>Equipos</small><strong>{torneo.cantidadEquipos}</strong></span>
           <span><small>Jornada</small><strong>{fechaActual ? `Fecha ${fechaActual.numeroFecha}` : "Sin fechas"}</strong></span>
           <span><small>Visitas</small><strong>👁 {torneo.visitas || 0}</strong></span>

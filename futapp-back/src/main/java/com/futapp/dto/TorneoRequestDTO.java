@@ -5,6 +5,7 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.Pattern;
 
 public class TorneoRequestDTO {
 
@@ -19,6 +20,13 @@ public class TorneoRequestDTO {
     @NotBlank(message = "La ubicación es obligatoria")
     @Size(max = 120, message = "La ubicación no puede superar los 120 caracteres")
     private String ubicacion;
+
+    @Size(max = 200, message = "La dirección no puede superar los 200 caracteres")
+    private String direccionSede;
+
+    @Size(max = 1000, message = "El enlace de Google Maps es demasiado largo")
+    @Pattern(regexp = "^$|https://((www\\.)?google\\.[a-z.]+/maps|maps\\.app\\.goo\\.gl|goo\\.gl/maps)(/.*)?$", message = "Ingresá un enlace válido de Google Maps")
+    private String googleMapsUrl;
 
     @NotBlank(message = "El estado es obligatorio")
     private String estado;
@@ -70,6 +78,11 @@ public class TorneoRequestDTO {
     public void setUbicacion(String ubicacion) {
         this.ubicacion = ubicacion;
     }
+
+    public String getDireccionSede() { return direccionSede; }
+    public void setDireccionSede(String direccionSede) { this.direccionSede = direccionSede; }
+    public String getGoogleMapsUrl() { return googleMapsUrl; }
+    public void setGoogleMapsUrl(String googleMapsUrl) { this.googleMapsUrl = googleMapsUrl; }
 
     public String getEstado() {
         return estado;

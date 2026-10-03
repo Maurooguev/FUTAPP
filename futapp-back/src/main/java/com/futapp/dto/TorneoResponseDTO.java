@@ -6,6 +6,8 @@ public class TorneoResponseDTO {
     private String nombre;
     private String descripcion;
     private String ubicacion;
+    private String direccionSede;
+    private String googleMapsUrl;
     private String estado;
     private String formato;
     private Integer cantidadEquipos;
@@ -74,6 +76,11 @@ public class TorneoResponseDTO {
     public void setUbicacion(String ubicacion) {
         this.ubicacion = ubicacion;
     }
+
+    public String getDireccionSede() { return direccionSede; }
+    public void setDireccionSede(String direccionSede) { this.direccionSede = direccionSede; }
+    public String getGoogleMapsUrl() { return googleMapsUrl; }
+    public void setGoogleMapsUrl(String googleMapsUrl) { this.googleMapsUrl = googleMapsUrl; }
 
     public String getEstado() {
         return estado;
