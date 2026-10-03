@@ -50,27 +50,8 @@ function StandingsTable({ tabla, title = "Tabla de posiciones" }) {
         <div className="standings-modal-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setShowFullTable(false); }}>
           <section className="standings-modal" role="dialog" aria-modal="true" aria-labelledby="standings-modal-title">
             <header><div><span>Clasificación</span><h2 id="standings-modal-title">{title}</h2></div><button type="button" onClick={() => setShowFullTable(false)} aria-label="Cerrar tabla completa">×</button></header>
-            <p className="standings-swipe-hint">Todas las estadísticas de cada equipo.</p>
-            <div className="standings-mobile-full-list">
-              {tabla.map((fila, index) => (
-                <article className={index === 0 ? "leader" : ""} key={fila.idEquipo}>
-                  <div className="standings-mobile-team">
-                    <span>{index + 1}</span>
-                    <Link to={`/equipo/${fila.idEquipo}`} onClick={() => setShowFullTable(false)}>{fila.nombreEquipo}</Link>
-                    <strong>{fila.puntos}<small>Pts</small></strong>
-                  </div>
-                  <dl>
-                    <div><dt>PJ</dt><dd>{fila.partidosJugados}</dd></div>
-                    <div><dt>PG</dt><dd>{fila.ganados}</dd></div>
-                    <div><dt>PE</dt><dd>{fila.empatados}</dd></div>
-                    <div><dt>PP</dt><dd>{fila.perdidos}</dd></div>
-                    <div><dt>GF</dt><dd>{fila.golesFavor}</dd></div>
-                    <div><dt>GC</dt><dd>{fila.golesContra}</dd></div>
-                    <div><dt>DG</dt><dd>{fila.diferenciaGol}</dd></div>
-                  </dl>
-                </article>
-              ))}
-            </div>
+            <p className="standings-swipe-hint">Deslizá hacia los costados para ver todas las estadísticas.</p>
+            <div className="standings-modal-scroll">{table("standings-table-full")}</div>
           </section>
         </div>
       )}
