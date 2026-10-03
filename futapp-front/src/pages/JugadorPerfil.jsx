@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { API_URL, apiFetch, assetUrl } from "../config/api";
 import useAuth from "../context/useAuth";
 import { tieneRol } from "../utils/roles";
@@ -8,6 +8,7 @@ import FavoriteButton from "../components/FavoriteButton/FavoriteButton";
 import ImageLightbox from "../components/ImageLightbox/ImageLightbox";
 import EntityImage from "../components/EntityImage/EntityImage";
 import { jugadorGenerico } from "../utils/defaultEntityImages";
+import CopyableCode from "../components/CopyableCode/CopyableCode";
 
 async function fetchJson(url, message) {
   const response = await fetch(url);
@@ -27,6 +28,7 @@ function calcularEdad(fecha) {
 
 function JugadorPerfil() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const { usuario } = useAuth();
   const [jugador, setJugador] = useState(null);
   const [equipo, setEquipo] = useState(null);
@@ -103,9 +105,10 @@ function JugadorPerfil() {
   if (!jugador || !equipo) return <main className="profile-page"><div className="profile-message">Cargando perfil...</div></main>;
 
   return <main className="profile-page player-profile">
+    <button type="button" className="profile-back-link profile-back-button" onClick={() => navigate(-1)}>← Volver</button>
     <section className="player-hero">
       <button type="button" className="profile-avatar player-avatar image-preview-trigger" onClick={() => setPreviewImage({ src: jugador.foto ? assetUrl(jugador.foto) : jugadorGenerico, alt: `${jugador.nombre} ${jugador.apellido}` })} aria-label={`Ampliar foto de ${jugador.nombre} ${jugador.apellido}`}><EntityImage type="player" value={jugador.foto} alt={`${jugador.nombre} ${jugador.apellido}`} /></button>
-      <div><span className="profile-code">{jugador.codigoPublico}</span><h1>{jugador.nombre} {jugador.apellido} {jugador.verificado && <span className="verified-badge" title="Perfil vinculado con la cuenta del jugador">✓ Verificado</span>}</h1>{jugador.apodo && <p className="player-nickname">“{jugador.apodo}”</p>}<Link to={`/equipo/${equipo.idEquipo}`}>{equipo.nombre}</Link></div>
+      <div><CopyableCode className="profile-code" value={jugador.codigoPublico} /><h1>{jugador.nombre} {jugador.apellido} {jugador.verificado && <span className="verified-badge" title="Perfil vinculado con la cuenta del jugador">✓ Verificado</span>}</h1>{jugador.apodo && <p className="player-nickname">“{jugador.apodo}”</p>}<Link to={`/equipo/${equipo.idEquipo}`}>{equipo.nombre}</Link></div>
       <div className="player-hero-side"><strong className="shirt-number">#{jugador.numeroCamiseta}</strong><FavoriteButton type="jugadores" id={jugador.idJugador} /><span className="profile-views">👁 {jugador.visitas || 0} visitas</span></div>
       {isOwnProfile ? <div className="player-profile-actions"><Link className="profile-edit-link" to="/mi-perfil-jugador/editar">Editar perfil de jugador</Link>{(tieneRol(usuario, "ORGANIZADOR") || tieneRol(usuario, "ADMIN")) && <Link className="profile-organizer-link" to={organizerProfileExists ? "/mi-perfil-organizador" : "/mi-perfil-organizador/editar"}>{organizerProfileExists ? "Ver perfil de organizador" : "Generar perfil de organizador"}</Link>}</div> : tieneRol(usuario, "JUGADOR") && !jugador.verificado && <button className="profile-claim-button" onClick={claimPlayer}>Este jugador soy yo</button>}
     </section>

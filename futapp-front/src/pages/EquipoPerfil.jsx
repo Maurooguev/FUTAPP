@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { API_URL, apiFetch, assetUrl } from "../config/api";
 import useAuth from "../context/useAuth";
 import { tieneRol } from "../utils/roles";
@@ -11,6 +11,7 @@ import ImageLightbox from "../components/ImageLightbox/ImageLightbox";
 import plantelGenerico from "../assets/plantel-generico.png";
 import EntityImage from "../components/EntityImage/EntityImage";
 import { equipoGenerico } from "../utils/defaultEntityImages";
+import CopyableCode from "../components/CopyableCode/CopyableCode";
 
 async function fetchJson(url, message) {
   const response = await fetch(url);
@@ -20,6 +21,7 @@ async function fetchJson(url, message) {
 
 function EquipoPerfil() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const { usuario } = useAuth();
   const [equipo, setEquipo] = useState(null);
   const [jugadores, setJugadores] = useState([]);
@@ -83,12 +85,13 @@ function EquipoPerfil() {
   if (!equipo) return <main className="profile-page"><div className="profile-message">Cargando perfil...</div></main>;
 
   return <main className="profile-page">
+    <button type="button" className="profile-back-link profile-back-button" onClick={() => navigate(-1)}>← Volver</button>
     <section className="club-cover">
       <img src={equipo.fotoPlantel ? assetUrl(equipo.fotoPlantel) : plantelGenerico} alt={equipo.fotoPlantel ? `Plantel de ${equipo.nombre}` : `Fondo genérico del plantel de ${equipo.nombre}`} onError={(event) => { event.currentTarget.onerror = null; event.currentTarget.src = plantelGenerico; }} />
     </section>
     <section className="profile-identity">
       <button type="button" className="profile-avatar club-avatar image-preview-trigger" onClick={() => setPreviewImage({ src: equipo.escudo ? assetUrl(equipo.escudo) : equipoGenerico, alt: `Escudo de ${equipo.nombre}` })} aria-label={`Ampliar escudo de ${equipo.nombre}`}><EntityImage type="team" value={equipo.escudo} alt={`Escudo de ${equipo.nombre}`} /></button>
-      <div><span className="profile-code">{equipo.codigoPublico}</span><h1>{equipo.nombre} {equipo.verificado && <span className="verified-badge" title="Equipo administrado por un director aprobado">✓ Verificado</span>} {titulos.length > 0 && <span className="club-stars" title={`${titulos.length} título${titulos.length === 1 ? "" : "s"}`}>{"★".repeat(titulos.length)}</span>}</h1><p>{equipo.barrio || "Barrio sin informar"}</p></div>
+      <div><CopyableCode className="profile-code" value={equipo.codigoPublico} /><h1>{equipo.nombre} {equipo.verificado && <span className="verified-badge" title="Equipo administrado por un director aprobado">✓ Verificado</span>} {titulos.length > 0 && <span className="club-stars" title={`${titulos.length} título${titulos.length === 1 ? "" : "s"}`}>{"★".repeat(titulos.length)}</span>}</h1><p>{equipo.barrio || "Barrio sin informar"}</p></div>
       <div className="profile-owner-actions">
         <FavoriteButton type="equipos" id={equipo.idEquipo} />
         {hasManageAccess && <><span className="profile-owner-badge">Administrás este club</span><button onClick={() => setShowEdit(true)}>Editar perfil</button><button onClick={() => setShowRoster(true)}>Gestionar plantel</button></>}

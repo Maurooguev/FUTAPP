@@ -62,7 +62,6 @@ function TorneoDetalle() {
   const changeTab = (tab) => {
     setActiveTab(tab);
     window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}#${tab}`);
-    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   useEffect(() => {

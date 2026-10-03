@@ -38,6 +38,8 @@
 .profile-edit-link { margin-left: auto; padding: 9px 12px; border-radius: 4px; background: #fff; color: #0877a7 !important; font-size: 11px !important; font-weight: 800; text-decoration: none; }
 .player-profile-actions { display: grid; gap: 6px; margin-left: auto; text-align: center; }.player-profile-actions .profile-edit-link { margin-left: 0; }.profile-organizer-link { padding: 8px 10px; border: 1px solid rgba(255,255,255,.55); border-radius: 4px; color: #fff !important; font-size: 10px !important; font-weight: 800; }
 .profile-back-link { display: inline-block; margin-bottom: 8px; color: #0877a7; font-size: 11px; font-weight: 800; text-decoration: none; }
+.profile-back-button { padding: 8px 0; border: 0; background: transparent; cursor: pointer; }
+.profile-back-button:hover { color: #08a4d6; }
 .profile-owner-actions { display: flex; align-items: center; gap: 7px; margin-left: auto; }
 .profile-owner-actions button { padding: 8px 11px; border: 1px solid #0877a7; background: #0877a7; color: #fff; font-size: 10px; }
 .profile-owner-badge { padding: 6px 9px; border-radius: 999px; background: #e8f7ef; color: #17603a; font-size: 10px; font-weight: 800; }
@@ -94,6 +96,7 @@
 
 @media (max-width: 700px) {
   .profile-page { width: calc(100% - 24px); margin: 14px auto 36px; }
+  .profile-back-button { min-height: 44px; margin-bottom: 5px; font-size: 12px; }
   .club-cover { height: auto; aspect-ratio: 16 / 7; border-radius: 7px; }
   .profile-identity { align-items: flex-end; gap: 12px; padding-inline: 8px; transform: translateY(-22px); }
   .club-avatar { width: 76px; height: 76px; border-width: 4px; }

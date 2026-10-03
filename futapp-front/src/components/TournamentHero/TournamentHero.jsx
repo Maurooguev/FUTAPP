@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import "./TournamentHero.css";
 import FavoriteButton from "../FavoriteButton/FavoriteButton";
 import torneoGenerico from "../../assets/torneo-generico.png";
+import CopyableCode from "../CopyableCode/CopyableCode";
 
 const TABS = [["resumen", "Resumen"], ["tabla", "Tabla"], ["equipos", "Equipos"], ["stats", "Estadísticas"], ["fixture", "Fixture"]];
 
@@ -21,7 +22,7 @@ function TournamentHero({ torneo, fechaActual, perfilOrganizador, activeTab = "r
           <div className="tournament-heading">
             <div className="tournament-kicker">
               <span className="tournament-chip">{torneo.formato}</span>
-              <span className="tournament-public-code">{torneo.codigoPublico}</span>
+              <CopyableCode className="tournament-public-code" value={torneo.codigoPublico} />
             </div>
             <h1>{torneo.nombre}</h1>
             <p>{torneo.descripcion || "Competición de fútbol amateur"}</p>

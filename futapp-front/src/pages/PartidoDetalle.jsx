@@ -32,6 +32,9 @@ function PartidoDetalle() {
 
   const amarillas = tarjetas.filter((tarjeta) => tarjeta.tipoTarjeta?.toUpperCase() === "AMARILLA").length;
   const rojas = tarjetas.filter((tarjeta) => tarjeta.tipoTarjeta?.toUpperCase() === "ROJA").length;
+  const fechaPartido = partido.fechaHora ? new Intl.DateTimeFormat("es-AR", {
+    day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit",
+  }).format(new Date(partido.fechaHora)) : "Fecha a confirmar";
 
   return (
     <div className="partido-page">
@@ -61,7 +64,7 @@ function PartidoDetalle() {
           </div>
 
           <p className="partido-info">
-            {partido.fechaHora} · {partido.estado}{partido.cancha ? ` · ${partido.cancha}` : ""}
+            {fechaPartido} · {partido.estado}{partido.cancha ? ` · ${partido.cancha}` : ""}
           </p>
         </div>
       </section>

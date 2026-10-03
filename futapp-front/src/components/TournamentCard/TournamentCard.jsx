@@ -1,6 +1,7 @@
 import "./TournamentCard.css";
 import torneoGenerico from "../../assets/torneo-generico.png";
 import EntityImage from "../EntityImage/EntityImage";
+import CopyableCode from "../CopyableCode/CopyableCode";
 
 function TournamentCard({ torneo, variant = "default", onClick }) {
   const estadoClass = torneo.estado?.toLowerCase();
@@ -16,7 +17,7 @@ function TournamentCard({ torneo, variant = "default", onClick }) {
           <span className={`status-badge ${estadoClass}`}>{torneo.estado}</span>
           <span className="tournament-location">{torneo.ubicacion}</span>
         </div>
-        <span className="tournament-code">{torneo.codigoPublico}</span>
+        <CopyableCode className="tournament-code" value={torneo.codigoPublico} />
 
         <div className="tournament-card-title"><img src={torneoGenerico} alt="" /><h3>{torneo.nombre}</h3></div>
         <div className="tournament-meta">
@@ -48,7 +49,7 @@ function TournamentCard({ torneo, variant = "default", onClick }) {
         <div className="tournament-card-title"><img src={torneoGenerico} alt="" /><h3>{torneo.nombre}</h3></div>
         <span className={`status-badge small ${estadoClass}`}>{torneo.estado}</span>
       </div>
-      <span className="tournament-code">{torneo.codigoPublico}</span>
+      <CopyableCode className="tournament-code" value={torneo.codigoPublico} />
 
       <div className="tournament-card-meta">
         <span>📍 {torneo.ubicacion}</span>
