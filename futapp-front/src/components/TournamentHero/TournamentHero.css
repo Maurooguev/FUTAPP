@@ -8,7 +8,7 @@
 .tournament-emblem img { width: 100%; height: 100%; object-fit: cover; }
 .tournament-kicker { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; }
 .tournament-chip, .tournament-public-code { display: inline-block; margin: 0; padding: 4px 8px; border-radius: 3px; background: #e9f3f7; color: #0877a7; font-size: 11px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; }
-.tournament-public-code { background: #f0f2f4; color: #596875; }
+.tournament-public-code { border-color: #dbe3e8; background: #fff; color: #596875; }
 .tournament-hero h1 { margin: 0 0 4px; color: #17212b; font-size: 25px; line-height: 1.15; font-weight: 800; }
 .tournament-hero p { color: #687884; font-size: 14px; line-height: 1.45; }
 .tournament-creator { display: inline-flex; align-items: center; gap: 6px; margin-top: 7px; padding: 6px 8px; border: 1px solid #c8e1e9; border-radius: 4px; background: #f4fafc; color: #526273; font-size: 10px; }.tournament-creator strong { color: #0877a7; }.tournament-creator b { margin-left: 4px; color: #0877a7; font-size: 9px; }
@@ -49,3 +49,4 @@
 :root[data-theme="dark"] .tournament-creator { background: #29414f; border-color: #48616e; color: #b9c8d2; }
 :root[data-theme="dark"] .tournament-creator strong,
 :root[data-theme="dark"] .tournament-creator b { color: #67d7ee; }
+:root[data-theme="dark"] .tournament-public-code { border-color: #dbe3e8; background: #fff; color: #334155; }

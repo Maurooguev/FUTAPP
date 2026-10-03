@@ -2,15 +2,21 @@
   position: relative;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 5px;
-  padding: 0;
-  border: 0;
-  background: transparent;
+  min-height: 30px;
+  padding: 5px 9px;
+  border: 1px solid rgba(8, 119, 167, .16);
+  border-radius: 5px;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, .08);
   cursor: pointer;
   font: inherit;
+  line-height: 1;
+  text-align: center;
 }
 
-.copyable-code:hover { filter: brightness(.96); }
+.copyable-code:hover { border-color: rgba(8, 119, 167, .38); background: #f8fcfe; }
 .copyable-code:focus-visible { outline: 2px solid #08a4d6; outline-offset: 2px; }
 .copyable-code-icon { font-size: .9em; opacity: .7; }
 .copyable-code-feedback {
@@ -31,3 +37,9 @@
   white-space: nowrap;
 }
 .copyable-code-feedback.visible { opacity: 1; transform: translate(-50%, 0); }
+
+:root[data-theme="dark"] .copyable-code {
+  border-color: rgba(103, 215, 238, .25);
+  background: #f8fafc;
+  color: #075985;
+}
