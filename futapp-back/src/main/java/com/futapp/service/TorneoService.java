@@ -14,6 +14,7 @@ import com.futapp.repository.InscripcionEquipoRepository;
 import com.futapp.repository.InscripcionJugadorRepository;
 import com.futapp.repository.EquipoRepository;
 import com.futapp.repository.PerfilOrganizadorRepository;
+import com.futapp.repository.FechaRepository;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,12 +37,14 @@ public class TorneoService {
     private final EquipoRepository equipos;
     private final TablaPosicionService tablaPosiciones;
     private final PerfilOrganizadorRepository perfilesOrganizador;
+    private final FechaRepository fechas;
 
     public TorneoService(TorneoRepository torneoRepository, TorneoAuthorizationService authorization,
                          PartidoRepository partidos, InscripcionEquipoRepository inscripcionesEquipo,
                          InscripcionJugadorRepository inscripcionesJugador,
                          EstructuraCompetenciaService estructuraCompetencia, EquipoRepository equipos,
-                         TablaPosicionService tablaPosiciones, PerfilOrganizadorRepository perfilesOrganizador) {
+                         TablaPosicionService tablaPosiciones, PerfilOrganizadorRepository perfilesOrganizador,
+                         FechaRepository fechas) {
         this.torneoRepository = torneoRepository;
         this.authorization = authorization;
         this.partidos = partidos;
@@ -51,6 +54,7 @@ public class TorneoService {
         this.equipos = equipos;
         this.tablaPosiciones = tablaPosiciones;
         this.perfilesOrganizador = perfilesOrganizador;
+        this.fechas = fechas;
     }
 
     public List<TorneoResponseDTO> listarTorneos() {
@@ -214,14 +218,23 @@ public class TorneoService {
             throw new IllegalArgumentException("Un torneo finalizado no puede volver a iniciarse");
         }
         var inscripciones = inscripcionesEquipo.findByTorneoIdTorneoAndEstado(id, "ACTIVA");
-        if (inscripciones.size() < 2) throw new IllegalArgumentException("Se necesitan al menos 2 equipos para iniciar el torneo");
-        var sinJugadores = inscripciones.stream()
-                .filter(item -> inscripcionesJugador.countByInscripcionEquipoIdInscripcionAndEstado(item.getIdInscripcion(), "ACTIVA") == 0)
-                .map(item -> item.getEquipo().getNombre()).toList();
-        if (!sinJugadores.isEmpty()) {
-            throw new IllegalArgumentException("Estos equipos todavía no tienen jugadores: " + String.join(", ", sinJugadores));
+        int cantidadRequerida = torneo.getCantidadEquipos() == null ? 2 : torneo.getCantidadEquipos();
+        if (inscripciones.size() != cantidadRequerida) {
+            throw new IllegalArgumentException("Para iniciar el torneo deben estar inscriptos los "
+                    + cantidadRequerida + " equipos configurados. Actualmente hay " + inscripciones.size());
         }
-        if (partidos.findByTorneoIdTorneo(id).isEmpty()) throw new IllegalArgumentException("Generá el fixture antes de iniciar el torneo");
+        var plantelesIncompletos = inscripciones.stream().map(item -> {
+            long jugadores = inscripcionesJugador.countByInscripcionEquipoIdInscripcionAndEstado(
+                    item.getIdInscripcion(), "ACTIVA");
+            return jugadores < 5 ? item.getEquipo().getNombre() + " (" + jugadores + "/5)" : null;
+        }).filter(java.util.Objects::nonNull).toList();
+        if (!plantelesIncompletos.isEmpty()) {
+            throw new IllegalArgumentException("Cada equipo necesita al menos 5 jugadores activos. Faltan: "
+                    + String.join(", ", plantelesIncompletos));
+        }
+        if (!fechas.existsByTorneoIdTorneoAndNumeroFecha(id, 1)) {
+            throw new IllegalArgumentException("Creá la primera fecha antes de iniciar el torneo");
+        }
         torneo.setEstado("ACTIVO");
         return convertirAResponseDTO(torneoRepository.save(torneo));
     }

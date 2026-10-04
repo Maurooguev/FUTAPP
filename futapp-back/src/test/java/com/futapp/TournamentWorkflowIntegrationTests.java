@@ -47,6 +47,10 @@ class TournamentWorkflowIntegrationTests {
 
         JsonNode jugadorLocal = postJson("/jugadores", token, jugador("Juan", "Norte", 10, local.get("idEquipo").asLong()));
         JsonNode jugadorVisitante = postJson("/jugadores", token, jugador("Pedro", "Sur", 9, visitante.get("idEquipo").asLong()));
+        for (int indice = 2; indice <= 5; indice++) {
+            postJson("/jugadores", token, jugador("Local" + indice, "Norte", 10 + indice, local.get("idEquipo").asLong()));
+            postJson("/jugadores", token, jugador("Visitante" + indice, "Sur", 20 + indice, visitante.get("idEquipo").asLong()));
+        }
         putJson("/favoritos/jugadores/" + jugadorLocal.get("idJugador").asLong(), token, null)
                 .andExpect(status().isOk()).andExpect(jsonPath("$.favorito").value(true));
         mockMvc.perform(get("/favoritos").header("Authorization", "Bearer " + token))
@@ -93,7 +97,7 @@ class TournamentWorkflowIntegrationTests {
 
         mockMvc.perform(get("/partidos/{id}/jugadores", partidoId))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", org.hamcrest.Matchers.hasSize(2)));
+                .andExpect(jsonPath("$", org.hamcrest.Matchers.hasSize(10)));
 
         postJson("/goles", token, Map.of("minuto", 12, "tipoGol", "Jugada", "idPartido", partidoId,
                 "idJugador", jugadorLocal.get("idJugador").asLong(), "idEquipo", local.get("idEquipo").asLong()));
@@ -189,6 +193,32 @@ class TournamentWorkflowIntegrationTests {
                 Map.of("golesLocal", 0, "golesVisitante", 0))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("El torneo está finalizado y su historial ya no se puede modificar"));
+    }
+
+    @Test
+    void exigeCuposPlantelesYPrimeraFechaParaIniciar() throws Exception {
+        String token = registrarOrganizador();
+        long torneoId = postJson("/torneos", token, torneo()).get("idTorneo").asLong();
+        JsonNode local = postJson("/equipos", token, equipo("Local incompleto", "Azul", torneoId));
+
+        putJson("/torneos/" + torneoId + "/iniciar", token, null)
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value(org.hamcrest.Matchers.containsString(
+                        "deben estar inscriptos los 2 equipos")));
+
+        JsonNode visitante = postJson("/equipos", token, equipo("Visitante incompleto", "Rojo", torneoId));
+        putJson("/torneos/" + torneoId + "/iniciar", token, null)
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value(org.hamcrest.Matchers.containsString(
+                        "al menos 5 jugadores activos")));
+
+        for (int indice = 1; indice <= 5; indice++) {
+            postJson("/jugadores", token, jugador("Local" + indice, "Prueba", 10 + indice, local.get("idEquipo").asLong()));
+            postJson("/jugadores", token, jugador("Visitante" + indice, "Prueba", 20 + indice, visitante.get("idEquipo").asLong()));
+        }
+        putJson("/torneos/" + torneoId + "/iniciar", token, null)
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Creá la primera fecha antes de iniciar el torneo"));
     }
 
     @Test
