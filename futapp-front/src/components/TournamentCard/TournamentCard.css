@@ -113,7 +113,7 @@
 }
 
 .tournament-card-title { display: flex; min-width: 0; align-items: center; gap: 8px; }
-.tournament-card-title > img { width: 32px; height: 32px; flex: 0 0 auto; border-radius: 8px; object-fit: cover; }
+.tournament-card-title > .tournament-icon { width: 32px; height: 32px; flex: 0 0 auto; }
 .tournament-card-title h3 { min-width: 0; margin: 0; }
 .featured-tournament-card .tournament-card-title { margin: 10px 0 6px; }
 .featured-tournament-card .tournament-card-title h3 { margin: 0; }
@@ -130,7 +130,7 @@
 .tournament-card-podium-heading b { text-align: right; }
 .tournament-card-podium-row { min-height: 31px; padding: 4px 7px; border-top: 1px solid #e8eef1; color: #263a47; font-size: 9px; }
 .tournament-card-podium-row:first-of-type { border-top: 0; }
-.tournament-card-podium-row img { width: 20px; height: 20px; border-radius: 50%; object-fit: contain; background: #fff; }
+.tournament-card-podium-row img { width: 20px; height: 20px; border-radius: 0; object-fit: contain; background: transparent; }
 .tournament-card-podium-row strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .tournament-card-podium-row > b { text-align: right; color: #0877a7; }
 .podium-position { color: #738593; text-align: center; font-weight: 800; }

@@ -1,8 +1,8 @@
 import { Link } from "react-router-dom";
 import "./TournamentHero.css";
 import FavoriteButton from "../FavoriteButton/FavoriteButton";
-import torneoGenerico from "../../assets/torneo-generico.png";
 import CopyableCode from "../CopyableCode/CopyableCode";
+import TournamentIcon from "../TournamentIcon/TournamentIcon";
 
 const TABS = [["resumen", "Resumen"], ["info", "Info"], ["tabla", "Tabla"], ["equipos", "Equipos"], ["stats", "Estadísticas"], ["fixture", "Fixture"]];
 
@@ -18,7 +18,7 @@ function TournamentHero({ torneo, fechaActual, activeTab = "resumen", onTabChang
         </Link>
 
         <div className="tournament-summary">
-          <div className="tournament-emblem" aria-hidden="true"><img src={torneoGenerico} alt="" /></div>
+          <TournamentIcon className="tournament-emblem" aria-hidden="true" />
           <div className="tournament-heading">
             <div className="tournament-kicker">
               <span className="tournament-chip">{torneo.formato}</span>

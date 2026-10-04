@@ -1,0 +1,5 @@
+.tournament-icon { display: inline-grid; place-items: center; overflow: visible; }
+.tournament-icon img { display: block; width: 100%; height: 100%; object-fit: contain; }
+.tournament-icon-dark { display: none !important; }
+:root[data-theme="dark"] .tournament-icon-light { display: none; }
+:root[data-theme="dark"] .tournament-icon-dark { display: block !important; }
