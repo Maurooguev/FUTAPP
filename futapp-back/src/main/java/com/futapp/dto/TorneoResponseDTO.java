@@ -16,6 +16,7 @@ public class TorneoResponseDTO {
     private String codigoPublico;
     private Long idPropietario;
     private String nombrePropietario;
+    private String logoOrganizador;
     private Boolean idaVuelta;
     private Integer puntosVictoria;
     private Integer puntosEmpate;
@@ -117,6 +118,8 @@ public class TorneoResponseDTO {
     public void setIdPropietario(Long idPropietario) { this.idPropietario = idPropietario; }
     public String getNombrePropietario() { return nombrePropietario; }
     public void setNombrePropietario(String nombrePropietario) { this.nombrePropietario = nombrePropietario; }
+    public String getLogoOrganizador() { return logoOrganizador; }
+    public void setLogoOrganizador(String logoOrganizador) { this.logoOrganizador = logoOrganizador; }
     public Boolean getIdaVuelta() { return idaVuelta; } public void setIdaVuelta(Boolean value) { this.idaVuelta = value; }
     public Integer getPuntosVictoria() { return puntosVictoria; } public void setPuntosVictoria(Integer value) { this.puntosVictoria = value; }
     public Integer getPuntosEmpate() { return puntosEmpate; } public void setPuntosEmpate(Integer value) { this.puntosEmpate = value; }

@@ -49,7 +49,7 @@ function MiPerfilOrganizador() {
     <Link to="/mis-torneos" className="organizer-profile-back">← Volver a mis torneos</Link>
     <header><span>{exists ? "Editar perfil" : "Perfil opcional"}</span><h1>{exists ? "Actualizá tu perfil de organizador" : "Creá tu perfil de organizador"}</h1><p>Este perfil será público. Completalo cuando tengas información e imágenes que quieras mostrar.</p></header>
     <form className="organizer-profile-form" onSubmit={submit}>
-      <ImageUploadField label="Foto de perfil" value={form.fotoPerfil} shape="avatar" onUploaded={(fotoPerfil) => setForm((current) => ({ ...current, fotoPerfil }))} />
+      <ImageUploadField label="Logo del organizador" value={form.fotoPerfil} shape="avatar" allowBackgroundRemoval onUploaded={(fotoPerfil) => setForm((current) => ({ ...current, fotoPerfil }))} />
       <ImageUploadField label="Foto de portada" value={form.fotoPortada} onUploaded={(fotoPortada) => setForm((current) => ({ ...current, fotoPortada }))} />
       <label>Nombre público<input required maxLength="80" value={form.nombrePublico} onChange={(event) => setForm((current) => ({ ...current, nombrePublico: event.target.value }))} placeholder="Ej: Liga Amateur Zona Oeste" /></label>
       <label>Descripción<textarea required maxLength="1200" rows="7" value={form.descripcion} onChange={(event) => setForm((current) => ({ ...current, descripcion: event.target.value }))} placeholder="Contá quién organiza, en qué zona y qué tipo de torneos realiza." /></label>

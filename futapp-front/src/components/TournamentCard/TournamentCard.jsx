@@ -42,7 +42,7 @@ function TournamentCard({ torneo, variant = "default", onClick }) {
           <span className={`status-badge ${estadoClass}`}>{torneo.estado}</span>
           <span className="tournament-location">{torneo.ubicacion}</span>
         </div>
-        <div className="tournament-card-title"><TournamentIcon aria-hidden="true" /><h3>{torneo.nombre}</h3></div>
+        <div className="tournament-card-title"><TournamentIcon value={torneo.logoOrganizador} aria-hidden="true" /><h3>{torneo.nombre}</h3></div>
         <CopyableCode className="tournament-code" value={torneo.codigoPublico} />
         {compactInfo}
 
@@ -66,7 +66,7 @@ function TournamentCard({ torneo, variant = "default", onClick }) {
   return (
     <div className="tournament-card" onClick={onClick}>
       <div className="tournament-card-header">
-        <div className="tournament-card-title"><TournamentIcon aria-hidden="true" /><h3>{torneo.nombre}</h3></div>
+        <div className="tournament-card-title"><TournamentIcon value={torneo.logoOrganizador} aria-hidden="true" /><h3>{torneo.nombre}</h3></div>
         <span className={`status-badge small ${estadoClass}`}>{torneo.estado}</span>
       </div>
       <CopyableCode className="tournament-code" value={torneo.codigoPublico} />

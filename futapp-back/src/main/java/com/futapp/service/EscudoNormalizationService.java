@@ -1,7 +1,9 @@
 package com.futapp.service;
 
 import com.futapp.model.Equipo;
+import com.futapp.model.PerfilOrganizador;
 import com.futapp.repository.EquipoRepository;
+import com.futapp.repository.PerfilOrganizadorRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -26,12 +28,14 @@ public class EscudoNormalizationService {
     private static final double COLOR_TOLERANCE = 54.0;
     private static final double FEATHER_RANGE = 28.0;
     private final EquipoRepository equipos;
+    private final PerfilOrganizadorRepository perfilesOrganizador;
     private final Path uploads;
     private final Path respaldos;
 
-    public EscudoNormalizationService(EquipoRepository equipos,
+    public EscudoNormalizationService(EquipoRepository equipos, PerfilOrganizadorRepository perfilesOrganizador,
                                       @Value("${futapp.uploads.directory:./data/uploads}") String directory) {
         this.equipos = equipos;
+        this.perfilesOrganizador = perfilesOrganizador;
         this.uploads = Path.of(directory).toAbsolutePath().normalize();
         this.respaldos = this.uploads.resolveSibling("upload-originals").normalize();
     }
@@ -50,7 +54,15 @@ public class EscudoNormalizationService {
             equipo.setEscudo(normalizado);
             actualizados += 1;
         }
-        if (actualizados > 0) LOGGER.info("Escudos normalizados con fondo transparente: {}", actualizados);
+        for (PerfilOrganizador perfil : perfilesOrganizador.findAll()) {
+            String actual = perfil.getFotoPerfil();
+            if (actual == null || !actual.startsWith("/uploads/")) continue;
+            String normalizado = procesados.computeIfAbsent(actual, this::normalizarRuta);
+            if (normalizado == null || normalizado.equals(actual)) continue;
+            perfil.setFotoPerfil(normalizado);
+            actualizados += 1;
+        }
+        if (actualizados > 0) LOGGER.info("Escudos y logos normalizados con fondo transparente: {}", actualizados);
     }
 
     private String normalizarRuta(String rutaPublica) {

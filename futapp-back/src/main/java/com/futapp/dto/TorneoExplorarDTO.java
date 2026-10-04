@@ -13,6 +13,7 @@ public record TorneoExplorarDTO(
         String codigoPublico,
         Long idPropietario,
         String nombrePropietario,
+        String logoOrganizador,
         Long idCampeon,
         String nombreCampeon,
         String escudoCampeon,

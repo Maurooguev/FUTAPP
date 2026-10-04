@@ -13,6 +13,7 @@ import com.futapp.repository.PartidoRepository;
 import com.futapp.repository.InscripcionEquipoRepository;
 import com.futapp.repository.InscripcionJugadorRepository;
 import com.futapp.repository.EquipoRepository;
+import com.futapp.repository.PerfilOrganizadorRepository;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,12 +35,13 @@ public class TorneoService {
     private final EstructuraCompetenciaService estructuraCompetencia;
     private final EquipoRepository equipos;
     private final TablaPosicionService tablaPosiciones;
+    private final PerfilOrganizadorRepository perfilesOrganizador;
 
     public TorneoService(TorneoRepository torneoRepository, TorneoAuthorizationService authorization,
                          PartidoRepository partidos, InscripcionEquipoRepository inscripcionesEquipo,
                          InscripcionJugadorRepository inscripcionesJugador,
                          EstructuraCompetenciaService estructuraCompetencia, EquipoRepository equipos,
-                         TablaPosicionService tablaPosiciones) {
+                         TablaPosicionService tablaPosiciones, PerfilOrganizadorRepository perfilesOrganizador) {
         this.torneoRepository = torneoRepository;
         this.authorization = authorization;
         this.partidos = partidos;
@@ -48,6 +50,7 @@ public class TorneoService {
         this.estructuraCompetencia = estructuraCompetencia;
         this.equipos = equipos;
         this.tablaPosiciones = tablaPosiciones;
+        this.perfilesOrganizador = perfilesOrganizador;
     }
 
     public List<TorneoResponseDTO> listarTorneos() {
@@ -274,6 +277,10 @@ public class TorneoService {
         response.setGoogleMapsUrl(torneo.getGoogleMapsUrl());
         response.setReglasTexto(torneo.getReglasTexto());
         response.setPremiosTexto(torneo.getPremiosTexto());
+        if (propietario != null) {
+            perfilesOrganizador.findByUsuarioIdUsuario(propietario.getIdUsuario())
+                    .ifPresent(perfil -> response.setLogoOrganizador(perfil.getFotoPerfil()));
+        }
         return response;
     }
 

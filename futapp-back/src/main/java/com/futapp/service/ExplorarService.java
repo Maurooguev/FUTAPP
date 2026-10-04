@@ -7,6 +7,7 @@ import com.futapp.model.Partido;
 import com.futapp.model.Torneo;
 import com.futapp.repository.PartidoRepository;
 import com.futapp.repository.TorneoRepository;
+import com.futapp.repository.PerfilOrganizadorRepository;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,11 +25,14 @@ public class ExplorarService {
     private final TorneoRepository torneos;
     private final PartidoRepository partidos;
     private final TablaPosicionService tablaPosicionService;
+    private final PerfilOrganizadorRepository perfilesOrganizador;
 
-    public ExplorarService(TorneoRepository torneos, PartidoRepository partidos, TablaPosicionService tablaPosicionService) {
+    public ExplorarService(TorneoRepository torneos, PartidoRepository partidos, TablaPosicionService tablaPosicionService,
+                           PerfilOrganizadorRepository perfilesOrganizador) {
         this.torneos = torneos;
         this.partidos = partidos;
         this.tablaPosicionService = tablaPosicionService;
+        this.perfilesOrganizador = perfilesOrganizador;
     }
 
     @Transactional(readOnly = true)
@@ -71,6 +75,9 @@ public class ExplorarService {
                 torneo.getEstado(), torneo.getFormato(), torneo.getCantidadEquipos(), torneo.getCodigoPublico(),
                 torneo.getPropietario() == null ? null : torneo.getPropietario().getIdUsuario(),
                 torneo.getPropietario() == null ? null : torneo.getPropietario().getNombre(),
+                torneo.getPropietario() == null ? null : perfilesOrganizador
+                        .findByUsuarioIdUsuario(torneo.getPropietario().getIdUsuario())
+                        .map(perfil -> perfil.getFotoPerfil()).orElse(null),
                 torneo.getCampeon() == null ? null : torneo.getCampeon().getIdEquipo(),
                 torneo.getCampeon() == null ? null : torneo.getCampeon().getNombre(),
                 torneo.getCampeon() == null ? null : torneo.getCampeon().getEscudo(),

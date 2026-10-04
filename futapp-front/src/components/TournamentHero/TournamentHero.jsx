@@ -18,7 +18,7 @@ function TournamentHero({ torneo, fechaActual, activeTab = "resumen", onTabChang
         </Link>
 
         <div className="tournament-summary">
-          <TournamentIcon className="tournament-emblem" aria-hidden="true" />
+          <TournamentIcon className="tournament-emblem" value={torneo.logoOrganizador} aria-hidden="true" />
           <div className="tournament-heading">
             <div className="tournament-kicker">
               <span className="tournament-chip">{torneo.formato}</span>
