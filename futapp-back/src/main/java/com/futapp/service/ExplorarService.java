@@ -49,7 +49,7 @@ public class ExplorarService {
                         (primero, ignorado) -> primero));
 
         List<TorneoExplorarDTO> torneosDto = torneos.findAll().stream()
-                .filter(torneo -> !"BORRADOR".equalsIgnoreCase(torneo.getEstado()))
+                .filter(torneo -> List.of("ACTIVO", "FINALIZADO").contains(torneo.getEstado().toUpperCase()))
                 .map(torneo -> torneoDto(torneo, proximoPorTorneo.get(torneo.getIdTorneo())))
                 .toList();
         List<PartidoExplorarDTO> resultados = partidos

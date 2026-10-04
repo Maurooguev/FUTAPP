@@ -101,6 +101,38 @@ function TorneoDetalle() {
       setTorneo(payload);
     } catch (requestError) { setAdminError(requestError.message); }
   };
+
+  const eliminarBorrador = async () => {
+    if (!window.confirm("¿Eliminar definitivamente este borrador? Dejará de aparecer en tu cuenta.")) return;
+    setAdminError("");
+    try {
+      const response = await apiFetch(`${API_URL}/torneos/${id}`, { method: "DELETE" });
+      const payload = await response.json().catch(() => null);
+      if (!response.ok) throw new Error(payload?.message || "No se pudo eliminar el borrador");
+      window.location.assign("/mis-torneos");
+    } catch (requestError) { setAdminError(requestError.message); }
+  };
+
+  const cambiarVisibilidadTorneo = async (accion) => {
+    let body;
+    if (accion === "cancelar") {
+      const motivo = window.prompt("Indicá el motivo de la cancelación:");
+      if (!motivo?.trim()) return;
+      body = JSON.stringify({ motivo: motivo.trim() });
+    } else if (!window.confirm(accion === "archivar" ? "¿Archivar este torneo finalizado?" : "¿Volver a mostrar públicamente este torneo?")) return;
+    setAdminError("");
+    try {
+      const response = await apiFetch(`${API_URL}/torneos/${id}/${accion}`, {
+        method: "PUT",
+        headers: body ? { "Content-Type": "application/json" } : undefined,
+        body,
+      });
+      const payload = await response.json().catch(() => null);
+      if (!response.ok) throw new Error(payload?.message || "No se pudo cambiar el estado del torneo");
+      setTorneo(payload);
+      setShowMoreActions(false);
+    } catch (requestError) { setAdminError(requestError.message); }
+  };
   
   useEffect(() => {
     let active = true;
@@ -361,6 +393,8 @@ const recargarDatosTorneo = () => {
   };
 
   const primaryAdminAction = (() => {
+    if (torneo.estado?.toUpperCase() === "CANCELADO") return { icon: "×", label: "Torneo cancelado", action: () => {}, disabled: true };
+    if (torneo.estado?.toUpperCase() === "ARCHIVADO") return { icon: "□", label: "Torneo archivado", action: () => {}, disabled: true };
     if (torneo.estado?.toUpperCase() === "FINALIZADO") return { icon: "🏆", label: "Torneo finalizado", action: () => changeTab("resumen"), disabled: false };
     if (equipos.length < 2) return { icon: "👥", label: "Agregar equipos", action: () => changeTab("equipos"), disabled: false };
     if (partidos.length === 0) return { icon: "▦", label: usaLlave ? "Generar llaves" : "Generar fixture", action: abrirGeneradorFixture, disabled: generandoFixture };
@@ -393,6 +427,10 @@ const recargarDatosTorneo = () => {
               <button type="button" onClick={() => { setMostrarEdicion(true); setShowMoreActions(false); }}>Editar torneo</button>
               <TournamentExports torneo={torneo} tabla={tabla} fechas={fechas} partidos={partidos} goleadores={goleadores} />
               {partidos.length > 0 && <button type="button" className="simulation-button" onClick={() => { setShowMoreActions(false); simularTorneo(); }} disabled={generandoFixture}>Simular torneo</button>}
+              {torneo.estado?.toUpperCase() === "BORRADOR" && <button type="button" className="danger" onClick={eliminarBorrador}>Eliminar borrador</button>}
+              {["PUBLICADO", "ACTIVO"].includes(torneo.estado?.toUpperCase()) && <button type="button" className="danger" onClick={() => cambiarVisibilidadTorneo("cancelar")}>Cancelar torneo</button>}
+              {torneo.estado?.toUpperCase() === "FINALIZADO" && <button type="button" onClick={() => cambiarVisibilidadTorneo("archivar")}>Archivar torneo</button>}
+              {torneo.estado?.toUpperCase() === "ARCHIVADO" && <button type="button" onClick={() => cambiarVisibilidadTorneo("restaurar")}>Restaurar torneo</button>}
             </div>}
           </div>
         </div>
@@ -401,7 +439,8 @@ const recargarDatosTorneo = () => {
 
       <main className="torneo-content">
         <div className="torneo-shell">
-          {activeTab === "resumen" && puedeEditar && <TournamentReadiness torneoId={id} torneo={torneo} equipos={equipos} partidos={partidos} onGenerateFixture={abrirGeneradorFixture} onNextRound={generarSiguienteLlave} onNavigate={changeTab} />}
+          {activeTab === "resumen" && torneo.estado?.toUpperCase() === "CANCELADO" && <div className="tournament-cancelled-notice"><strong>Torneo cancelado</strong><p>{torneo.motivoCancelacion || "No se informó un motivo."}</p></div>}
+          {activeTab === "resumen" && puedeEditar && ["BORRADOR", "PUBLICADO", "ACTIVO"].includes(torneo.estado?.toUpperCase()) && <TournamentReadiness torneoId={id} torneo={torneo} equipos={equipos} fechas={fechas} partidos={partidos} onGenerateFixture={abrirGeneradorFixture} onNextRound={generarSiguienteLlave} onNavigate={changeTab} />}
           {activeTab === "resumen" && campeonLiga && <div className="league-champion">
             <span className="league-champion-trophy">🏆</span>
             <div><small>Campeón del torneo</small><Link to={`/equipo/${campeonLiga.idEquipo}`}>{campeonLiga.nombreEquipo}</Link><p>{campeonLiga.puntos} puntos · {campeonLiga.ganados} partidos ganados</p></div>

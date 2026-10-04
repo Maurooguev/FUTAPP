@@ -25,6 +25,8 @@ public class Torneo {
     @Column(name = "premios_texto", columnDefinition = "TEXT")
     private String premiosTexto;
     private String estado;
+    @Column(name = "motivo_cancelacion", length = 500)
+    private String motivoCancelacion;
     private String formato;
     @Column(name = "ida_vuelta", nullable = false) private Boolean idaVuelta = false;
     @Column(name = "puntos_victoria", nullable = false) private Integer puntosVictoria = 3;
@@ -99,6 +101,10 @@ public class Torneo {
 
     public void setEstado(String estado) {
         this.estado = estado;
+    }
+    public String getMotivoCancelacion() { return motivoCancelacion; }
+    public void setMotivoCancelacion(String motivoCancelacion) {
+        this.motivoCancelacion = motivoCancelacion == null || motivoCancelacion.isBlank() ? null : motivoCancelacion.trim();
     }
 
     public String getFormato() {

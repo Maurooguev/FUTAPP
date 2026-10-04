@@ -6,6 +6,7 @@ import com.futapp.dto.TorneoPanelDTO;
 import com.futapp.dto.EstructuraTorneoDTO;
 import com.futapp.dto.PaginaDTO;
 import com.futapp.dto.ContadorVisitasDTO;
+import com.futapp.dto.CancelarTorneoRequestDTO;
 import com.futapp.service.EstructuraCompetenciaService;
 import com.futapp.service.TorneoService;
 import jakarta.validation.Valid;
@@ -91,6 +92,18 @@ public class TorneoController {
 
     @PutMapping("/{id}/finalizar")
     public TorneoResponseDTO finalizarTorneo(@PathVariable Long id) { return torneoService.finalizarTorneo(id); }
+
+    @PutMapping("/{id}/cancelar")
+    public TorneoResponseDTO cancelarTorneo(@PathVariable Long id,
+                                             @Valid @RequestBody CancelarTorneoRequestDTO request) {
+        return torneoService.cancelarTorneo(id, request.motivo());
+    }
+
+    @PutMapping("/{id}/archivar")
+    public TorneoResponseDTO archivarTorneo(@PathVariable Long id) { return torneoService.archivarTorneo(id); }
+
+    @PutMapping("/{id}/restaurar")
+    public TorneoResponseDTO restaurarTorneo(@PathVariable Long id) { return torneoService.restaurarTorneo(id); }
 
     @DeleteMapping("/{id}")
     public String eliminarTorneo(@PathVariable Long id) {

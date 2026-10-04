@@ -11,6 +11,7 @@ public class TorneoResponseDTO {
     private String reglasTexto;
     private String premiosTexto;
     private String estado;
+    private String motivoCancelacion;
     private String formato;
     private Integer cantidadEquipos;
     private String codigoPublico;
@@ -96,6 +97,8 @@ public class TorneoResponseDTO {
     public void setEstado(String estado) {
         this.estado = estado;
     }
+    public String getMotivoCancelacion() { return motivoCancelacion; }
+    public void setMotivoCancelacion(String motivoCancelacion) { this.motivoCancelacion = motivoCancelacion; }
 
     public String getFormato() {
         return formato;

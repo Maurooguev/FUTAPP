@@ -27,6 +27,7 @@ import org.springframework.data.domain.Sort;
 
 @Service
 public class TorneoService {
+    private static final List<String> ESTADOS_PUBLICOS = List.of("ACTIVO", "FINALIZADO");
 
     private final TorneoRepository torneoRepository;
     private final TorneoAuthorizationService authorization;
@@ -58,36 +59,38 @@ public class TorneoService {
     }
 
     public List<TorneoResponseDTO> listarTorneos() {
-        return torneoRepository.findAll()
-                .stream()
-                .filter(torneo -> !"BORRADOR".equalsIgnoreCase(torneo.getEstado()))
+        return torneoRepository.findByEstadoIn(ESTADOS_PUBLICOS).stream()
                 .map(this::convertirAResponseDTO)
                 .collect(Collectors.toList());
     }
 
     public PaginaDTO<TorneoResponseDTO> listarTorneosPaginados(int pagina, int cantidad) {
         var pageable = PageRequest.of(Math.max(pagina, 0), limitar(cantidad), Sort.by(Sort.Direction.DESC, "idTorneo"));
-        return PaginaDTO.desde(torneoRepository.findByEstadoNotIgnoreCase("BORRADOR", pageable).map(this::convertirAResponseDTO));
+        return PaginaDTO.desde(torneoRepository.findByEstadoIn(ESTADOS_PUBLICOS, pageable).map(this::convertirAResponseDTO));
     }
 
     public PaginaDTO<TorneoResponseDTO> buscarPaginado(String query, int pagina, int cantidad) {
         var pageable = PageRequest.of(Math.max(pagina, 0), limitar(cantidad), Sort.by(Sort.Direction.DESC, "idTorneo"));
-        var resultados = torneoRepository.findByNombreContainingIgnoreCaseOrCodigoPublicoContainingIgnoreCase(
-                query.trim(), query.trim(), pageable).map(this::convertirAResponseDTO);
+        var resultados = torneoRepository.buscarPublicos(query.trim(), ESTADOS_PUBLICOS, pageable)
+                .map(this::convertirAResponseDTO);
         return PaginaDTO.desde(resultados);
     }
 
     private int limitar(int cantidad) { return Math.min(Math.max(cantidad, 1), 100); }
 
     public List<TorneoResponseDTO> buscar(String query) {
-        return torneoRepository.findByNombreContainingIgnoreCaseOrCodigoPublicoContainingIgnoreCase(query, query).stream()
-                .filter(torneo -> !"BORRADOR".equalsIgnoreCase(torneo.getEstado())).map(this::convertirAResponseDTO).toList();
+        return torneoRepository.buscarPublicos(query.trim(), ESTADOS_PUBLICOS, PageRequest.of(0, 100)).stream()
+                .map(this::convertirAResponseDTO).toList();
     }
 
     public List<TorneoResponseDTO> listarPropios(Usuario usuario) {
-        if (usuario.tieneRol("ADMIN")) return torneoRepository.findAll().stream().map(this::convertirAResponseDTO).toList();
+        if (usuario.tieneRol("ADMIN")) return torneoRepository.findAll().stream()
+                .filter(torneo -> !"ELIMINADO".equalsIgnoreCase(torneo.getEstado()))
+                .map(this::convertirAResponseDTO).toList();
         if (!usuario.tieneRol("ORGANIZADOR")) throw new AccessDeniedException("Solo una cuenta de organizador puede administrar torneos");
-        return torneoRepository.findByPropietarioIdUsuario(usuario.getIdUsuario()).stream().map(this::convertirAResponseDTO).toList();
+        return torneoRepository.findByPropietarioIdUsuario(usuario.getIdUsuario()).stream()
+                .filter(torneo -> !"ELIMINADO".equalsIgnoreCase(torneo.getEstado()))
+                .map(this::convertirAResponseDTO).toList();
     }
 
     public List<TorneoResponseDTO> listarTitulosEquipo(Long idEquipo) {
@@ -200,13 +203,49 @@ public class TorneoService {
     }
 
     public void eliminarTorneo(Long id) {
-        if (!torneoRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Torneo no encontrado con id: " + id);
+        Torneo torneo = torneoRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Torneo no encontrado con id: " + id));
+        authorization.verificarGestion(torneo);
+        if (!"BORRADOR".equalsIgnoreCase(torneo.getEstado())) {
+            throw new IllegalArgumentException("Solo se pueden eliminar torneos en borrador");
         }
+        torneo.setEstado("ELIMINADO");
+        torneoRepository.save(torneo);
+    }
 
-        authorization.verificarGestion(id);
+    @Transactional
+    public TorneoResponseDTO cancelarTorneo(Long id, String motivo) {
+        Torneo torneo = torneoRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Torneo no encontrado con id: " + id));
+        authorization.verificarPropiedad(torneo);
+        String estado = torneo.getEstado() == null ? "" : torneo.getEstado().toUpperCase();
+        if (!List.of("PUBLICADO", "ACTIVO").contains(estado)) {
+            throw new IllegalArgumentException("Solo se pueden cancelar torneos publicados o activos");
+        }
+        torneo.setMotivoCancelacion(motivo);
+        torneo.setEstado("CANCELADO");
+        return convertirAResponseDTO(torneoRepository.save(torneo));
+    }
 
-        torneoRepository.deleteById(id);
+    @Transactional
+    public TorneoResponseDTO archivarTorneo(Long id) {
+        return cambiarArchivo(id, "FINALIZADO", "ARCHIVADO");
+    }
+
+    @Transactional
+    public TorneoResponseDTO restaurarTorneo(Long id) {
+        return cambiarArchivo(id, "ARCHIVADO", "FINALIZADO");
+    }
+
+    private TorneoResponseDTO cambiarArchivo(Long id, String origen, String destino) {
+        Torneo torneo = torneoRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Torneo no encontrado con id: " + id));
+        authorization.verificarPropiedad(torneo);
+        if (!origen.equalsIgnoreCase(torneo.getEstado())) {
+            throw new IllegalArgumentException("El torneo debe estar " + origen.toLowerCase() + " para realizar esta acción");
+        }
+        torneo.setEstado(destino);
+        return convertirAResponseDTO(torneoRepository.save(torneo));
     }
 
     @Transactional
@@ -290,6 +329,7 @@ public class TorneoService {
         response.setGoogleMapsUrl(torneo.getGoogleMapsUrl());
         response.setReglasTexto(torneo.getReglasTexto());
         response.setPremiosTexto(torneo.getPremiosTexto());
+        response.setMotivoCancelacion(torneo.getMotivoCancelacion());
         if (propietario != null) {
             perfilesOrganizador.findByUsuarioIdUsuario(propietario.getIdUsuario())
                     .ifPresent(perfil -> response.setLogoOrganizador(perfil.getFotoPerfil()));

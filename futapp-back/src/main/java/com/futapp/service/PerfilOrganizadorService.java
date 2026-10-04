@@ -84,7 +84,7 @@ public class PerfilOrganizadorService {
 
     private PerfilOrganizadorResponseDTO dto(PerfilOrganizador perfil) {
         var torneosPublicos = torneos.findByPropietarioIdUsuario(perfil.getUsuario().getIdUsuario()).stream()
-                .filter(torneo -> !"BORRADOR".equalsIgnoreCase(torneo.getEstado()))
+                .filter(torneo -> java.util.List.of("ACTIVO", "FINALIZADO").contains(torneo.getEstado().toUpperCase()))
                 .map(torneo -> new TorneoPerfilOrganizadorDTO(torneo.getIdTorneo(), torneo.getNombre(),
                         torneo.getDescripcion(), torneo.getUbicacion(), torneo.getEstado(), torneo.getFormato(),
                         torneo.getCantidadEquipos(), torneo.getCodigoPublico(),

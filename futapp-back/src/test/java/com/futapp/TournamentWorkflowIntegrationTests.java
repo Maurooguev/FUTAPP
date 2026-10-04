@@ -3,6 +3,7 @@ package com.futapp;
 import com.futapp.dto.RegisterRequestDTO;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import com.futapp.repository.TorneoRepository;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
@@ -27,6 +28,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class TournamentWorkflowIntegrationTests {
     @Autowired private MockMvc mockMvc;
     @Autowired private JsonMapper jsonMapper;
+    @Autowired private TorneoRepository torneoRepository;
 
     @Test
     void completaElCircuitoPrincipalDeUnTorneo() throws Exception {
@@ -219,6 +221,33 @@ class TournamentWorkflowIntegrationTests {
         putJson("/torneos/" + torneoId + "/iniciar", token, null)
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("Creá la primera fecha antes de iniciar el torneo"));
+    }
+
+    @Test
+    void eliminaBorradoresCancelaPublicadosYArchivaFinalizados() throws Exception {
+        String token = registrarOrganizador();
+        long borradorId = postJson("/torneos", token, torneo()).get("idTorneo").asLong();
+        mockMvc.perform(delete("/torneos/{id}", borradorId).header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk());
+        mockMvc.perform(get("/torneos/mios").header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk()).andExpect(jsonPath("$", org.hamcrest.Matchers.empty()));
+
+        long publicadoId = postJson("/torneos", token, torneo()).get("idTorneo").asLong();
+        putJson("/torneos/" + publicadoId + "/publicar", token, null).andExpect(status().isOk());
+        putJson("/torneos/" + publicadoId + "/cancelar", token, Map.of("motivo", "Falta de participantes"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.estado").value("CANCELADO"))
+                .andExpect(jsonPath("$.motivoCancelacion").value("Falta de participantes"));
+        mockMvc.perform(get("/torneos")).andExpect(status().isOk())
+                .andExpect(jsonPath("$", org.hamcrest.Matchers.empty()));
+
+        var torneoFinalizado = torneoRepository.findById(publicadoId).orElseThrow();
+        torneoFinalizado.setEstado("FINALIZADO");
+        torneoRepository.saveAndFlush(torneoFinalizado);
+        putJson("/torneos/" + publicadoId + "/archivar", token, null)
+                .andExpect(status().isOk()).andExpect(jsonPath("$.estado").value("ARCHIVADO"));
+        putJson("/torneos/" + publicadoId + "/restaurar", token, null)
+                .andExpect(status().isOk()).andExpect(jsonPath("$.estado").value("FINALIZADO"));
     }
 
     @Test

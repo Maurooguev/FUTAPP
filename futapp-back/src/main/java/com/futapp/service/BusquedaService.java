@@ -36,8 +36,7 @@ public class BusquedaService {
 
         PageRequest limite = PageRequest.of(0, RESULTADOS_POR_TIPO);
         List<ResultadoBusquedaDTO> torneos = torneoRepository
-                .findByNombreContainingIgnoreCaseOrCodigoPublicoContainingIgnoreCaseOrUbicacionContainingIgnoreCase(
-                        termino, termino, termino, limite)
+                .buscarPublicosGlobal(termino, List.of("ACTIVO", "FINALIZADO"), limite)
                 .map(this::torneoResultado).getContent();
         List<ResultadoBusquedaDTO> equipos = equipoRepository
                 .findByNombreContainingIgnoreCaseOrCodigoPublicoContainingIgnoreCaseOrBarrioContainingIgnoreCase(
