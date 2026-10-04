@@ -1,58 +1,58 @@
-.top-table-card {
-  background: white;
-  border: 1px solid #e8eef6;
-  border-radius: 22px;
-  padding: 22px;
-  box-shadow: 0 12px 26px rgba(15, 23, 42, 0.07);
-  overflow: hidden;
+.top-scorers-card { overflow: hidden; padding: 18px; border: 1px solid #d7e3ea; border-radius: 12px; background: #fff; box-shadow: 0 4px 14px rgba(15,23,42,.06); }
+.top-scorers-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.top-scorers-header div > span { display: block; margin-bottom: 2px; color: #0877a7; font-size: 10px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; }
+.top-scorers-header h2 { margin: 0; color: #0f172a; font-size: 22px; }
+.top-scorers-icon { display: grid; width: 38px; height: 38px; place-items: center; border-radius: 50%; background: #e8f5fa; font-size: 18px; }
+.leading-scorer { display: grid; grid-template-columns: auto auto minmax(0,1fr) auto; gap: 11px; align-items: center; min-height: 88px; padding: 14px; border: 1px solid #f2d78c; border-radius: 10px; background: linear-gradient(135deg,#fff9df 0%,#fffdf5 100%); }
+.leading-scorer-rank { display: grid; width: 28px; height: 28px; place-items: center; border-radius: 50%; background: #f5b800; color: #fff; font-size: 13px; font-weight: 900; box-shadow: 0 3px 8px rgba(181,133,0,.22); }
+.scorer-avatar { display: block; width: 42px; height: 42px; overflow: hidden; border: 2px solid #fff; border-radius: 50%; background: #e8f3f8; box-shadow: 0 1px 4px rgba(15,23,42,.14); }
+.leading-scorer .scorer-avatar { width: 58px; height: 58px; border-width: 3px; }
+.scorer-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.leading-scorer-info,.scorer-info { min-width: 0; }
+.leading-scorer-info small { display: block; margin-bottom: 2px; color: #9a6a00; font-size: 9px; font-weight: 900; letter-spacing: .05em; text-transform: uppercase; }
+.leading-scorer-info > a:first-of-type,.scorer-info > a:first-child { display: block; overflow: hidden; color: #0f172a; font-weight: 900; text-decoration: none; text-overflow: ellipsis; white-space: nowrap; }
+.leading-scorer-info > a:first-of-type { font-size: 16px; }
+.leading-scorer-team,.scorer-info > a:last-child { display: block; overflow: hidden; margin-top: 2px; color: #64748b; font-size: 10px; font-weight: 700; text-decoration: none; text-overflow: ellipsis; white-space: nowrap; }
+.leading-scorer-info a:hover,.scorer-info a:hover { color: #0877a7; }
+.leading-scorer-goals { display: grid; min-width: 54px; place-items: center; padding: 8px 10px; border-radius: 9px; background: #fff; color: #0877a7; box-shadow: 0 2px 8px rgba(15,23,42,.08); }
+.leading-scorer-goals strong { font-size: 24px; line-height: 1; }
+.leading-scorer-goals span { margin-top: 2px; font-size: 9px; font-weight: 800; text-transform: uppercase; }
+.scorers-ranking { display: grid; gap: 5px; margin: 8px 0 0; padding: 0; list-style: none; }
+.scorers-ranking li { display: grid; grid-template-columns: 28px 42px minmax(0,1fr) auto; gap: 9px; align-items: center; min-height: 57px; padding: 7px 10px; border-radius: 8px; background: #f5f8fa; }
+.scorer-position { color: #64748b; font-size: 12px; font-weight: 900; text-align: center; }
+.position-2 { color: #718096; }
+.position-3 { color: #a66b34; }
+.scorer-info > a:first-child { font-size: 12px; }
+.scorer-goals { min-width: 60px; color: #0877a7; font-size: 16px; text-align: right; }
+.scorer-goals small { color: #64748b; font-size: 9px; font-weight: 800; }
+.top-scorers-empty { display: grid; min-height: 180px; place-items: center; align-content: center; gap: 5px; border: 1px dashed #bfd3de; border-radius: 10px; background: #f7fafb; color: #64748b; text-align: center; }
+.top-scorers-empty > span { font-size: 28px; filter: grayscale(1); opacity: .55; }
+.top-scorers-empty strong { color: #334155; font-size: 13px; }
+.top-scorers-empty small { font-size: 10px; }
+:root[data-theme="dark"] .top-scorers-card { border-color: #38505d; background: #213744; box-shadow: none; }
+:root[data-theme="dark"] .top-scorers-header h2 { color: #f3f7f9; }
+:root[data-theme="dark"] .top-scorers-icon { background: #294957; }
+:root[data-theme="dark"] .leading-scorer { border-color: #725d28; background: linear-gradient(135deg,#3a3d33 0%,#293d43 100%); }
+:root[data-theme="dark"] .leading-scorer-info > a:first-of-type,:root[data-theme="dark"] .scorer-info > a:first-child { color: #f3f7f9; }
+:root[data-theme="dark"] .leading-scorer-team,:root[data-theme="dark"] .scorer-info > a:last-child,:root[data-theme="dark"] .scorer-goals small { color: #b9c8d2; }
+:root[data-theme="dark"] .leading-scorer-goals { background: #213744; color: #67d7ee; }
+:root[data-theme="dark"] .scorers-ranking li { background: #29414f; }
+:root[data-theme="dark"] .scorer-goals { color: #67d7ee; }
+:root[data-theme="dark"] .top-scorers-empty { border-color: #48616e; background: #29414f; }
+:root[data-theme="dark"] .top-scorers-empty strong { color: #e7eef2; }
+@media (max-width:600px) {
+  .top-scorers-card { padding: 12px; border-radius: 8px; }
+  .top-scorers-header { margin-bottom: 10px; }
+  .top-scorers-header h2 { font-size: 18px; }
+  .top-scorers-icon { width: 32px; height: 32px; font-size: 15px; }
+  .leading-scorer { grid-template-columns: auto 48px minmax(0,1fr) auto; gap: 8px; min-height: 76px; padding: 10px 8px; }
+  .leading-scorer .scorer-avatar { width: 48px; height: 48px; }
+  .leading-scorer-rank { width: 24px; height: 24px; font-size: 11px; }
+  .leading-scorer-info > a:first-of-type { font-size: 13px; }
+  .leading-scorer-goals { min-width: 45px; padding: 7px 6px; }
+  .leading-scorer-goals strong { font-size: 20px; }
+  .scorers-ranking li { grid-template-columns: 24px 36px minmax(0,1fr) auto; gap: 7px; min-height: 51px; padding: 6px 7px; }
+  .scorer-avatar { width: 36px; height: 36px; }
+  .scorer-goals { min-width: 44px; font-size: 14px; }
+  .scorer-goals small { display: none; }
 }
-
-.top-table-header {
-  margin-bottom: 18px;
-  padding-bottom: 10px;
-  border-bottom: 1px solid #eef2f7;
-}
-
-.top-table-header h2 {
-  font-size: 28px;
-}
-
-.top-table {
-  width: 100%;
-  table-layout: fixed;
-  border-collapse: collapse;
-}
-
-.top-table th,
-.top-table td {
-  padding: 12px 10px;
-  text-align: center;
-  border-bottom: 1px solid #eef2f7;
-  vertical-align: middle;
-}
-
-.top-table th {
-  background: #f1f5f9;
-  color: #0f172a;
-  font-size: 14px;
-}
-
-@media (max-width: 768px) {
-  .top-table-header h2 {
-    font-size: 24px;
-  }
-}
-.top-table a { color: #0877a7; font-weight: 700; text-decoration: none; }
-.top-table a:hover { text-decoration: underline; }
-.top-table-card { padding: 13px; border-radius: 5px; box-shadow: 0 2px 5px rgba(15,23,42,.07); }
-.top-table-header { margin-bottom: 8px; padding-bottom: 6px; }
-.top-table-header h2 { font-size: 18px; }
-.top-table th, .top-table td { padding: 7px 5px; font-size: 10px; }
-
-:root[data-theme="dark"] .top-table-card { background: #213744; border-color: #38505d; }
-:root[data-theme="dark"] .top-table-header { border-color: #48616e; }
-:root[data-theme="dark"] .top-table-header h2 { color: #f3f7f9; }
-:root[data-theme="dark"] .top-table th { background: #29414f; color: #b9c8d2; }
-:root[data-theme="dark"] .top-table td { border-color: #48616e; color: #e7eef2; }
-:root[data-theme="dark"] .top-table tbody tr:hover { background: #294957; }
-:root[data-theme="dark"] .top-table a { color: #67d7ee; }
