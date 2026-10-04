@@ -41,6 +41,11 @@ async function removeEdgeBackground(file) {
     context.drawImage(image, 0, 0, width, height);
     const imageData = context.getImageData(0, 0, width, height);
     const { data } = imageData;
+    let transparentPixels = 0;
+    for (let offset = 3; offset < data.length; offset += 4) {
+      if (data[offset] < 245) transparentPixels += 1;
+    }
+    const alreadyTransparent = transparentPixels > width * height * 0.005;
 
     let red = 0; let green = 0; let blue = 0; let samples = 0;
     const sampleSize = Math.max(2, Math.min(12, Math.floor(Math.min(width, height) * 0.04)));
@@ -55,7 +60,7 @@ async function removeEdgeBackground(file) {
       }
     });
 
-    if (!samples) return { blob: file, alreadyTransparent: true };
+    if (!samples) return { blob: file, alreadyTransparent: true, failed: false };
     const background = [red / samples, green / samples, blue / samples];
     const visited = new Uint8Array(width * height);
     const queue = new Int32Array(width * height);
@@ -93,9 +98,9 @@ async function removeEdgeBackground(file) {
       data[offset + 3] = nextAlpha;
     }
 
-    if (removed < width * height * 0.005) return { blob: file, alreadyTransparent: true };
+    if (removed < width * height * 0.005) return { blob: file, alreadyTransparent, failed: !alreadyTransparent };
     context.putImageData(imageData, 0, 0);
-    return { blob: await canvasBlob(canvas), alreadyTransparent: false };
+    return { blob: await canvasBlob(canvas), alreadyTransparent: false, failed: false };
   } finally {
     URL.revokeObjectURL(url);
   }
@@ -103,7 +108,6 @@ async function removeEdgeBackground(file) {
 
 function BackgroundRemovalModal({ file, onCancel, onConfirm }) {
   const [processed, setProcessed] = useState(null);
-  const [mode, setMode] = useState("transparent");
   const [error, setError] = useState("");
   const [processing, setProcessing] = useState(true);
   const originalUrl = useMemo(() => URL.createObjectURL(file), [file]);
@@ -114,14 +118,14 @@ function BackgroundRemovalModal({ file, onCancel, onConfirm }) {
   useEffect(() => {
     let active = true;
     removeEdgeBackground(file)
-      .then((result) => { if (active) { setProcessed(result); if (result.alreadyTransparent) setMode("original"); } })
-      .catch((processError) => { if (active) { setError(processError.message); setMode("original"); } })
+      .then((result) => { if (active) setProcessed(result); })
+      .catch((processError) => { if (active) setError(processError.message); })
       .finally(() => { if (active) setProcessing(false); });
     return () => { active = false; };
   }, [file]);
 
   const confirm = () => {
-    if (mode === "original" || !processed?.blob || processed.alreadyTransparent) return onConfirm(file);
+    if (!processed?.blob || processed.alreadyTransparent) return onConfirm(file);
     const png = new File([processed.blob], `${file.name.replace(/\.[^.]+$/, "") || "escudo"}-sin-fondo.png`, { type: "image/png" });
     return onConfirm(png);
   };
@@ -129,20 +133,21 @@ function BackgroundRemovalModal({ file, onCancel, onConfirm }) {
   return <div className="crop-backdrop" onMouseDown={onCancel}>
     <section className="background-removal-modal" role="dialog" aria-modal="true" aria-labelledby="background-removal-title" onMouseDown={(event) => event.stopPropagation()}>
       <h2 id="background-removal-title">Preparar escudo</h2>
-      <p>Elegí cómo querés guardar la imagen. Podés comparar ambas opciones antes de subirla.</p>
+      <p>Todos los escudos de FUTAPP se guardan sin fondo para que se vean iguales en cualquier pantalla.</p>
       <div className="background-removal-options">
-        <button type="button" className={mode === "transparent" ? "selected" : ""} onClick={() => setMode("transparent")} disabled={processing || processed?.alreadyTransparent || Boolean(error)}>
-          <span className="background-removal-preview">{processedUrl && !processed?.alreadyTransparent ? <img src={processedUrl} alt="Escudo sin fondo" /> : <em>{processing ? "Procesando…" : "Ya es transparente"}</em>}</span>
-          <strong>Quitar fondo</strong><small>Recomendado</small>
-        </button>
-        <button type="button" className={mode === "original" ? "selected" : ""} onClick={() => setMode("original")}>
+        <div className="background-removal-option">
           <span className="background-removal-preview"><img src={originalUrl} alt="Escudo original" /></span>
-          <strong>Mantener original</strong><small>Sin modificaciones</small>
-        </button>
+          <strong>Original</strong><small>Imagen seleccionada</small>
+        </div>
+        <div className="background-removal-option selected">
+          <span className="background-removal-preview">{processedUrl && !processed?.alreadyTransparent ? <img src={processedUrl} alt="Escudo sin fondo" /> : <em>{processing ? "Quitando fondo…" : processed?.alreadyTransparent ? "Ya es transparente" : "No se pudo quitar"}</em>}</span>
+          <strong>Resultado FUTAPP</strong><small>Fondo transparente obligatorio</small>
+        </div>
       </div>
-      {processed?.alreadyTransparent && <p className="background-removal-notice">La imagen ya tiene transparencia o no encontramos un fondo uniforme para quitar.</p>}
-      {error && <p className="image-upload-error">{error}. Podés conservar la imagen original.</p>}
-      <div className="crop-actions"><button type="button" onClick={onCancel}>Cancelar</button><button type="button" className="primary" onClick={confirm} disabled={processing}>Usar esta versión</button></div>
+      {processed?.alreadyTransparent && <p className="background-removal-notice">La imagen ya tiene el fondo transparente y puede subirse sin cambios.</p>}
+      {processed?.failed && <p className="image-upload-error">No pudimos separar el escudo del fondo. Quitale el fondo por tu cuenta y volvé a subirlo como PNG transparente.</p>}
+      {error && <p className="image-upload-error">{error}. Probá con un PNG transparente.</p>}
+      <div className="crop-actions"><button type="button" onClick={onCancel}>Cancelar</button><button type="button" className="primary" onClick={confirm} disabled={processing || processed?.failed || Boolean(error)}>Subir escudo</button></div>
     </section>
   </div>;
 }

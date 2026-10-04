@@ -13,9 +13,8 @@
 .background-removal-modal h2 { margin: 0 0 5px; color: #0f172a; font-size: 20px; }
 .background-removal-modal > p { margin: 0 0 14px; font-size: 11px; }
 .background-removal-options { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; }
-.background-removal-options > button { display: grid; grid-template-columns: 1fr auto; gap: 3px 8px; padding: 10px; border: 2px solid #dbe3e8; background: #fff; color: #334155; text-align: left; }
-.background-removal-options > button.selected { border-color: #079bc8; box-shadow: 0 0 0 3px rgba(7,155,200,.12); }
-.background-removal-options > button:disabled { opacity: .65; }
+.background-removal-option { display: grid; grid-template-columns: 1fr auto; gap: 3px 8px; padding: 10px; border: 2px solid #dbe3e8; border-radius: 4px; background: #fff; color: #334155; text-align: left; }
+.background-removal-option.selected { border-color: #079bc8; box-shadow: 0 0 0 3px rgba(7,155,200,.12); }
 .background-removal-options strong { align-self: end; font-size: 11px; }
 .background-removal-options small { color: #64748b; font-size: 9px; }
 .background-removal-preview { grid-column: 1 / -1; display: grid; width: 100%; aspect-ratio: 16 / 10; place-items: center; overflow: hidden; border-radius: 5px; background-color: #eef2f4; background-image: linear-gradient(45deg,#d9e1e5 25%,transparent 25%),linear-gradient(-45deg,#d9e1e5 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#d9e1e5 75%),linear-gradient(-45deg,transparent 75%,#d9e1e5 75%); background-position: 0 0,0 8px,8px -8px,-8px 0; background-size: 16px 16px; }

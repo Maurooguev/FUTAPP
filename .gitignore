@@ -2,6 +2,7 @@
 futapp-back/target/
 futapp-back/data/*.db
 futapp-back/data/uploads/
+futapp-back/data/upload-originals/
 postgres-data/
 backups/
 
