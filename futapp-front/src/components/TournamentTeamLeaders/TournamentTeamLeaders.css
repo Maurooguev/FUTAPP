@@ -1,0 +1,23 @@
+.team-leaders-card,.suspensions-card { padding: 18px; border: 1px solid #d7e3ea; border-radius: 12px; background: #fff; box-shadow: 0 4px 14px rgba(15,23,42,.06); }
+.team-leaders-card header,.suspensions-card header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.team-leaders-card header span,.suspensions-card header span { display: block; color: #0877a7; font-size: 10px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; }
+.team-leaders-card h2,.suspensions-card h2 { margin: 2px 0 0; color: #0f172a; font-size: 22px; }
+.team-leaders-card header > b { display: grid; width: 38px; height: 38px; place-items: center; border-radius: 50%; background: #e8f5fa; color: #08a7c7; }
+.team-leaders-list { display: grid; gap: 8px; }
+.team-leader-row { display: grid; grid-template-columns: 48px minmax(0,1fr) auto; gap: 11px; align-items: center; min-height: 70px; padding: 10px; border-radius: 9px; background: #f5f8fa; }
+.team-leader-row.attack { border-left: 3px solid #13b981; }
+.team-leader-row.defense { border-left: 3px solid #168aad; }
+.team-leader-image { display: grid; width: 48px; height: 48px; place-items: center; }
+.team-leader-image img { width: 100%; height: 100%; object-fit: contain; }
+.team-leader-row small { display: block; margin-bottom: 3px; color: #64748b; font-size: 9px; font-weight: 900; text-transform: uppercase; }
+.team-leader-row a,.team-leader-row div > strong { display: block; overflow: hidden; color: #0f172a; font-size: 13px; font-weight: 900; text-decoration: none; text-overflow: ellipsis; white-space: nowrap; }
+.team-leader-row a:hover { color: #0877a7; }
+.team-leader-row > b { padding: 7px 9px; border-radius: 7px; background: #fff; color: #0877a7; font-size: 12px; }
+:root[data-theme="dark"] .team-leaders-card,:root[data-theme="dark"] .suspensions-card { border-color: #38505d; background: #213744; box-shadow: none; }
+:root[data-theme="dark"] .team-leaders-card h2,:root[data-theme="dark"] .suspensions-card h2 { color: #f3f7f9; }
+:root[data-theme="dark"] .team-leader-row { background: #29414f; }
+:root[data-theme="dark"] .team-leader-row a,:root[data-theme="dark"] .team-leader-row div > strong { color: #f3f7f9; }
+:root[data-theme="dark"] .team-leader-row small { color: #b9c8d2; }
+:root[data-theme="dark"] .team-leader-row > b { background: #213744; color: #67d7ee; }
+@media(max-width:600px){.team-leaders-card,.suspensions-card{padding:12px;border-radius:8px}.team-leaders-card h2,.suspensions-card h2{font-size:18px}.team-leader-row{grid-template-columns:40px minmax(0,1fr) auto;min-height:60px}.team-leader-image{width:40px;height:40px}}
+

@@ -155,6 +155,20 @@ class TournamentWorkflowIntegrationTests {
                 .andExpect(jsonPath("$.tipoTarjeta").value("ROJA"))
                 .andExpect(jsonPath("$.minuto").value(72));
 
+        String sancionesJson = mockMvc.perform(get("/sanciones/torneo/{id}", torneoId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", org.hamcrest.Matchers.hasSize(1)))
+                .andExpect(jsonPath("$[0].fechasTotal").value(1))
+                .andExpect(jsonPath("$[0].fechasCumplidas").value(0))
+                .andExpect(jsonPath("$[0].fechasRestantes").value(1))
+                .andExpect(jsonPath("$[0].activa").value(true))
+                .andReturn().getResponse().getContentAsString();
+        long sancionId = jsonMapper.readTree(sancionesJson).get(0).get("idSancion").asLong();
+        putJson("/sanciones/" + sancionId, token, Map.of("fechasTotal", 3, "motivo", "Conducta grave"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.fechasTotal").value(3))
+                .andExpect(jsonPath("$.motivo").value("Conducta grave"));
+
         mockMvc.perform(delete("/partidos/{id}", partidoId).header("Authorization", "Bearer " + token))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("No se puede eliminar un partido que ya tiene resultado"));

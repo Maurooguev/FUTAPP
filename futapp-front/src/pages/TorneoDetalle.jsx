@@ -10,6 +10,8 @@ import StatsCard from "../components/StatsCard/StatsCard";
 import StandingsTable from "../components/StandingsTable/StandingsTable";
 import TopScorersTable from "../components/TopScorersTable/TopScorersTable";
 import TopCardsTable from "../components/TopCardsTable/TopCardsTable";
+import TournamentTeamLeaders from "../components/TournamentTeamLeaders/TournamentTeamLeaders";
+import SuspensionsPanel from "../components/SuspensionsPanel/SuspensionsPanel";
 import MatchModal from "../components/MatchModal/MatchModal";
 import FixtureByDate from "../components/FixtureByDate/FixtureByDate";
 import ResultModal from "../components/ResultModal/ResultModal";
@@ -39,6 +41,7 @@ function TorneoDetalle() {
   const [fechas, setFechas] = useState([]);
   const [partidos, setPartidos] = useState([]);
   const [tarjetas, setTarjetas] = useState([]);
+  const [sanciones, setSanciones] = useState([]);
   const [equipos, setEquipos] = useState([]);
   const [estructura, setEstructura] = useState(null);
   const [partidoSeleccionado, setPartidoSeleccionado] = useState(null);
@@ -145,11 +148,12 @@ function TorneoDetalle() {
       getJson(`/torneos/${id}`), getJson(`/torneos/${id}/tabla`),
       getJson(`/goles/torneo/${id}/goleadores`), getJson(`/fechas/torneo/${id}`),
       getJson(`/partidos/torneo/${id}`), getJson(`/tarjetas/torneo/${id}`),
-      getJson(`/equipos/torneo/${id}`), getJson(`/torneos/${id}/estructura`),
-    ]).then(([tournament, standings, scorers, dates, matches, cards, teams, structure]) => {
+      getJson(`/equipos/torneo/${id}`), getJson(`/torneos/${id}/estructura`), getJson(`/sanciones/torneo/${id}`),
+    ]).then(([tournament, standings, scorers, dates, matches, cards, teams, structure, suspensions]) => {
       if (!active) return;
       setTorneo(tournament); setTabla(standings); setGoleadores(scorers); setFechas(dates);
       setPartidos(matches); setTarjetas(cards); setEquipos(teams); setEstructura(structure);
+      setSanciones(suspensions);
       setLoadError("");
     }).catch(() => {
       if (active) setLoadError("No pudimos cargar el torneo. Verificá que el backend esté iniciado.");
@@ -306,6 +310,10 @@ const recargarDatosTorneo = () => {
   apiFetch(`${API_URL}/tarjetas/torneo/${id}`)
     .then((res) => res.json())
     .then((data) => setTarjetas(data));
+
+  apiFetch(`${API_URL}/sanciones/torneo/${id}`)
+    .then((res) => res.json())
+    .then((data) => setSanciones(data));
 };
 
   const abrirGeneradorFixture = () => {
@@ -504,6 +512,8 @@ const recargarDatosTorneo = () => {
           {activeTab === "stats" && <div className="torneo-dobles" id="stats">
             <TopScorersTable goleadores={topGoleadores} />
             <TopCardsTable jugadores={topAmarillas} />
+            <TournamentTeamLeaders tabla={tabla} />
+            <SuspensionsPanel sanciones={sanciones} canManage={puedeEditar} onError={setAdminError} onUpdated={(actualizada) => setSanciones((current) => current.map((item) => item.idSancion === actualizada.idSancion ? actualizada : item))} />
           </div>}
 
           {activeTab === "fixture" && (torneo.formato?.toLowerCase() === "eliminación directa" || torneo.formato?.toLowerCase().includes("playoffs")) && <KnockoutBracket equipos={equipos} teamCount={cantidadEquiposLlave} partidos={partidos} canManage={puedeEditar} onNextRound={generarSiguienteLlave} loading={generandoFixture} />}

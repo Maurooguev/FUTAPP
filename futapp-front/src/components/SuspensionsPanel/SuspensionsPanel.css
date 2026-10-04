@@ -1,0 +1,27 @@
+.suspensions-card { grid-column: 1 / -1; }
+.suspensions-card header > b { display: grid; min-width: 38px; height: 38px; padding: 0 8px; place-items: center; border-radius: 50%; background: #fee2e2; color: #c62828; font-size: 14px; }
+.suspensions-list { display: grid; gap: 7px; }
+.suspensions-list article { display: grid; grid-template-columns: 42px minmax(0,1fr) 125px auto; gap: 10px; align-items: center; padding: 9px 10px; border-radius: 8px; background: #f5f8fa; }
+.suspensions-list article.active { border-left: 3px solid #dc2626; }
+.suspensions-list article.served { opacity: .7; }
+.suspension-avatar { width: 42px; height: 42px; overflow: hidden; border: 2px solid #fff; border-radius: 50%; background: #e8f3f8; }
+.suspension-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.suspension-player { min-width: 0; }
+.suspension-player a,.suspension-player small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.suspension-player a { color: #0f172a; font-size: 12px; font-weight: 900; text-decoration: none; }
+.suspension-player a:nth-child(2),.suspension-player small { margin-top: 2px; color: #64748b; font-size: 9px; font-weight: 700; }
+.suspension-progress { display: grid; text-align: right; }
+.suspension-progress strong { color: #0f172a; font-size: 14px; }
+.suspension-progress span { color: #64748b; font-size: 8px; font-weight: 800; text-transform: uppercase; }
+.suspension-progress i { display: block; height: 4px; margin-top: 4px; overflow: hidden; border-radius: 4px; background: #dbe3e8; }
+.suspension-progress i b { display: block; height: 100%; border-radius: inherit; background: #16a34a; }
+.suspensions-list button { padding: 6px 9px; border: 1px solid #b8ccd7; background: #fff; color: #0877a7; font-size: 9px; font-weight: 900; }
+.suspensions-list em { color: #15803d; font-size: 9px; font-style: normal; font-weight: 900; text-transform: uppercase; }
+.suspensions-empty { display: grid; min-height: 100px; place-items: center; align-content: center; gap: 4px; border: 1px dashed #bfd3de; border-radius: 9px; color: #64748b; text-align: center; }
+.suspensions-empty strong { color: #334155; font-size: 13px; }
+.suspensions-empty small { font-size: 9px; }
+:root[data-theme="dark"] .suspensions-list article { background:#29414f; }
+:root[data-theme="dark"] .suspension-player a,:root[data-theme="dark"] .suspension-progress strong { color:#f3f7f9; }
+:root[data-theme="dark"] .suspension-player a:nth-child(2),:root[data-theme="dark"] .suspension-player small,:root[data-theme="dark"] .suspension-progress span { color:#b9c8d2; }
+:root[data-theme="dark"] .suspensions-empty strong { color:#e7eef2; }
+@media(max-width:600px){.suspensions-list article{grid-template-columns:36px minmax(0,1fr) auto;gap:7px}.suspension-avatar{width:36px;height:36px}.suspension-progress{min-width:70px}.suspensions-list button,.suspensions-list em{grid-column:2 / -1;justify-self:start}.suspension-progress span{font-size:7px}}

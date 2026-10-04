@@ -27,17 +27,20 @@ public class TarjetaService {
     private final TorneoAuthorizationService authorization;
     private final EquipoRepository equipoRepository;
     private final InscripcionJugadorRepository inscripciones;
+    private final SancionJugadorService sancionService;
 
     public TarjetaService(TarjetaRepository tarjetaRepository,
                           PartidoRepository partidoRepository,
                           JugadorRepository jugadorRepository, TorneoAuthorizationService authorization,
-                          EquipoRepository equipoRepository, InscripcionJugadorRepository inscripciones) {
+                          EquipoRepository equipoRepository, InscripcionJugadorRepository inscripciones,
+                          SancionJugadorService sancionService) {
         this.tarjetaRepository = tarjetaRepository;
         this.partidoRepository = partidoRepository;
         this.jugadorRepository = jugadorRepository;
         this.authorization = authorization;
         this.equipoRepository = equipoRepository;
         this.inscripciones = inscripciones;
+        this.sancionService = sancionService;
     }
 
     public List<TarjetaResponseDTO> listarTarjetas() {
@@ -82,7 +85,9 @@ public class TarjetaService {
         authorization.verificarGestion(partido.getTorneo());
         Tarjeta tarjeta = new Tarjeta();
         cargarDatosTarjeta(tarjeta, requestDTO, partido);
-        return convertirAResponseDTO(tarjetaRepository.save(tarjeta));
+        Tarjeta guardada = tarjetaRepository.save(tarjeta);
+        sancionService.sincronizarConTarjeta(guardada);
+        return convertirAResponseDTO(guardada);
     }
 
     @Transactional
@@ -97,7 +102,9 @@ public class TarjetaService {
                 .orElseThrow(() -> new ResourceNotFoundException("Partido no encontrado"));
 
         cargarDatosTarjeta(tarjeta, requestDTO, partido);
-        return convertirAResponseDTO(tarjetaRepository.save(tarjeta));
+        Tarjeta guardada = tarjetaRepository.save(tarjeta);
+        sancionService.sincronizarConTarjeta(guardada);
+        return convertirAResponseDTO(guardada);
     }
 
     @Transactional
@@ -107,6 +114,7 @@ public class TarjetaService {
         partidoRepository.findByIdForUpdate(tarjeta.getPartido().getIdPartido())
                 .orElseThrow(() -> new ResourceNotFoundException("Partido no encontrado"));
         authorization.verificarGestion(tarjeta.getPartido().getTorneo());
+        sancionService.eliminarPorTarjeta(id);
         tarjetaRepository.deleteById(id);
     }
 
