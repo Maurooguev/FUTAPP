@@ -38,7 +38,7 @@ public class TablaPosicionService {
         for (Equipo equipo : equipos) {
             tabla.put(
                 equipo.getIdEquipo(),
-                new TablaPosicionDTO(equipo.getIdEquipo(), equipo.getNombre())
+                new TablaPosicionDTO(equipo.getIdEquipo(), equipo.getNombre(), equipo.getEscudo())
             );
         }
 

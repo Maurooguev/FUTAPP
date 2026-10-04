@@ -4,6 +4,7 @@ public class TablaPosicionDTO {
 
     private Long idEquipo;
     private String nombreEquipo;
+    private String escudoEquipo;
     private int puntos;
     private int partidosJugados;
     private int ganados;
@@ -16,9 +17,10 @@ public class TablaPosicionDTO {
     public TablaPosicionDTO() {
     }
 
-    public TablaPosicionDTO(Long idEquipo, String nombreEquipo) {
+    public TablaPosicionDTO(Long idEquipo, String nombreEquipo, String escudoEquipo) {
         this.idEquipo = idEquipo;
         this.nombreEquipo = nombreEquipo;
+        this.escudoEquipo = escudoEquipo;
         this.puntos = 0;
         this.partidosJugados = 0;
         this.ganados = 0;
@@ -43,6 +45,14 @@ public class TablaPosicionDTO {
 
     public void setNombreEquipo(String nombreEquipo) {
         this.nombreEquipo = nombreEquipo;
+    }
+
+    public String getEscudoEquipo() {
+        return escudoEquipo;
+    }
+
+    public void setEscudoEquipo(String escudoEquipo) {
+        this.escudoEquipo = escudoEquipo;
     }
 
     public int getPuntos() {

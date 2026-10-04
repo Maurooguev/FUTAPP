@@ -34,14 +34,9 @@
   line-height: 1.6;
 }
 
-.tournament-card-meta {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-top: 16px;
-  color: #475569;
-  font-weight: 600;
-}
+.tournament-card-compact-meta { display: flex; align-items: center; gap: 5px; min-width: 0; margin-top: 9px; color: #526575; font-size: 9px; font-weight: 700; white-space: nowrap; }
+.tournament-card-compact-meta span { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.tournament-card-compact-meta span[aria-hidden="true"] { flex: 0 0 auto; color: #a5b4bf; overflow: visible; }
 
 .featured-tournament-card {
   background: #fff;
@@ -74,18 +69,6 @@
   color: #0877a7;
   font-size: 12px;
   font-weight: 600;
-}
-
-.tournament-meta {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 11px;
-  padding-top: 9px;
-  border-top: 1px solid #e3e8eb;
-  color: #50616d;
-  font-weight: 600;
-  gap: 12px;
-  font-size: 12px;
 }
 
 .tournament-link {
@@ -138,16 +121,34 @@
 .tournament-card-champion { display: flex; align-items: center; gap: 7px; }
 .tournament-card-champion img { width: 24px; height: 24px; flex: 0 0 auto; border-radius: 50%; object-fit: cover; }
 .tournament-organizer { display: block; margin-top: 8px; color: #16805a; font-size: 9px; font-weight: 800; }
-.tournament-code { display: inline-block; margin-top: 10px; color: #2563eb; font-size: 12px; font-weight: 900; letter-spacing: .08em; }
-.featured-tournament-card .tournament-code { color: #0877a7; font-size: 10px; }
+.tournament-code { min-height: 0; margin-top: 5px; padding: 0; border: 0; background: transparent; box-shadow: none; color: #718292; font-size: 8px; font-weight: 800; letter-spacing: .06em; }
+.tournament-code:hover { border: 0; background: transparent; color: #0877a7; }
+.featured-tournament-card .tournament-code { color: #718292; font-size: 8px; }
+.tournament-card-podium { margin-top: 10px; overflow: hidden; border: 1px solid #dde8ed; border-radius: 5px; background: #fbfdfe; }
+.tournament-card-podium-heading, .tournament-card-podium-row { display: grid; grid-template-columns: 18px 22px minmax(0, 1fr) 24px; align-items: center; gap: 5px; }
+.tournament-card-podium-heading { grid-template-columns: minmax(0, 1fr) 24px; padding: 5px 7px; background: #eef7fa; color: #587080; font-size: 8px; text-transform: uppercase; letter-spacing: .04em; }
+.tournament-card-podium-heading b { text-align: right; }
+.tournament-card-podium-row { min-height: 31px; padding: 4px 7px; border-top: 1px solid #e8eef1; color: #263a47; font-size: 9px; }
+.tournament-card-podium-row:first-of-type { border-top: 0; }
+.tournament-card-podium-row img { width: 20px; height: 20px; border-radius: 50%; object-fit: contain; background: #fff; }
+.tournament-card-podium-row strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tournament-card-podium-row > b { text-align: right; color: #0877a7; }
+.podium-position { color: #738593; text-align: center; font-weight: 800; }
 .tournament-card { padding: 13px; border: 1px solid #dce2e6; border-radius: 5px; box-shadow: 0 2px 5px rgba(15,23,42,.07); }
 .tournament-card:hover, .featured-tournament-card:hover { transform: translateY(-2px); }
 .tournament-card-header { gap: 7px; margin-bottom: 7px; }
 .tournament-card h3 { font-size: 15px; }
 .tournament-card p { font-size: 11px; line-height: 1.4; }
-.tournament-card-meta { gap: 4px; margin-top: 9px; font-size: 10px; }
 .status-badge { padding: 4px 7px; border-radius: 3px; font-size: 9px; }
 .status-badge.small { font-size: 9px; }
-.tournament-code { margin-top: 6px; font-size: 9px; }
 :root[data-theme="dark"] .tournament-card-highlight { background: #294957; color: #9de7f4; }
 :root[data-theme="dark"] .tournament-organizer { color: #75d6ad; }
+:root[data-theme="dark"] .tournament-card-podium { border-color: #496572; background: #203d4a; }
+:root[data-theme="dark"] .tournament-card-podium-heading { background: #294957; color: #b7cbd4; }
+:root[data-theme="dark"] .tournament-card-podium-row { border-color: #365462; color: #edf7fa; }
+:root[data-theme="dark"] .tournament-card-compact-meta { color: #b7cbd4; }
+
+@media (max-width: 520px) {
+  .tournament-card-compact-meta { font-size: 8px; }
+  .tournament-card-podium-row { font-size: 8px; }
+}

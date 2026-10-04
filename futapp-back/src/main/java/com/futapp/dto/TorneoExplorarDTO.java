@@ -1,5 +1,7 @@
 package com.futapp.dto;
 
+import java.util.List;
+
 public record TorneoExplorarDTO(
         Long idTorneo,
         String nombre,
@@ -15,6 +17,7 @@ public record TorneoExplorarDTO(
         String nombreCampeon,
         String escudoCampeon,
         Long visitas,
-        PartidoExplorarDTO proximoPartido
+        PartidoExplorarDTO proximoPartido,
+        List<TablaPosicionDTO> podio
 ) {
 }

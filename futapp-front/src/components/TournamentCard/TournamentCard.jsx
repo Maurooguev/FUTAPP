@@ -9,6 +9,31 @@ function TournamentCard({ torneo, variant = "default", onClick }) {
   const nextMatchLabel = nextMatch?.fechaHora
     ? new Intl.DateTimeFormat("es-AR", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" }).format(new Date(nextMatch.fechaHora))
     : null;
+  const podium = torneo.podio || [];
+
+  const compactInfo = (
+    <div className="tournament-card-compact-meta">
+      <span>📍 {torneo.ubicacion || "Ubicación a confirmar"}</span>
+      <span aria-hidden="true">·</span>
+      <span>{torneo.formato}</span>
+      <span aria-hidden="true">·</span>
+      <span>{torneo.cantidadEquipos} equipos</span>
+    </div>
+  );
+
+  const podiumTable = podium.length > 0 && (
+    <div className="tournament-card-podium" aria-label="Primeros puestos">
+      <div className="tournament-card-podium-heading"><span>Posiciones</span><b>Pts</b></div>
+      {podium.map((team, index) => (
+        <div className="tournament-card-podium-row" key={team.idEquipo}>
+          <span className="podium-position">{index + 1}</span>
+          <EntityImage type="team" value={team.escudoEquipo} alt="" />
+          <strong>{team.nombreEquipo}</strong>
+          <b>{team.puntos}</b>
+        </div>
+      ))}
+    </div>
+  );
 
   if (variant === "featured") {
     return (
@@ -17,18 +42,13 @@ function TournamentCard({ torneo, variant = "default", onClick }) {
           <span className={`status-badge ${estadoClass}`}>{torneo.estado}</span>
           <span className="tournament-location">{torneo.ubicacion}</span>
         </div>
-        <CopyableCode className="tournament-code" value={torneo.codigoPublico} />
-
         <div className="tournament-card-title"><img src={torneoGenerico} alt="" /><h3>{torneo.nombre}</h3></div>
-        <div className="tournament-meta">
-          <span>{torneo.formato}</span>
-          <span>{torneo.cantidadEquipos} equipos</span>
-        </div>
+        <CopyableCode className="tournament-code" value={torneo.codigoPublico} />
+        {compactInfo}
 
+        {podiumTable}
         {torneo.nombreCampeon && <div className="tournament-card-highlight tournament-card-champion"><EntityImage type="team" value={torneo.escudoCampeon} alt="" /><span>Campeón · {torneo.nombreCampeon}</span></div>}
         {!torneo.nombreCampeon && nextMatchLabel && <div className="tournament-card-highlight">📅 Próximo · {nextMatchLabel}</div>}
-        {torneo.nombrePropietario && <small className="tournament-organizer">✓ {torneo.nombrePropietario}</small>}
-
         <button 
         type="button"
         className="tournament-link"
@@ -50,15 +70,10 @@ function TournamentCard({ torneo, variant = "default", onClick }) {
         <span className={`status-badge small ${estadoClass}`}>{torneo.estado}</span>
       </div>
       <CopyableCode className="tournament-code" value={torneo.codigoPublico} />
-
-      <div className="tournament-card-meta">
-        <span>📍 {torneo.ubicacion}</span>
-        <span>🏆 {torneo.formato}</span>
-        <span>👥 {torneo.cantidadEquipos} equipos</span>
-      </div>
+      {compactInfo}
+      {podiumTable}
       {torneo.nombreCampeon && <div className="tournament-card-highlight tournament-card-champion"><EntityImage type="team" value={torneo.escudoCampeon} alt="" /><span>Campeón · {torneo.nombreCampeon}</span></div>}
       {!torneo.nombreCampeon && nextMatchLabel && <div className="tournament-card-highlight">📅 Próximo partido · {nextMatchLabel}</div>}
-      {torneo.nombrePropietario && <small className="tournament-organizer">✓ Organiza {torneo.nombrePropietario}</small>}
     </div>
   );
 }

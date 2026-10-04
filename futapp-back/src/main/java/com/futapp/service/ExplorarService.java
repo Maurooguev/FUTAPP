@@ -23,10 +23,12 @@ public class ExplorarService {
     private static final int CANTIDAD_PROXIMOS_BASE = 100;
     private final TorneoRepository torneos;
     private final PartidoRepository partidos;
+    private final TablaPosicionService tablaPosicionService;
 
-    public ExplorarService(TorneoRepository torneos, PartidoRepository partidos) {
+    public ExplorarService(TorneoRepository torneos, PartidoRepository partidos, TablaPosicionService tablaPosicionService) {
         this.torneos = torneos;
         this.partidos = partidos;
+        this.tablaPosicionService = tablaPosicionService;
     }
 
     @Transactional(readOnly = true)
@@ -62,6 +64,8 @@ public class ExplorarService {
     }
 
     private TorneoExplorarDTO torneoDto(Torneo torneo, PartidoExplorarDTO proximo) {
+        String formato = torneo.getFormato() == null ? "" : torneo.getFormato().toUpperCase();
+        boolean tieneTabla = formato.contains("LIGA") || formato.contains("ZONA");
         return new TorneoExplorarDTO(
                 torneo.getIdTorneo(), torneo.getNombre(), torneo.getDescripcion(), torneo.getUbicacion(),
                 torneo.getEstado(), torneo.getFormato(), torneo.getCantidadEquipos(), torneo.getCodigoPublico(),
@@ -70,7 +74,8 @@ public class ExplorarService {
                 torneo.getCampeon() == null ? null : torneo.getCampeon().getIdEquipo(),
                 torneo.getCampeon() == null ? null : torneo.getCampeon().getNombre(),
                 torneo.getCampeon() == null ? null : torneo.getCampeon().getEscudo(),
-                torneo.getVisitas(), proximo);
+                torneo.getVisitas(), proximo,
+                tieneTabla ? tablaPosicionService.obtenerTablaPorTorneo(torneo.getIdTorneo()).stream().limit(3).toList() : List.of());
     }
 
     private PartidoExplorarDTO partidoDto(Partido partido) {
