@@ -121,8 +121,8 @@
 .tournament-card-champion { display: flex; align-items: center; gap: 7px; }
 .tournament-card-champion img { width: 24px; height: 24px; flex: 0 0 auto; border-radius: 50%; object-fit: cover; }
 .tournament-organizer { display: block; margin-top: 8px; color: #16805a; font-size: 9px; font-weight: 800; }
-.tournament-code { min-height: 0; margin-top: 5px; padding: 0; border: 0; background: transparent; box-shadow: none; color: #718292; font-size: 8px; font-weight: 800; letter-spacing: .06em; }
-.tournament-code:hover { border: 0; background: transparent; color: #0877a7; }
+.copyable-code.tournament-code { min-height: 0; margin-top: 5px; padding: 1px 0; border: 0; background: transparent; box-shadow: none; color: #718292; font-size: 8px; font-weight: 800; letter-spacing: .06em; }
+.copyable-code.tournament-code:hover { border: 0; background: transparent; color: #0877a7; }
 .featured-tournament-card .tournament-code { color: #718292; font-size: 8px; }
 .tournament-card-podium { margin-top: 10px; overflow: hidden; border: 1px solid #dde8ed; border-radius: 5px; background: #fbfdfe; }
 .tournament-card-podium-heading, .tournament-card-podium-row { display: grid; grid-template-columns: 18px 22px minmax(0, 1fr) 24px; align-items: center; gap: 5px; }
