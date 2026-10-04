@@ -39,13 +39,14 @@ public class TorneoService {
     private final TablaPosicionService tablaPosiciones;
     private final PerfilOrganizadorRepository perfilesOrganizador;
     private final FechaRepository fechas;
+    private final TorneoVisibilityService visibility;
 
     public TorneoService(TorneoRepository torneoRepository, TorneoAuthorizationService authorization,
                          PartidoRepository partidos, InscripcionEquipoRepository inscripcionesEquipo,
                          InscripcionJugadorRepository inscripcionesJugador,
                          EstructuraCompetenciaService estructuraCompetencia, EquipoRepository equipos,
                          TablaPosicionService tablaPosiciones, PerfilOrganizadorRepository perfilesOrganizador,
-                         FechaRepository fechas) {
+                         FechaRepository fechas, TorneoVisibilityService visibility) {
         this.torneoRepository = torneoRepository;
         this.authorization = authorization;
         this.partidos = partidos;
@@ -56,6 +57,7 @@ public class TorneoService {
         this.tablaPosiciones = tablaPosiciones;
         this.perfilesOrganizador = perfilesOrganizador;
         this.fechas = fechas;
+        this.visibility = visibility;
     }
 
     public List<TorneoResponseDTO> listarTorneos() {
@@ -148,6 +150,8 @@ public class TorneoService {
     public TorneoResponseDTO obtenerTorneoPorId(Long id) {
         Torneo torneo = torneoRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Torneo no encontrado con id: " + id));
+
+        visibility.verificar(torneo);
 
         if ("FINALIZADO".equalsIgnoreCase(torneo.getEstado()) && torneo.getCampeon() == null) {
             torneo.setCampeon(determinarCampeon(torneo, partidos.findByTorneoIdTorneo(id)));

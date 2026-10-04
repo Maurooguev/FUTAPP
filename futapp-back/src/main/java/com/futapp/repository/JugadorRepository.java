@@ -28,6 +28,9 @@ public interface JugadorRepository extends JpaRepository<Jugador, Long> {
     Optional<Jugador> findByCodigoPublicoIgnoreCase(String codigoPublico);
     Page<Jugador> findByNombreContainingIgnoreCaseOrApellidoContainingIgnoreCaseOrApodoContainingIgnoreCaseOrCodigoPublicoContainingIgnoreCase(
             String nombre, String apellido, String apodo, String codigoPublico, Pageable pageable);
+    Page<Jugador> findByEquipoTorneoEstadoIn(List<String> estados, Pageable pageable);
+    @Query("select j from Jugador j where j.equipo.torneo.estado in :estados and (lower(j.nombre) like lower(concat('%', :q, '%')) or lower(j.apellido) like lower(concat('%', :q, '%')) or lower(j.apodo) like lower(concat('%', :q, '%')) or lower(j.codigoPublico) like lower(concat('%', :q, '%')))")
+    Page<Jugador> buscarPublicos(@Param("q") String query, @Param("estados") List<String> estados, Pageable pageable);
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("update Jugador j set j.visitas = j.visitas + 1 where j.idJugador = :id")
     int incrementarVisitas(@Param("id") Long id);

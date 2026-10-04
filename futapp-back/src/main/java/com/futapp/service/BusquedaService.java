@@ -39,12 +39,10 @@ public class BusquedaService {
                 .buscarPublicosGlobal(termino, List.of("ACTIVO", "FINALIZADO"), limite)
                 .map(this::torneoResultado).getContent();
         List<ResultadoBusquedaDTO> equipos = equipoRepository
-                .findByNombreContainingIgnoreCaseOrCodigoPublicoContainingIgnoreCaseOrBarrioContainingIgnoreCase(
-                        termino, termino, termino, limite)
+                .buscarPublicos(termino, List.of("ACTIVO", "FINALIZADO"), limite)
                 .map(this::equipoResultado).getContent();
         List<ResultadoBusquedaDTO> jugadores = jugadorRepository
-                .findByNombreContainingIgnoreCaseOrApellidoContainingIgnoreCaseOrApodoContainingIgnoreCaseOrCodigoPublicoContainingIgnoreCase(
-                        termino, termino, termino, termino, limite)
+                .buscarPublicos(termino, List.of("ACTIVO", "FINALIZADO"), limite)
                 .map(this::jugadorResultado).getContent();
 
         return new BusquedaGlobalDTO(torneos, equipos, jugadores);

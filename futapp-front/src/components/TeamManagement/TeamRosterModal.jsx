@@ -74,7 +74,7 @@ function TeamRosterModal({ equipo, torneoId, canManage, onClose }) {
         setTournamentName(enrollment.nombreTorneo);
         const roster = await fetch(`${API_URL}/inscripciones/${enrollment.idInscripcion}/jugadores`).then((response) => response.json());
         const fullPlayers = await Promise.all((Array.isArray(roster) ? roster : []).map(async (item) => {
-          const player = await fetch(`${API_URL}/jugadores/${item.idJugador}`).then((response) => response.json());
+          const player = await apiFetch(`${API_URL}/jugadores/${item.idJugador}`).then((response) => response.json());
           return { ...player, ...item, nombre: player.nombre, apellido: player.apellido };
         }));
         setPlayers(fullPlayers);

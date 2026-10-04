@@ -62,7 +62,7 @@ public class AuthService {
         return createToken(usuarios.save(user));
     }
     public AuthResponseDTO login(LoginRequestDTO request) {
-        Usuario user = usuarios.findByEmailIgnoreCase(request.email()).orElseThrow(() -> new IllegalArgumentException("Email o contraseña incorrectos"));
+        Usuario user = usuarios.findByEmailIgnoreCase(request.email().trim()).orElseThrow(() -> new IllegalArgumentException("Email o contraseña incorrectos"));
         if (!encoder.matches(request.password(), user.getPasswordHash())) throw new IllegalArgumentException("Email o contraseña incorrectos");
         return createToken(user);
     }

@@ -45,7 +45,13 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/equipos/creados").hasAnyRole("ORGANIZADOR", "ADMIN")
                 .requestMatchers(HttpMethod.PUT, "/inscripciones/jugadores/**").authenticated()
                 .requestMatchers(HttpMethod.DELETE, "/jugadores/*").authenticated()
-                .requestMatchers(HttpMethod.GET, "/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/uploads/**", "/explorar", "/busqueda").permitAll()
+                .requestMatchers(HttpMethod.GET, "/torneos", "/torneos/pagina", "/torneos/buscar",
+                        "/torneos/buscar/pagina", "/torneos/*", "/torneos/*/tabla",
+                        "/torneos/*/estructura", "/torneos/campeones/equipo/*").permitAll()
+                .requestMatchers(HttpMethod.GET, "/equipos/**", "/jugadores/**", "/fechas/**",
+                        "/partidos/**", "/goles/**", "/tarjetas/**", "/inscripciones/**",
+                        "/sanciones/torneo/**", "/perfiles-organizador/*").permitAll()
                 .anyRequest().hasAnyRole("ORGANIZADOR", "ADMIN"))
             .exceptionHandling(errors -> errors
                 .authenticationEntryPoint((request, response, exception) -> {

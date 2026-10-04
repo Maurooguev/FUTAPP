@@ -35,6 +35,9 @@ class TournamentWorkflowIntegrationTests {
         String token = registrarOrganizador();
 
         long torneoId = postJson("/torneos", token, torneo()).get("idTorneo").asLong();
+        mockMvc.perform(get("/torneos/{id}", torneoId)).andExpect(status().isNotFound());
+        mockMvc.perform(get("/torneos/{id}", torneoId).header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk());
         JsonNode local = postJson("/equipos", token, equipo("Barrio Norte", "Azul", torneoId));
         JsonNode visitante = postJson("/equipos", token, equipo("Deportivo Sur", "Rojo", torneoId));
 
@@ -60,8 +63,11 @@ class TournamentWorkflowIntegrationTests {
                 .andExpect(jsonPath("$.jugadores", org.hamcrest.Matchers.hasItem(jugadorLocal.get("idJugador").asInt())));
         postJson("/torneos/" + torneoId + "/visitas", null, null);
         postJson("/jugadores/" + jugadorLocal.get("idJugador").asLong() + "/visitas", null, null);
-        mockMvc.perform(get("/torneos/" + torneoId)).andExpect(status().isOk()).andExpect(jsonPath("$.visitas").value(1));
-        mockMvc.perform(get("/jugadores/" + jugadorLocal.get("idJugador").asLong())).andExpect(status().isOk()).andExpect(jsonPath("$.visitas").value(1));
+        mockMvc.perform(get("/torneos/" + torneoId).header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.visitas").value(1));
+        mockMvc.perform(get("/jugadores/" + jugadorLocal.get("idJugador").asLong())
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.visitas").value(1));
 
         JsonNode fixture = postJson("/partidos/torneo/" + torneoId + "/generar-fixture", token, Map.of(
                 "fechaInicio", "2026-09-05",
@@ -75,6 +81,19 @@ class TournamentWorkflowIntegrationTests {
         putJson("/torneos/" + torneoId + "/iniciar", token, null)
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.estado").value("ACTIVO"));
+
+        mockMvc.perform(get("/jugadores/{id}", jugadorLocal.get("idJugador").asLong()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.dni").value(org.hamcrest.Matchers.nullValue()))
+                .andExpect(jsonPath("$.fechaNacimiento").value(org.hamcrest.Matchers.nullValue()));
+        mockMvc.perform(get("/jugadores/{id}", jugadorLocal.get("idJugador").asLong())
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.fechaNacimiento").value("2000-01-01"));
+        mockMvc.perform(get("/equipos/{id}", local.get("idEquipo").asLong()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.responsable").value(org.hamcrest.Matchers.nullValue()))
+                .andExpect(jsonPath("$.telefonoContacto").value(org.hamcrest.Matchers.nullValue()));
 
         mockMvc.perform(get("/torneos/mios/panel").header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk())
@@ -319,7 +338,9 @@ class TournamentWorkflowIntegrationTests {
         long equipoId = postJson("/equipos", propietario, equipo("Club protegido", "Azul", torneoId))
                 .get("idEquipo").asLong();
 
-        mockMvc.perform(get("/torneos/{id}", torneoId)).andExpect(status().isOk());
+        mockMvc.perform(get("/torneos/{id}", torneoId)
+                        .header("Authorization", "Bearer " + propietario))
+                .andExpect(status().isOk());
 
         putJson("/torneos/" + torneoId, otroOrganizador, torneo())
                 .andExpect(status().isForbidden());
@@ -330,7 +351,8 @@ class TournamentWorkflowIntegrationTests {
                         .content(jsonMapper.writeValueAsString(equipo("Intento jugador", "Negro", torneoId))))
                 .andExpect(status().isForbidden());
 
-        mockMvc.perform(get("/equipos/{id}", equipoId))
+        mockMvc.perform(get("/equipos/{id}", equipoId)
+                        .header("Authorization", "Bearer " + propietario))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.nombre").value("Club Protegido"));
     }
@@ -360,11 +382,14 @@ class TournamentWorkflowIntegrationTests {
                 "numeroFecha", 1, "descripcion", "Intento de traslado", "estado", "PROGRAMADA", "idTorneo", torneoB))
                 .andExpect(status().isBadRequest());
 
-        mockMvc.perform(get("/equipos/{id}", equipoA))
+        mockMvc.perform(get("/equipos/{id}", equipoA)
+                        .header("Authorization", "Bearer " + propietarioA))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.idTorneo").value((int) torneoA));
-        mockMvc.perform(get("/jugadores/{id}", jugadorA))
+        mockMvc.perform(get("/jugadores/{id}", jugadorA)
+                        .header("Authorization", "Bearer " + propietarioA))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.idEquipo").value((int) equipoA));
-        mockMvc.perform(get("/fechas/{id}", fechaA))
+        mockMvc.perform(get("/fechas/{id}", fechaA)
+                        .header("Authorization", "Bearer " + propietarioA))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.idTorneo").value((int) torneoA));
     }
 
@@ -471,7 +496,8 @@ class TournamentWorkflowIntegrationTests {
                 .andExpect(jsonPath("$.idJugador").value((int) jugadorId));
         mockMvc.perform(get("/jugadores/{id}", otroJugadorId))
                 .andExpect(status().isNotFound());
-        mockMvc.perform(get("/jugadores/codigo/{codigo}", codigoDuplicado))
+        mockMvc.perform(get("/jugadores/codigo/{codigo}", codigoDuplicado)
+                        .header("Authorization", "Bearer " + cuentaJugador))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.idJugador").value((int) jugadorId));
     }
@@ -538,7 +564,8 @@ class TournamentWorkflowIntegrationTests {
         mockMvc.perform(get("/equipos/{id}/permisos", equipoId)
                         .header("Authorization", "Bearer " + organizador))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.puedeGestionar").value(false));
-        mockMvc.perform(get("/equipos/{id}", equipoId))
+        mockMvc.perform(get("/equipos/{id}", equipoId)
+                        .header("Authorization", "Bearer " + director))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.nombre").value("Club Administrado"));
     }
 
@@ -596,7 +623,8 @@ class TournamentWorkflowIntegrationTests {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.estado").value("APROBADA"));
 
-        mockMvc.perform(get("/jugadores/{id}", jugadorId))
+        mockMvc.perform(get("/jugadores/{id}", jugadorId)
+                        .header("Authorization", "Bearer " + cuentaJugador))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.nombre").value("Nombre Corregido"))
                 .andExpect(jsonPath("$.apellido").value("Apellido Corregido"))

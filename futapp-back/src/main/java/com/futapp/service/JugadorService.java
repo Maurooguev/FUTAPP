@@ -36,13 +36,14 @@ public class JugadorService {
     private final InscripcionJugadorRepository inscripcionesJugador;
     private final EquipoAuthorizationService equipoAuthorization;
     private final JugadorAliasRepository aliases;
+    private final TorneoVisibilityService visibility;
 
     public JugadorService(JugadorRepository jugadorRepository, EquipoRepository equipoRepository,
                           GolRepository golRepository, TarjetaRepository tarjetaRepository,
                           InscripcionEquipoRepository inscripcionesEquipo,
                           InscripcionJugadorRepository inscripcionesJugador,
                           EquipoAuthorizationService equipoAuthorization,
-                          JugadorAliasRepository aliases) {
+                          JugadorAliasRepository aliases, TorneoVisibilityService visibility) {
         this.jugadorRepository = jugadorRepository;
         this.equipoRepository = equipoRepository;
         this.golRepository = golRepository;
@@ -51,11 +52,13 @@ public class JugadorService {
         this.inscripcionesJugador = inscripcionesJugador;
         this.equipoAuthorization = equipoAuthorization;
         this.aliases = aliases;
+        this.visibility = visibility;
     }
 
     public List<JugadorResponseDTO> listarJugadores() {
         return jugadorRepository.findAll()
                 .stream()
+                .filter(jugador -> visibility.puedeVer(jugador.getEquipo().getTorneo()))
                 .map(this::convertirAResponseDTO)
                 .collect(Collectors.toList());
     }
@@ -63,11 +66,17 @@ public class JugadorService {
     public JugadorResponseDTO obtenerJugadorPorId(Long id) {
         Jugador jugador = jugadorRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Jugador no encontrado con id: " + id));
+        verificarVisibilidad(jugador);
 
         return convertirAResponseDTO(jugador);
     }
 
     public List<JugadorResponseDTO> listarJugadoresPorEquipo(Long idEquipo) {
+        Equipo equipo = equipoRepository.findById(idEquipo)
+                .orElseThrow(() -> new ResourceNotFoundException("Equipo no encontrado"));
+        if (!visibility.puedeVer(equipo.getTorneo()) && !equipoAuthorization.puedeGestionar(equipo)) {
+            throw new ResourceNotFoundException("Equipo no encontrado");
+        }
         return jugadorRepository.findByEquipoIdEquipo(idEquipo)
                 .stream()
                 .map(this::convertirAResponseDTO)
@@ -150,15 +159,16 @@ public class JugadorService {
     }
 
     private JugadorResponseDTO convertirAResponseDTO(Jugador jugador) {
+        boolean datosPrivados = puedeVerDatosPrivados(jugador);
         JugadorResponseDTO dto = new JugadorResponseDTO(
                 jugador.getIdJugador(),
                 jugador.getNombre(),
                 jugador.getApellido(),
-                jugador.getDni(),
+                datosPrivados ? jugador.getDni() : null,
                 jugador.getCodigoPublico(),
                 jugador.getApodo(),
                 jugador.getPiernaHabil(),
-                jugador.getFechaNacimiento(),
+                datosPrivados ? jugador.getFechaNacimiento() : null,
                 jugador.getNumeroCamiseta(),
                 jugador.getPosicion(),
                 jugador.getFoto(),
@@ -171,6 +181,14 @@ public class JugadorService {
         return dto;
     }
 
+    private boolean puedeVerDatosPrivados(Jugador jugador) {
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+        Object principal = authentication == null ? null : authentication.getPrincipal();
+        if (principal instanceof Usuario usuario && jugador.getUsuario() != null
+                && jugador.getUsuario().getIdUsuario().equals(usuario.getIdUsuario())) return true;
+        return equipoAuthorization.puedeGestionar(jugador.getEquipo());
+    }
+
     public long registrarVisita(Long id) {
         if (jugadorRepository.incrementarVisitas(id) == 0) throw new ResourceNotFoundException("Jugador no encontrado con id: " + id);
         return jugadorRepository.findById(id).map(Jugador::getVisitas).orElse(0L);
@@ -179,7 +197,8 @@ public class JugadorService {
     public PaginaDTO<JugadorResponseDTO> listarPaginados(int pagina, int cantidad) {
         var pageable = PageRequest.of(Math.max(pagina, 0), Math.min(Math.max(cantidad, 1), 100),
                 Sort.by("apellido").ascending().and(Sort.by("nombre").ascending()));
-        return PaginaDTO.desde(jugadorRepository.findAll(pageable).map(this::convertirAResponseDTO));
+        return PaginaDTO.desde(jugadorRepository.findByEquipoTorneoEstadoIn(List.of("ACTIVO", "FINALIZADO"), pageable)
+                .map(this::convertirAResponseDTO));
     }
 
     public JugadorResponseDTO buscarPorCodigo(String codigo) {
@@ -187,7 +206,14 @@ public class JugadorService {
         Jugador jugador = jugadorRepository.findByCodigoPublicoIgnoreCase(normalizado)
                 .orElseGet(() -> aliases.findByCodigoIgnoreCase(normalizado).map(item -> item.getJugador())
                         .orElseThrow(() -> new ResourceNotFoundException("No encontramos un jugador con ese código")));
+        verificarVisibilidad(jugador);
         return convertirAResponseDTO(jugador);
+    }
+
+    private void verificarVisibilidad(Jugador jugador) {
+        if (!visibility.puedeVer(jugador.getEquipo().getTorneo()) && !puedeVerDatosPrivados(jugador)) {
+            throw new ResourceNotFoundException("Jugador no encontrado");
+        }
     }
 
     private String normalizarOpcional(String valor) {

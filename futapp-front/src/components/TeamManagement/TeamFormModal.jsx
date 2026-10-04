@@ -112,7 +112,7 @@ function TeamFormModal({ torneoId, equipo, onClose, onSaved, onLinked }) {
         }
         throw new Error(payload?.message || "No se pudieron vincular los clubes");
       }
-      const officialResponse = await fetch(`${API_URL}/equipos/${linkTarget.idEquipo}`);
+      const officialResponse = await apiFetch(`${API_URL}/equipos/${linkTarget.idEquipo}`);
       const officialTeam = officialResponse.ok ? await officialResponse.json() : linkTarget;
       onLinked?.(officialTeam, equipo.idEquipo); onClose();
     } catch (requestError) { setError(requestError.message); }

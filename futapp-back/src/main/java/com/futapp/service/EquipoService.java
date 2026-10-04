@@ -40,6 +40,7 @@ public class EquipoService {
     private final EquipoAuthorizationService equipoAuthorization;
     private final EquipoAdministradorRepository administradores;
     private final EquipoAliasRepository aliases;
+    private final TorneoVisibilityService visibility;
 
     public EquipoService(EquipoRepository equipoRepository, TorneoRepository torneoRepository,
                          JugadorRepository jugadorRepository, PartidoRepository partidoRepository,
@@ -48,7 +49,7 @@ public class EquipoService {
                          InscripcionJugadorRepository inscripcionesJugador,
                          EquipoAuthorizationService equipoAuthorization,
                          EquipoAdministradorRepository administradores,
-                         EquipoAliasRepository aliases) {
+                         EquipoAliasRepository aliases, TorneoVisibilityService visibility) {
         this.equipoRepository = equipoRepository;
         this.torneoRepository = torneoRepository;
         this.jugadorRepository = jugadorRepository;
@@ -59,11 +60,13 @@ public class EquipoService {
         this.equipoAuthorization = equipoAuthorization;
         this.administradores = administradores;
         this.aliases = aliases;
+        this.visibility = visibility;
     }
 
     public List<EquipoResponseDTO> listarEquipos() {
         return equipoRepository.findAll()
                 .stream()
+                .filter(equipo -> visibility.puedeVer(equipo.getTorneo()))
                 .map(this::convertirAResponseDTO)
                 .collect(Collectors.toList());
     }
@@ -71,13 +74,15 @@ public class EquipoService {
     public EquipoResponseDTO obtenerEquipoPorId(Long id) {
         Equipo equipo = equipoRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Equipo no encontrado con id: " + id));
+        verificarVisibilidad(equipo);
 
         return convertirAResponseDTO(equipo);
     }
 
     public PaginaDTO<EquipoResponseDTO> listarPaginados(int pagina, int cantidad) {
         var pageable = PageRequest.of(Math.max(pagina, 0), Math.min(Math.max(cantidad, 1), 100), Sort.by("nombre").ascending());
-        return PaginaDTO.desde(equipoRepository.findAll(pageable).map(this::convertirAResponseDTO));
+        return PaginaDTO.desde(equipoRepository.findByTorneoEstadoIn(List.of("ACTIVO", "FINALIZADO"), pageable)
+                .map(this::convertirAResponseDTO));
     }
 
     public List<EquipoResponseDTO> listarMisEquipos() {
@@ -101,7 +106,14 @@ public class EquipoService {
         Equipo equipo = equipoRepository.findByCodigoPublicoIgnoreCase(normalizado)
                 .orElseGet(() -> aliases.findByCodigoIgnoreCase(normalizado).map(item -> item.getEquipo())
                         .orElseThrow(() -> new ResourceNotFoundException("No encontramos un equipo con ese código")));
+        verificarVisibilidad(equipo);
         return convertirAResponseDTO(equipo);
+    }
+
+    private void verificarVisibilidad(Equipo equipo) {
+        if (!visibility.puedeVer(equipo.getTorneo()) && !equipoAuthorization.puedeGestionar(equipo)) {
+            throw new ResourceNotFoundException("Equipo no encontrado");
+        }
     }
 
     public boolean puedeGestionar(Long id) {
@@ -111,6 +123,8 @@ public class EquipoService {
     }
 
     public List<EquipoResponseDTO> listarEquiposPorTorneo(Long idTorneo) {
+        visibility.verificar(torneoRepository.findById(idTorneo)
+                .orElseThrow(() -> new ResourceNotFoundException("Torneo no encontrado")));
         return inscripcionesEquipo.findByTorneoIdTorneo(idTorneo)
                 .stream()
                 .map(inscripcion -> convertirAResponseDTO(inscripcion.getEquipo(), inscripcion.getTorneo()))
@@ -193,6 +207,7 @@ public class EquipoService {
     }
 
     private EquipoResponseDTO convertirAResponseDTO(Equipo equipo, Torneo torneo) {
+        boolean datosPrivados = equipoAuthorization.puedeGestionar(equipo);
         EquipoResponseDTO dto = new EquipoResponseDTO(
                 equipo.getIdEquipo(),
                 equipo.getNombre(),
@@ -200,11 +215,11 @@ public class EquipoService {
                 equipo.getCodigoPublico(),
                 equipo.getDescripcion(),
                 equipo.getFotoPlantel(),
-                equipo.getEmailContacto(),
+                datosPrivados ? equipo.getEmailContacto() : null,
                 equipo.getColorCamiseta(),
                 equipo.getBarrio(),
-                equipo.getResponsable(),
-                equipo.getTelefonoContacto(),
+                datosPrivados ? equipo.getResponsable() : null,
+                datosPrivados ? equipo.getTelefonoContacto() : null,
                 equipo.getEstado(),
                 torneo.getIdTorneo(),
                 torneo.getNombre()

@@ -9,6 +9,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
+import jakarta.servlet.http.Cookie;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 import tools.jackson.databind.json.JsonMapper;
@@ -95,6 +96,25 @@ class RolePermissionIntegrationTests {
         mockMvc.perform(get("/torneos/mios").header("Authorization", bearer(token))).andExpect(status().isOk());
         mockMvc.perform(get("/equipos/mios").header("Authorization", bearer(token))).andExpect(status().isOk());
         mockMvc.perform(get("/auditoria").header("Authorization", bearer(token))).andExpect(status().isOk());
+    }
+
+    @Test
+    void laSesionFuncionaConCookieHttpOnlyYSeRevocaAlCerrarSesion() throws Exception {
+        String email = "cookie-session-" + System.nanoTime() + "@test.local";
+        var register = mockMvc.perform(post("/auth/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonMapper.writeValueAsString(
+                                new RegisterRequestDTO("Cuenta Cookie", email, "password123", "JUGADOR"))))
+                .andExpect(status().isOk())
+                .andReturn().getResponse();
+
+        Cookie session = register.getCookie("FUTAPP_SESSION");
+        org.junit.jupiter.api.Assertions.assertNotNull(session);
+        org.junit.jupiter.api.Assertions.assertTrue(session.isHttpOnly());
+
+        mockMvc.perform(get("/auth/me").cookie(session)).andExpect(status().isOk());
+        mockMvc.perform(post("/auth/logout").cookie(session)).andExpect(status().isOk());
+        mockMvc.perform(get("/auth/me").cookie(session)).andExpect(status().isUnauthorized());
     }
 
     private String registrar(String rol) throws Exception {

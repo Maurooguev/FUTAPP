@@ -11,16 +11,14 @@ const inFlightGets = new Map();
 const wait = (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds));
 
 export async function apiFetch(url, options = {}) {
-  const token = localStorage.getItem("authToken");
   const headers = new Headers(options.headers || {});
-  if (token) headers.set("Authorization", `Bearer ${token}`);
   const method = (options.method || "GET").toUpperCase();
   const attempts = method === "GET" ? 3 : 1;
 
   const execute = async () => {
     for (let attempt = 1; attempt <= attempts; attempt += 1) {
       try {
-        const response = await fetch(url, { ...options, headers });
+        const response = await fetch(url, { ...options, headers, credentials: "include" });
         if (!RETRYABLE_STATUS.has(response.status) || attempt === attempts) return response;
       } catch (error) {
         if (attempt === attempts || error?.name === "AbortError") throw error;
@@ -32,7 +30,7 @@ export async function apiFetch(url, options = {}) {
 
   if (method !== "GET") return execute();
 
-  const requestKey = `${token || "public"}:${url}`;
+  const requestKey = url;
   if (!inFlightGets.has(requestKey)) {
     const pending = execute();
     inFlightGets.set(requestKey, pending);

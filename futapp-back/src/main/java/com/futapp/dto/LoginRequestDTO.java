@@ -1,4 +1,6 @@
 package com.futapp.dto;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-public record LoginRequestDTO(@Email @NotBlank String email, @NotBlank String password) {}
+import jakarta.validation.constraints.Size;
+public record LoginRequestDTO(@Email @NotBlank @Size(max=254) String email,
+                              @NotBlank @Size(max=128) String password) {}
