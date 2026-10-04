@@ -178,6 +178,7 @@ public class TarjetaService {
                 tarjeta.getPartido().getIdPartido(),
                 tarjeta.getJugador().getIdJugador(),
                 tarjeta.getJugador().getNombre() + " " + tarjeta.getJugador().getApellido(),
+                tarjeta.getJugador().getFoto(),
                 tarjeta.getEquipo().getIdEquipo(),
                 tarjeta.getEquipo().getNombre()
         );

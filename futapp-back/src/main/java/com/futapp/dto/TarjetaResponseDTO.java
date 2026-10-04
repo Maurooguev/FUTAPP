@@ -10,6 +10,7 @@ public class TarjetaResponseDTO {
     private Long idPartido;
     private Long idJugador;
     private String nombreJugador;
+    private String fotoJugador;
     private Long idEquipo;
     private String nombreEquipo;
 
@@ -17,7 +18,7 @@ public class TarjetaResponseDTO {
     }
 
     public TarjetaResponseDTO(Long idTarjeta, String tipoTarjeta, Integer minuto, String motivo,
-                              Long idPartido, Long idJugador, String nombreJugador,
+                              Long idPartido, Long idJugador, String nombreJugador, String fotoJugador,
                               Long idEquipo, String nombreEquipo) {
         this.idTarjeta = idTarjeta;
         this.tipoTarjeta = tipoTarjeta;
@@ -26,6 +27,7 @@ public class TarjetaResponseDTO {
         this.idPartido = idPartido;
         this.idJugador = idJugador;
         this.nombreJugador = nombreJugador;
+        this.fotoJugador = fotoJugador;
         this.idEquipo = idEquipo;
         this.nombreEquipo = nombreEquipo;
     }
@@ -85,6 +87,10 @@ public class TarjetaResponseDTO {
     public void setNombreJugador(String nombreJugador) {
         this.nombreJugador = nombreJugador;
     }
+
+    public String getFotoJugador() { return fotoJugador; }
+
+    public void setFotoJugador(String fotoJugador) { this.fotoJugador = fotoJugador; }
 
     public Long getIdEquipo() {
         return idEquipo;

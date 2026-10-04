@@ -236,6 +236,7 @@ function TorneoDetalle() {
         acumulado[key] = {
           idJugador: tarjeta.idJugador,
           nombreJugador: tarjeta.nombreJugador,
+          fotoJugador: tarjeta.fotoJugador,
           idEquipo: tarjeta.idEquipo,
           nombreEquipo: tarjeta.nombreEquipo,
           cantidad: 0,
