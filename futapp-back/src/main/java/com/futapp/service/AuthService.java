@@ -29,12 +29,14 @@ public class AuthService {
     private final Duration sessionDuration;
     private final int maximumSessions;
     private final String registrationInviteCode;
+    private final Duration passwordResetDuration;
     public AuthService(UsuarioRepository usuarios, AuthTokenRepository tokens,
                        PasswordResetTokenRepository resetTokens, PasswordEncoder encoder,
                        PasswordResetMailService passwordResetMail,
                        @Value("${futapp.password-reset.expose-token:false}") boolean exposeResetToken,
                        @Value("${futapp.auth.session-duration:7d}") Duration sessionDuration,
                        @Value("${futapp.auth.maximum-sessions:5}") int maximumSessions,
+                       @Value("${futapp.password-reset.duration:30m}") Duration passwordResetDuration,
                        @Value("${futapp.registration.invite-code:}") String registrationInviteCode) {
         this.usuarios = usuarios;
         this.tokens = tokens;
@@ -44,8 +46,12 @@ public class AuthService {
         this.exposeResetToken = exposeResetToken;
         if (sessionDuration.isZero() || sessionDuration.isNegative()) throw new IllegalArgumentException("La duración de sesión debe ser positiva");
         if (maximumSessions < 1) throw new IllegalArgumentException("Debe permitirse al menos una sesión por cuenta");
+        if (passwordResetDuration.isZero() || passwordResetDuration.isNegative()) {
+            throw new IllegalArgumentException("La duración del enlace de recuperación debe ser positiva");
+        }
         this.sessionDuration = sessionDuration;
         this.maximumSessions = maximumSessions;
+        this.passwordResetDuration = passwordResetDuration;
         this.registrationInviteCode = registrationInviteCode == null ? "" : registrationInviteCode;
     }
     public AuthResponseDTO register(RegisterRequestDTO request) {
@@ -74,7 +80,7 @@ public class AuthService {
             PasswordResetToken reset = new PasswordResetToken();
             reset.setTokenHash(TokenSecurity.hash(token));
             reset.setUsuario(user);
-            reset.setExpiresAt(LocalDateTime.now().plusMinutes(30));
+            reset.setExpiresAt(LocalDateTime.now().plus(passwordResetDuration));
             resetTokens.save(reset);
             passwordResetMail.send(user, token);
             generatedToken[0] = token;
@@ -88,6 +94,9 @@ public class AuthService {
                 .orElseThrow(() -> new IllegalArgumentException("El enlace de recuperación no es válido"));
         if (reset.getExpiresAt().isBefore(LocalDateTime.now())) throw new IllegalArgumentException("El enlace de recuperación venció");
         Usuario user = reset.getUsuario();
+        if (encoder.matches(request.nuevaPassword(), user.getPasswordHash())) {
+            throw new IllegalArgumentException("La contraseña nueva debe ser diferente");
+        }
         user.setPasswordHash(encoder.encode(request.nuevaPassword()));
         usuarios.save(user);
         reset.setUsedAt(LocalDateTime.now());
