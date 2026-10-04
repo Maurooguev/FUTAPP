@@ -2,11 +2,13 @@ import { useState } from "react";
 import { API_URL, apiFetch, assetUrl } from "../../config/api";
 import "./ImageUploadField.css";
 import PlantelCropModal from "./PlantelCropModal";
+import BackgroundRemovalModal from "./BackgroundRemovalModal";
 
-function ImageUploadField({ label, value, onUploaded, shape = "wide" }) {
+function ImageUploadField({ label, value, onUploaded, shape = "wide", allowBackgroundRemoval = false }) {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
   const [cropFile, setCropFile] = useState(null);
+  const [backgroundFile, setBackgroundFile] = useState(null);
 
   const uploadFile = async (file) => {
     if (!file) return;
@@ -30,7 +32,8 @@ function ImageUploadField({ label, value, onUploaded, shape = "wide" }) {
     const file = event.target.files?.[0];
     event.target.value = "";
     if (!file) return;
-    if (shape === "wide") setCropFile(file);
+    if (allowBackgroundRemoval) setBackgroundFile(file);
+    else if (shape === "wide") setCropFile(file);
     else uploadFile(file);
   };
 
@@ -41,6 +44,7 @@ function ImageUploadField({ label, value, onUploaded, shape = "wide" }) {
     {value && <button type="button" className="image-upload-remove" onClick={() => onUploaded("")}>Quitar</button>}
     {error && <small className="image-upload-error">{error}</small>}
     {cropFile && <PlantelCropModal file={cropFile} onCancel={() => setCropFile(null)} onConfirm={async (cropped) => { await uploadFile(cropped); setCropFile(null); }} />}
+    {backgroundFile && <BackgroundRemovalModal file={backgroundFile} onCancel={() => setBackgroundFile(null)} onConfirm={async (prepared) => { await uploadFile(prepared); setBackgroundFile(null); }} />}
   </div>;
 }
 

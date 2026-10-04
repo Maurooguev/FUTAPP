@@ -9,3 +9,17 @@
 .crop-viewport { position: relative; width: 100%; aspect-ratio: 3 / 1; overflow: hidden; border-radius: 5px; background: #0f172a; cursor: grab; touch-action: none; user-select: none; }.crop-viewport:active { cursor: grabbing; }.crop-viewport canvas { display: block; width: 100%; height: 100%; pointer-events: none; }.crop-source { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
 .crop-zoom { display: grid; grid-template-columns: auto 1fr; gap: 12px; align-items: center; margin: 14px 0; font-size: 11px; font-weight: 800; }.crop-zoom input { width: 100%; accent-color: #0877a7; }
 .crop-actions { display: flex; justify-content: flex-end; gap: 8px; }.crop-actions button { padding: 8px 11px; background: #e2e8f0; color: #334155; font-size: 10px; }.crop-actions .primary { background: #0877a7; color: #fff; }
+.background-removal-modal { width: min(660px, 100%); padding: 20px; border-radius: 7px; background: #fff; color: #334155; }
+.background-removal-modal h2 { margin: 0 0 5px; color: #0f172a; font-size: 20px; }
+.background-removal-modal > p { margin: 0 0 14px; font-size: 11px; }
+.background-removal-options { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; }
+.background-removal-options > button { display: grid; grid-template-columns: 1fr auto; gap: 3px 8px; padding: 10px; border: 2px solid #dbe3e8; background: #fff; color: #334155; text-align: left; }
+.background-removal-options > button.selected { border-color: #079bc8; box-shadow: 0 0 0 3px rgba(7,155,200,.12); }
+.background-removal-options > button:disabled { opacity: .65; }
+.background-removal-options strong { align-self: end; font-size: 11px; }
+.background-removal-options small { color: #64748b; font-size: 9px; }
+.background-removal-preview { grid-column: 1 / -1; display: grid; width: 100%; aspect-ratio: 16 / 10; place-items: center; overflow: hidden; border-radius: 5px; background-color: #eef2f4; background-image: linear-gradient(45deg,#d9e1e5 25%,transparent 25%),linear-gradient(-45deg,#d9e1e5 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#d9e1e5 75%),linear-gradient(-45deg,transparent 75%,#d9e1e5 75%); background-position: 0 0,0 8px,8px -8px,-8px 0; background-size: 16px 16px; }
+.background-removal-preview img { width: 100%; height: 100%; object-fit: contain; }
+.background-removal-preview em { color: #526575; font-size: 10px; font-style: normal; }
+.background-removal-notice { padding: 8px; border-left: 3px solid #079bc8; background: #eef7fa; color: #285469; }
+@media (max-width: 600px) { .background-removal-modal { padding: 15px; }.background-removal-options { grid-template-columns: 1fr; }.background-removal-preview { aspect-ratio: 2 / 1; } }

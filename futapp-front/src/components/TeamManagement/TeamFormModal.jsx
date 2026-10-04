@@ -136,7 +136,7 @@ function TeamFormModal({ torneoId, equipo, onClose, onSaved, onLinked }) {
             <label>Email de contacto<input type="email" name="emailContacto" value={form.emailContacto} onChange={updateField} maxLength="160" /></label>
             <label>Estado<select name="estado" value={form.estado} onChange={updateField}><option value="ACTIVO">Activo</option><option value="INACTIVO">Inactivo</option></select></label>
           </div>
-          <ImageUploadField label="Escudo" value={form.escudo} shape="avatar" onUploaded={(escudo) => setForm((current) => ({ ...current, escudo }))} />
+          <ImageUploadField label="Escudo" value={form.escudo} shape="avatar" allowBackgroundRemoval onUploaded={(escudo) => setForm((current) => ({ ...current, escudo }))} />
           <ImageUploadField label="Foto del plantel" value={form.fotoPlantel} onUploaded={(fotoPlantel) => setForm((current) => ({ ...current, fotoPlantel }))} />
           <label>Descripción<textarea name="descripcion" value={form.descripcion} onChange={updateField} maxLength="1000" rows="4" /></label>
           {isEditing && <section className="team-link-panel">
