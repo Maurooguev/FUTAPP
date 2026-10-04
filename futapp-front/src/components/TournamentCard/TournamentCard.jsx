@@ -5,6 +5,8 @@ import TournamentIcon from "../TournamentIcon/TournamentIcon";
 
 function TournamentCard({ torneo, variant = "default", onClick }) {
   const estadoClass = torneo.estado?.toLowerCase();
+  const estadoLabel = ({ activo: "ACT", finalizado: "FIN", publicado: "PUB", borrador: "BOR" })[estadoClass]
+    || torneo.estado?.slice(0, 3).toUpperCase();
   const nextMatch = torneo.proximoPartido;
   const nextMatchLabel = nextMatch?.fechaHora
     ? new Intl.DateTimeFormat("es-AR", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" }).format(new Date(nextMatch.fechaHora))
@@ -39,10 +41,10 @@ function TournamentCard({ torneo, variant = "default", onClick }) {
     return (
       <div className="featured-tournament-card" onClick={onClick}>
         <div className="tournament-card-top">
-          <span className={`status-badge ${estadoClass}`}>{torneo.estado}</span>
+          <span className={`status-badge ${estadoClass}`} title={torneo.estado} aria-label={`Estado: ${torneo.estado}`}>{estadoLabel}</span>
           <span className="tournament-location">{torneo.ubicacion}</span>
         </div>
-        <div className="tournament-card-title"><TournamentIcon value={torneo.logoOrganizador} aria-hidden="true" /><h3>{torneo.nombre}</h3></div>
+        <div className="tournament-card-title"><TournamentIcon value={torneo.logoOrganizador} aria-hidden="true" /><h3 title={torneo.nombre}>{torneo.nombre}</h3></div>
         <CopyableCode className="tournament-code" value={torneo.codigoPublico} />
         {compactInfo}
 
@@ -66,8 +68,8 @@ function TournamentCard({ torneo, variant = "default", onClick }) {
   return (
     <div className="tournament-card" onClick={onClick}>
       <div className="tournament-card-header">
-        <div className="tournament-card-title"><TournamentIcon value={torneo.logoOrganizador} aria-hidden="true" /><h3>{torneo.nombre}</h3></div>
-        <span className={`status-badge small ${estadoClass}`}>{torneo.estado}</span>
+        <div className="tournament-card-title"><TournamentIcon value={torneo.logoOrganizador} aria-hidden="true" /><h3 title={torneo.nombre}>{torneo.nombre}</h3></div>
+        <span className={`status-badge small ${estadoClass}`} title={torneo.estado} aria-label={`Estado: ${torneo.estado}`}>{estadoLabel}</span>
       </div>
       <CopyableCode className="tournament-code" value={torneo.codigoPublico} />
       {compactInfo}
