@@ -20,6 +20,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.time.LocalDate;
+import com.futapp.model.Usuario;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 @Service
 @Transactional(readOnly = true)
@@ -32,13 +34,14 @@ public class InscripcionService {
     private final TorneoAuthorizationService authorization;
     private final EquipoAuthorizationService equipoAuthorization;
     private final PartidoRepository partidos;
+    private final TorneoVisibilityService visibility;
 
     public InscripcionService(InscripcionEquipoRepository inscripcionesEquipo,
                               InscripcionJugadorRepository inscripcionesJugador,
                               EquipoRepository equipos, JugadorRepository jugadores,
                               TorneoRepository torneos, TorneoAuthorizationService authorization,
                               EquipoAuthorizationService equipoAuthorization,
-                              PartidoRepository partidos) {
+                              PartidoRepository partidos, TorneoVisibilityService visibility) {
         this.inscripcionesEquipo = inscripcionesEquipo;
         this.inscripcionesJugador = inscripcionesJugador;
         this.equipos = equipos;
@@ -47,30 +50,38 @@ public class InscripcionService {
         this.authorization = authorization;
         this.equipoAuthorization = equipoAuthorization;
         this.partidos = partidos;
+        this.visibility = visibility;
     }
 
     public List<InscripcionEquipoResponseDTO> historialEquipo(Long idEquipo) {
-        if (!equipos.existsById(idEquipo)) {
-            throw new ResourceNotFoundException("Equipo no encontrado con id: " + idEquipo);
+        Equipo equipo = equipos.findById(idEquipo)
+                .orElseThrow(() -> new ResourceNotFoundException("Equipo no encontrado con id: " + idEquipo));
+        if (!visibility.puedeVer(equipo.getTorneo()) && !equipoAuthorization.puedeGestionar(equipo)) {
+            throw new ResourceNotFoundException("Equipo no encontrado");
         }
         return inscripcionesEquipo.findByEquipoIdEquipoOrderByFechaAltaDesc(idEquipo)
-                .stream().map(this::equipoDto).toList();
+                .stream().filter(item -> puedeVer(item, equipo)).map(this::equipoDto).toList();
     }
 
     public List<InscripcionJugadorResponseDTO> plantel(Long idInscripcion) {
-        if (!inscripcionesEquipo.existsById(idInscripcion)) {
-            throw new ResourceNotFoundException("Inscripción no encontrada con id: " + idInscripcion);
-        }
+        InscripcionEquipo inscripcion = inscripcionesEquipo.findById(idInscripcion)
+                .orElseThrow(() -> new ResourceNotFoundException("Inscripción no encontrada con id: " + idInscripcion));
+        if (!puedeVer(inscripcion, inscripcion.getEquipo())) throw new ResourceNotFoundException("Inscripción no encontrada");
         return inscripcionesJugador.findByInscripcionEquipoIdInscripcionOrderByNumeroCamiseta(idInscripcion)
                 .stream().map(this::jugadorDto).toList();
     }
 
     public List<InscripcionJugadorResponseDTO> historialJugador(Long idJugador) {
-        if (!jugadores.existsById(idJugador)) {
-            throw new ResourceNotFoundException("Jugador no encontrado con id: " + idJugador);
+        var jugador = jugadores.findById(idJugador)
+                .orElseThrow(() -> new ResourceNotFoundException("Jugador no encontrado con id: " + idJugador));
+        boolean propio = esJugadorActual(jugador.getIdJugador());
+        if (!visibility.puedeVer(jugador.getEquipo().getTorneo())
+                && !equipoAuthorization.puedeGestionar(jugador.getEquipo()) && !propio) {
+            throw new ResourceNotFoundException("Jugador no encontrado");
         }
         return inscripcionesJugador.findByJugadorIdJugadorOrderByFechaAltaDesc(idJugador)
-                .stream().map(this::jugadorDto).toList();
+                .stream().filter(item -> puedeVer(item.getInscripcionEquipo(), item.getInscripcionEquipo().getEquipo())
+                        || propio).map(this::jugadorDto).toList();
     }
 
     @Transactional
@@ -204,6 +215,17 @@ public class InscripcionService {
 
     private String normalizar(String valor) {
         return valor == null || valor.isBlank() ? null : valor.trim();
+    }
+
+    private boolean puedeVer(InscripcionEquipo inscripcion, Equipo equipo) {
+        return visibility.puedeVer(inscripcion.getTorneo()) || equipoAuthorization.puedeGestionar(equipo);
+    }
+
+    private boolean esJugadorActual(Long idJugador) {
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !(authentication.getPrincipal() instanceof Usuario usuario)) return false;
+        return jugadores.findByUsuarioIdUsuario(usuario.getIdUsuario())
+                .map(item -> item.getIdJugador().equals(idJugador)).orElse(false);
     }
 
     private InscripcionEquipoResponseDTO equipoDto(InscripcionEquipo item) {

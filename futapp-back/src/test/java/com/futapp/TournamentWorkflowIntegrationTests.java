@@ -56,6 +56,13 @@ class TournamentWorkflowIntegrationTests {
 
         JsonNode jugadorLocal = postJson("/jugadores", token, jugador("Juan", "Norte", 10, local.get("idEquipo").asLong()));
         JsonNode jugadorVisitante = postJson("/jugadores", token, jugador("Pedro", "Sur", 9, visitante.get("idEquipo").asLong()));
+        mockMvc.perform(get("/inscripciones/equipos/{id}", local.get("idEquipo").asLong()))
+                .andExpect(status().isNotFound());
+        mockMvc.perform(get("/inscripciones/equipos/{id}", local.get("idEquipo").asLong())
+                        .header("Authorization", "Bearer " + token)).andExpect(status().isOk());
+        mockMvc.perform(get("/sanciones/torneo/{id}", torneoId)).andExpect(status().isNotFound());
+        mockMvc.perform(get("/sanciones/torneo/{id}", torneoId)
+                        .header("Authorization", "Bearer " + token)).andExpect(status().isOk());
         for (int indice = 2; indice <= 5; indice++) {
             postJson("/jugadores", token, jugador("Local" + indice, "Norte", 10 + indice, local.get("idEquipo").asLong()));
             postJson("/jugadores", token, jugador("Visitante" + indice, "Sur", 20 + indice, visitante.get("idEquipo").asLong()));

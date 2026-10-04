@@ -8,6 +8,7 @@ import com.futapp.model.SancionJugador;
 import com.futapp.model.Tarjeta;
 import com.futapp.repository.PartidoRepository;
 import com.futapp.repository.SancionJugadorRepository;
+import com.futapp.repository.TorneoRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,15 +19,22 @@ public class SancionJugadorService {
     private final SancionJugadorRepository sanciones;
     private final PartidoRepository partidos;
     private final TorneoAuthorizationService authorization;
+    private final TorneoVisibilityService visibility;
+    private final TorneoRepository torneos;
 
     public SancionJugadorService(SancionJugadorRepository sanciones, PartidoRepository partidos,
-                                  TorneoAuthorizationService authorization) {
+                                  TorneoAuthorizationService authorization, TorneoVisibilityService visibility,
+                                  TorneoRepository torneos) {
         this.sanciones = sanciones;
         this.partidos = partidos;
         this.authorization = authorization;
+        this.visibility = visibility;
+        this.torneos = torneos;
     }
 
     public List<SancionResponseDTO> listarPorTorneo(Long idTorneo) {
+        visibility.verificar(torneos.findById(idTorneo)
+                .orElseThrow(() -> new ResourceNotFoundException("Torneo no encontrado")));
         return sanciones.findByTarjetaPartidoTorneoIdTorneoOrderByCreadaEnDesc(idTorneo).stream()
                 .map(this::convertir).toList();
     }
