@@ -13,6 +13,7 @@ import com.futapp.repository.GolRepository;
 import com.futapp.repository.JugadorRepository;
 import com.futapp.repository.PartidoRepository;
 import com.futapp.repository.InscripcionJugadorRepository;
+import com.futapp.repository.TorneoRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,23 +29,29 @@ public class GolService {
     private final EquipoRepository equipoRepository;
     private final TorneoAuthorizationService authorization;
     private final InscripcionJugadorRepository inscripciones;
+    private final TorneoVisibilityService visibility;
+    private final TorneoRepository torneos;
 
     public GolService(GolRepository golRepository,
                       PartidoRepository partidoRepository,
                       JugadorRepository jugadorRepository,
                       EquipoRepository equipoRepository, TorneoAuthorizationService authorization,
-                      InscripcionJugadorRepository inscripciones) {
+                      InscripcionJugadorRepository inscripciones, TorneoVisibilityService visibility,
+                      TorneoRepository torneos) {
         this.golRepository = golRepository;
         this.partidoRepository = partidoRepository;
         this.jugadorRepository = jugadorRepository;
         this.equipoRepository = equipoRepository;
         this.authorization = authorization;
         this.inscripciones = inscripciones;
+        this.visibility = visibility;
+        this.torneos = torneos;
     }
 
     public List<GolResponseDTO> listarGoles() {
         return golRepository.findAll()
                 .stream()
+                .filter(gol -> visibility.puedeVer(gol.getPartido().getTorneo()))
                 .map(this::convertirAResponseDTO)
                 .collect(Collectors.toList());
     }
@@ -52,19 +59,27 @@ public class GolService {
     public GolResponseDTO obtenerGolPorId(Long id) {
         Gol gol = golRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Gol no encontrado con id: " + id));
+        visibility.verificar(gol.getPartido().getTorneo());
 
         return convertirAResponseDTO(gol);
     }
 
     public List<GolResponseDTO> listarGolesPorPartido(Long idPartido) {
+        visibility.verificar(partidoRepository.findById(idPartido)
+                .orElseThrow(() -> new ResourceNotFoundException("Partido no encontrado")).getTorneo());
         return golRepository.obtenerDetallePorPartido(idPartido);
     }
 
     public List<GolResponseDTO> listarGolesPorJugador(Long idJugador) {
+        Jugador jugador = jugadorRepository.findById(idJugador)
+                .orElseThrow(() -> new ResourceNotFoundException("Jugador no encontrado"));
+        visibility.verificar(jugador.getEquipo().getTorneo());
         return golRepository.obtenerDetallePorJugador(idJugador);
     }
 
     public List<GoleadorDTO> obtenerGoleadoresPorTorneo(Long idTorneo) {
+        visibility.verificar(torneos.findById(idTorneo)
+                .orElseThrow(() -> new ResourceNotFoundException("Torneo no encontrado")));
         return golRepository.obtenerGoleadoresPorTorneo(idTorneo);
     }
 

@@ -23,18 +23,22 @@ public class FechaService {
     private final TorneoRepository torneoRepository;
     private final PartidoRepository partidoRepository;
     private final TorneoAuthorizationService authorization;
+    private final TorneoVisibilityService visibility;
 
     public FechaService(FechaRepository fechaRepository, TorneoRepository torneoRepository,
-                        PartidoRepository partidoRepository, TorneoAuthorizationService authorization) {
+                        PartidoRepository partidoRepository, TorneoAuthorizationService authorization,
+                        TorneoVisibilityService visibility) {
         this.fechaRepository = fechaRepository;
         this.torneoRepository = torneoRepository;
         this.partidoRepository = partidoRepository;
         this.authorization = authorization;
+        this.visibility = visibility;
     }
 
     public List<FechaResponseDTO> listarFechas() {
         return fechaRepository.findAll()
                 .stream()
+                .filter(fecha -> visibility.puedeVer(fecha.getTorneo()))
                 .map(this::convertirAResponseDTO)
                 .collect(Collectors.toList());
     }
@@ -42,11 +46,14 @@ public class FechaService {
     public FechaResponseDTO obtenerFechaPorId(Long id) {
         Fecha fecha = fechaRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Fecha no encontrada con id: " + id));
+        visibility.verificar(fecha.getTorneo());
 
         return convertirAResponseDTO(fecha);
     }
 
     public List<FechaResponseDTO> listarFechasPorTorneo(Long idTorneo) {
+        visibility.verificar(torneoRepository.findById(idTorneo)
+                .orElseThrow(() -> new ResourceNotFoundException("Torneo no encontrado")));
         return fechaRepository.findByTorneoIdTorneo(idTorneo)
                 .stream()
                 .map(this::convertirAResponseDTO)

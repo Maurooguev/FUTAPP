@@ -12,6 +12,7 @@ import com.futapp.repository.PartidoRepository;
 import com.futapp.repository.TarjetaRepository;
 import com.futapp.repository.EquipoRepository;
 import com.futapp.repository.InscripcionJugadorRepository;
+import com.futapp.repository.TorneoRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,12 +29,15 @@ public class TarjetaService {
     private final EquipoRepository equipoRepository;
     private final InscripcionJugadorRepository inscripciones;
     private final SancionJugadorService sancionService;
+    private final TorneoVisibilityService visibility;
+    private final TorneoRepository torneos;
 
     public TarjetaService(TarjetaRepository tarjetaRepository,
                           PartidoRepository partidoRepository,
                           JugadorRepository jugadorRepository, TorneoAuthorizationService authorization,
                           EquipoRepository equipoRepository, InscripcionJugadorRepository inscripciones,
-                          SancionJugadorService sancionService) {
+                          SancionJugadorService sancionService, TorneoVisibilityService visibility,
+                          TorneoRepository torneos) {
         this.tarjetaRepository = tarjetaRepository;
         this.partidoRepository = partidoRepository;
         this.jugadorRepository = jugadorRepository;
@@ -41,11 +45,14 @@ public class TarjetaService {
         this.equipoRepository = equipoRepository;
         this.inscripciones = inscripciones;
         this.sancionService = sancionService;
+        this.visibility = visibility;
+        this.torneos = torneos;
     }
 
     public List<TarjetaResponseDTO> listarTarjetas() {
         return tarjetaRepository.findAll()
                 .stream()
+                .filter(tarjeta -> visibility.puedeVer(tarjeta.getPartido().getTorneo()))
                 .map(this::convertirAResponseDTO)
                 .collect(Collectors.toList());
     }
@@ -53,11 +60,14 @@ public class TarjetaService {
     public TarjetaResponseDTO obtenerTarjetaPorId(Long id) {
         Tarjeta tarjeta = tarjetaRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Tarjeta no encontrada con id: " + id));
+        visibility.verificar(tarjeta.getPartido().getTorneo());
 
         return convertirAResponseDTO(tarjeta);
     }
 
     public List<TarjetaResponseDTO> listarTarjetasPorPartido(Long idPartido) {
+        visibility.verificar(partidoRepository.findById(idPartido)
+                .orElseThrow(() -> new ResourceNotFoundException("Partido no encontrado")).getTorneo());
         return tarjetaRepository.findByPartidoIdPartido(idPartido)
                 .stream()
                 .map(this::convertirAResponseDTO)
@@ -65,6 +75,9 @@ public class TarjetaService {
     }
 
     public List<TarjetaResponseDTO> listarTarjetasPorJugador(Long idJugador) {
+        Jugador jugador = jugadorRepository.findById(idJugador)
+                .orElseThrow(() -> new ResourceNotFoundException("Jugador no encontrado"));
+        visibility.verificar(jugador.getEquipo().getTorneo());
         return tarjetaRepository.findByJugadorIdJugador(idJugador)
                 .stream()
                 .map(this::convertirAResponseDTO)
@@ -72,6 +85,8 @@ public class TarjetaService {
     }
 
     public List<TarjetaResponseDTO> listarTarjetasPorTorneo(Long idTorneo) {
+        visibility.verificar(torneos.findById(idTorneo)
+                .orElseThrow(() -> new ResourceNotFoundException("Torneo no encontrado")));
         return tarjetaRepository.findByPartidoTorneoIdTorneo(idTorneo)
                 .stream()
                 .map(this::convertirAResponseDTO)

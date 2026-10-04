@@ -22,14 +22,17 @@ public class EstructuraCompetenciaService {
     private final InscripcionEquipoRepository inscripciones;
     private final JugadorRepository jugadores;
     private final InscripcionJugadorRepository planteles;
+    private final TorneoVisibilityService visibility;
 
     public EstructuraCompetenciaService(TorneoRepository torneos, CompeticionDivisionRepository divisiones,
             CompeticionFaseRepository fases, CompeticionZonaRepository zonas, CupoEquipoRepository cupos,
             EquipoRepository equipos, InscripcionEquipoRepository inscripciones,
-            JugadorRepository jugadores, InscripcionJugadorRepository planteles) {
+            JugadorRepository jugadores, InscripcionJugadorRepository planteles,
+            TorneoVisibilityService visibility) {
         this.torneos = torneos; this.divisiones = divisiones; this.fases = fases; this.zonas = zonas; this.cupos = cupos;
         this.equipos = equipos; this.inscripciones = inscripciones;
         this.jugadores = jugadores; this.planteles = planteles;
+        this.visibility = visibility;
     }
 
     @Transactional
@@ -74,7 +77,8 @@ public class EstructuraCompetenciaService {
 
     @Transactional(readOnly = true)
     public EstructuraTorneoDTO obtener(Long idTorneo) {
-        if (!torneos.existsById(idTorneo)) throw new ResourceNotFoundException("Torneo no encontrado con id: " + idTorneo);
+        visibility.verificar(torneos.findById(idTorneo)
+                .orElseThrow(() -> new ResourceNotFoundException("Torneo no encontrado con id: " + idTorneo)));
         var resultado = divisiones.findByTorneoIdTorneoOrderByOrden(idTorneo).stream().map(division -> {
             var fasesDto = fases.findByDivisionIdDivisionOrderByOrden(division.getIdDivision()).stream().map(fase ->
                 new EstructuraTorneoDTO.Fase(fase.getIdFase(), fase.getNombre(), fase.getTipo(), fase.getOrden(),

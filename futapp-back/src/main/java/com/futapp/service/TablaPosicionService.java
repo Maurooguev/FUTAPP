@@ -20,18 +20,22 @@ public class TablaPosicionService {
     private final InscripcionEquipoRepository inscripcionesEquipo;
     private final PartidoRepository partidoRepository;
     private final TorneoRepository torneoRepository;
+    private final TorneoVisibilityService visibility;
 
-    public TablaPosicionService(InscripcionEquipoRepository inscripcionesEquipo, PartidoRepository partidoRepository, TorneoRepository torneoRepository) {
+    public TablaPosicionService(InscripcionEquipoRepository inscripcionesEquipo, PartidoRepository partidoRepository,
+                                TorneoRepository torneoRepository, TorneoVisibilityService visibility) {
         this.inscripcionesEquipo = inscripcionesEquipo;
         this.partidoRepository = partidoRepository;
         this.torneoRepository = torneoRepository;
+        this.visibility = visibility;
     }
 
     public List<TablaPosicionDTO> obtenerTablaPorTorneo(Long idTorneo) {
+        var torneo = torneoRepository.findById(idTorneo).orElseThrow();
+        visibility.verificar(torneo);
         List<Equipo> equipos = inscripcionesEquipo.findByTorneoIdTorneoAndEstado(idTorneo, "ACTIVA")
                 .stream().map(inscripcion -> inscripcion.getEquipo()).toList();
         List<Partido> partidos = partidoRepository.findByTorneoIdTorneo(idTorneo);
-        var torneo = torneoRepository.findById(idTorneo).orElseThrow();
 
         Map<Long, TablaPosicionDTO> tabla = new HashMap<>();
 

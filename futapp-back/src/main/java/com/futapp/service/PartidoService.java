@@ -62,6 +62,7 @@ public class PartidoService {
     private final CompeticionFaseRepository fases;
     private final TablaPosicionService tablaPosiciones;
     private final ResultadoAuditoriaRepository auditorias;
+    private final TorneoVisibilityService visibility;
 
     public PartidoService(PartidoRepository partidoRepository,
                           TorneoRepository torneoRepository,
@@ -78,7 +79,8 @@ public class PartidoService {
                           CupoEquipoRepository cupos,
                           CompeticionFaseRepository fases,
                           TablaPosicionService tablaPosiciones,
-                          ResultadoAuditoriaRepository auditorias) {
+                          ResultadoAuditoriaRepository auditorias,
+                          TorneoVisibilityService visibility) {
         this.partidoRepository = partidoRepository;
         this.torneoRepository = torneoRepository;
         this.fechaRepository = fechaRepository;
@@ -95,11 +97,13 @@ public class PartidoService {
         this.fases = fases;
         this.tablaPosiciones = tablaPosiciones;
         this.auditorias = auditorias;
+        this.visibility = visibility;
     }
 
     public List<PartidoResponseDTO> listarPartidos() {
         return partidoRepository.findAll()
                 .stream()
+                .filter(partido -> visibility.puedeVer(partido.getTorneo()))
                 .map(this::convertirAResponseDTO)
                 .collect(Collectors.toList());
     }
@@ -107,11 +111,13 @@ public class PartidoService {
     public PartidoResponseDTO obtenerPartidoPorId(Long id) {
         Partido partido = partidoRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Partido no encontrado con id: " + id));
+        visibility.verificar(partido.getTorneo());
 
         return convertirAResponseDTO(partido);
     }
 
     public List<PartidoResponseDTO> listarPartidosPorTorneo(Long idTorneo) {
+        verificarTorneoVisible(idTorneo);
         return partidoRepository.findByTorneoIdTorneo(idTorneo)
                 .stream()
                 .map(this::convertirAResponseDTO)
@@ -119,6 +125,9 @@ public class PartidoService {
     }
 
     public List<PartidoResponseDTO> listarPartidosPorFecha(Long idFecha) {
+        Fecha fecha = fechaRepository.findById(idFecha)
+                .orElseThrow(() -> new ResourceNotFoundException("Fecha no encontrada"));
+        visibility.verificar(fecha.getTorneo());
         return partidoRepository.findByFechaIdFecha(idFecha)
                 .stream()
                 .map(this::convertirAResponseDTO)
@@ -138,7 +147,7 @@ public class PartidoService {
     }
 
     public PaginaDTO<PartidoResponseDTO> listarPartidosPorTorneoPaginados(Long idTorneo, int pagina, int cantidad) {
-        if (!torneoRepository.existsById(idTorneo)) throw new ResourceNotFoundException("Torneo no encontrado");
+        verificarTorneoVisible(idTorneo);
         var pageable = PageRequest.of(Math.max(pagina, 0), Math.min(Math.max(cantidad, 1), 100),
                 Sort.by("fecha.numeroFecha").ascending().and(Sort.by("fechaHora").ascending()));
         return PaginaDTO.desde(partidoRepository.findByTorneoIdTorneo(idTorneo, pageable).map(this::convertirAResponseDTO));
@@ -147,6 +156,7 @@ public class PartidoService {
     public List<JugadorPartidoDTO> listarJugadoresDelPartido(Long idPartido) {
         Partido partido = partidoRepository.findById(idPartido)
                 .orElseThrow(() -> new ResourceNotFoundException("Partido no encontrado con id: " + idPartido));
+        visibility.verificar(partido.getTorneo());
         return java.util.stream.Stream.of(partido.getEquipoLocal(), partido.getEquipoVisitante())
                 .flatMap(equipo -> inscripcionesJugador
                         .findByInscripcionEquipoEquipoIdEquipoAndInscripcionEquipoTorneoIdTorneoAndEstado(
@@ -889,6 +899,13 @@ public class PartidoService {
         audit.setGolesLocalNuevo(nuevo.getGolesLocal()); audit.setGolesVisitanteNuevo(nuevo.getGolesVisitante());
         audit.setPenalesLocalNuevo(nuevo.getPenalesLocal()); audit.setPenalesVisitanteNuevo(nuevo.getPenalesVisitante());
         auditorias.save(audit);
+    }
+
+    private Torneo verificarTorneoVisible(Long idTorneo) {
+        Torneo torneo = torneoRepository.findById(idTorneo)
+                .orElseThrow(() -> new ResourceNotFoundException("Torneo no encontrado"));
+        visibility.verificar(torneo);
+        return torneo;
     }
 
     
