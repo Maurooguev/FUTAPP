@@ -350,8 +350,11 @@ const recargarDatosTorneo = () => {
       const response = await apiFetch(`${API_URL}/partidos/torneo/${id}/generar-siguiente-llave`, { method: "POST" });
       const payload = await response.json().catch(() => null);
       if (!response.ok) throw new Error(payload?.message || "No se pudo generar la siguiente ronda");
-      const [partidosResponse, fechasResponse] = await Promise.all([fetch(`${API_URL}/partidos/torneo/${id}`), fetch(`${API_URL}/fechas/torneo/${id}`)]);
-      setPartidos(await partidosResponse.json()); setFechas(await fechasResponse.json());
+      const [partidosResponse, fechasResponse] = await Promise.all([apiFetch(`${API_URL}/partidos/torneo/${id}`), apiFetch(`${API_URL}/fechas/torneo/${id}`)]);
+      if (!partidosResponse.ok || !fechasResponse.ok) throw new Error("No se pudo actualizar la llave");
+      const [partidosActualizados, fechasActualizadas] = await Promise.all([partidosResponse.json(), fechasResponse.json()]);
+      setPartidos(Array.isArray(partidosActualizados) ? partidosActualizados : []);
+      setFechas(Array.isArray(fechasActualizadas) ? fechasActualizadas : []);
     } catch (requestError) { setAdminError(requestError.message); } finally { setGenerandoFixture(false); }
   };
 
@@ -534,8 +537,10 @@ const recargarDatosTorneo = () => {
                 const response = await apiFetch(`${API_URL}/fechas/${fecha.idFecha}/cerrar`, { method: "PUT" });
                 const payload = await response.json().catch(() => null);
                 if (!response.ok) throw new Error(payload?.message || "No se pudo cerrar la jornada");
-                const fechasResponse = await fetch(`${API_URL}/fechas/torneo/${id}`);
-                setFechas(await fechasResponse.json());
+                const fechasResponse = await apiFetch(`${API_URL}/fechas/torneo/${id}`);
+                if (!fechasResponse.ok) throw new Error("No se pudieron actualizar las jornadas");
+                const fechasActualizadas = await fechasResponse.json();
+                setFechas(Array.isArray(fechasActualizadas) ? fechasActualizadas : []);
               } catch (requestError) { setAdminError(requestError.message); }
             }}
             onDeleteDate={(fecha) => eliminarRecurso(`${API_URL}/fechas/${fecha.idFecha}`, `¿Eliminar la fecha ${fecha.numeroFecha}?`, () => setFechas((current) => current.filter((item) => item.idFecha !== fecha.idFecha)))}
@@ -594,7 +599,18 @@ const recargarDatosTorneo = () => {
               onSaved={(savedDate) => setFechas((current) => current.some((item) => item.idFecha === savedDate.idFecha) ? current.map((item) => item.idFecha === savedDate.idFecha ? savedDate : item) : [...current, savedDate])}
             />
           )}
-          {mostrarGeneradorFixture && <FixtureGeneratorModal torneo={torneo} equipos={equipos} fechas={fechas} onClose={() => setMostrarGeneradorFixture(false)} onGenerated={async (generatedMatches) => { setGenerandoFixture(false); setPartidos(generatedMatches); const response = await fetch(`${API_URL}/fechas/torneo/${id}`); setFechas(await response.json()); }} />}
+          {mostrarGeneradorFixture && <FixtureGeneratorModal torneo={torneo} equipos={equipos} fechas={fechas} onClose={() => setMostrarGeneradorFixture(false)} onGenerated={async (generatedMatches) => {
+            setGenerandoFixture(false);
+            setPartidos(Array.isArray(generatedMatches) ? generatedMatches : []);
+            try {
+              const response = await apiFetch(`${API_URL}/fechas/torneo/${id}`);
+              if (!response.ok) throw new Error("No se pudieron actualizar las jornadas");
+              const fechasActualizadas = await response.json();
+              setFechas(Array.isArray(fechasActualizadas) ? fechasActualizadas : []);
+            } catch (requestError) {
+              setAdminError(requestError.message);
+            }
+          }} />}
         </div>
       </main>
       {puedeEditar && <nav className="tournament-mobile-actions" aria-label="Acciones rápidas del organizador">
