@@ -10,11 +10,13 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
+import jakarta.servlet.http.Cookie;
 import tools.jackson.databind.json.JsonMapper;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.options;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -75,6 +77,28 @@ class AuthControllerIntegrationTests {
                 .andExpect(status().isOk())
                 .andExpect(header().string("Access-Control-Allow-Origin", "http://localhost:5173"))
                 .andExpect(header().string("Access-Control-Max-Age", "3600"));
+    }
+
+    @Test
+    void rechazaUnaModificacionIniciadaDesdeOtroSitio() throws Exception {
+        mockMvc.perform(put("/favoritos/torneos/1")
+                        .header("Origin", "https://sitio-malicioso.example"))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.message").value("Origen de solicitud no permitido"));
+    }
+
+    @Test
+    void marcaComoPrivadaUnaRespuestaAutenticadaPorCookie() throws Exception {
+        var registration = mockMvc.perform(post("/auth/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonMapper.writeValueAsString(new RegisterRequestDTO(
+                                "Cookie segura", "cookie@test.local", "password123", "JUGADOR"))))
+                .andExpect(status().isOk()).andReturn().getResponse();
+        String token = jsonMapper.readTree(registration.getContentAsString()).get("token").asString();
+
+        mockMvc.perform(get("/auth/me").cookie(new Cookie("FUTAPP_SESSION", token)))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Cache-Control", "no-store, max-age=0"));
     }
 
     @Test

@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.Arrays;
 
 @Component
 @Order(Ordered.HIGHEST_PRECEDENCE + 20)
@@ -21,6 +22,9 @@ public class SecurityResponseHeadersFilter extends OncePerRequestFilter {
         response.setHeader("Referrer-Policy", "no-referrer");
         response.setHeader("X-Content-Type-Options", "nosniff");
         response.setHeader("X-Frame-Options", "DENY");
+        if (request.isSecure()) {
+            response.setHeader("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
+        }
 
         if (isPrivateRequest(request)) {
             response.setHeader("Cache-Control", "no-store, max-age=0");
@@ -30,6 +34,8 @@ public class SecurityResponseHeadersFilter extends OncePerRequestFilter {
     }
 
     private boolean isPrivateRequest(HttpServletRequest request) {
-        return request.getHeader("Authorization") != null || request.getRequestURI().contains("/auth/");
+        boolean sessionCookie = request.getCookies() != null && Arrays.stream(request.getCookies())
+                .anyMatch(cookie -> "FUTAPP_SESSION".equals(cookie.getName()));
+        return sessionCookie || request.getHeader("Authorization") != null || request.getRequestURI().contains("/auth/");
     }
 }

@@ -7,6 +7,7 @@ import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import java.nio.file.Path;
+import java.util.Arrays;
 
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
@@ -18,7 +19,11 @@ public class WebConfig implements WebMvcConfigurer {
                      @Value("${futapp.cors.allowed-origins:http://localhost:5173}") String allowedOrigins,
                      @Value("${futapp.uploads.directory:./data/uploads}") String uploadsDirectory) {
         this.auditoria = auditoria;
-        this.allowedOrigins = allowedOrigins.split("\\s*,\\s*");
+        this.allowedOrigins = Arrays.stream(allowedOrigins.split("\\s*,\\s*"))
+                .filter(origin -> !origin.isBlank())
+                .map(CrossSiteRequestFilter::normalizeOrigin)
+                .toArray(String[]::new);
+        if (this.allowedOrigins.length == 0) throw new IllegalStateException("Debe configurarse al menos un origen permitido");
         this.uploadsLocation = Path.of(uploadsDirectory).toAbsolutePath().normalize().toUri().toString();
     }
 
