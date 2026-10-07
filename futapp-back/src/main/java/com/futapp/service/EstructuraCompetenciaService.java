@@ -134,7 +134,7 @@ public class EstructuraCompetenciaService {
         InscripcionEquipo inscripcion = new InscripcionEquipo();
         inscripcion.setEquipo(equipo); inscripcion.setTorneo(torneo); inscripcion.setEstado("ACTIVA");
         inscripcion = inscripciones.save(inscripcion);
-        int cantidad = cantidadJugadores == null ? 5 : cantidadJugadores;
+        int cantidad = Math.max(5, cantidadJugadores == null ? 5 : cantidadJugadores);
         String[] posiciones = {"Arquero", "Defensor", "Mediocampista", "Delantero", "Delantero"};
         for (int dorsal = 1; dorsal <= cantidad; dorsal++) {
             Jugador jugador = new Jugador();

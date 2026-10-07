@@ -827,7 +827,7 @@ class TournamentWorkflowIntegrationTests {
         String token = registrarOrganizador();
         Map<String, Object> request = new LinkedHashMap<>(torneo());
         request.put("formato", "Liga + Playoffs"); request.put("cantidadEquipos", 4);
-        request.put("generarEquiposPrueba", true); request.put("jugadoresPorEquipoPrueba", 2);
+        request.put("generarEquiposPrueba", true); request.put("jugadoresPorEquipoPrueba", 5);
         long torneoId = postJson("/torneos", token, request).get("idTorneo").asLong();
         JsonNode liga = postJson("/partidos/torneo/" + torneoId + "/generar-fixture", token, Map.of(
                 "fechaInicio", "2026-09-05", "horaInicio", "14:00", "diasEntreJornadas", 7,
@@ -851,7 +851,7 @@ class TournamentWorkflowIntegrationTests {
         Map<String, Object> request = new LinkedHashMap<>(torneo());
         request.put("cantidadEquipos", 2);
         request.put("generarEquiposPrueba", true);
-        request.put("jugadoresPorEquipoPrueba", 1);
+        request.put("jugadoresPorEquipoPrueba", 5);
         request.put("idaVuelta", true);
         long torneoId = postJson("/torneos", token, request).get("idTorneo").asLong();
         JsonNode fixture = postJson("/partidos/torneo/" + torneoId + "/generar-fixture", token, Map.of(
@@ -906,7 +906,7 @@ class TournamentWorkflowIntegrationTests {
         String token = registrarOrganizador();
         Map<String, Object> request = new LinkedHashMap<>(torneo());
         request.put("cantidadEquipos", 4); request.put("generarEquiposPrueba", true);
-        request.put("jugadoresPorEquipoPrueba", 3);
+        request.put("jugadoresPorEquipoPrueba", 5);
         long torneoId = postJson("/torneos", token, request).get("idTorneo").asLong();
         putJson("/torneos/" + torneoId + "/publicar", token, null)
                 .andExpect(status().isOk()).andExpect(jsonPath("$.estado").value("PUBLICADO"));
