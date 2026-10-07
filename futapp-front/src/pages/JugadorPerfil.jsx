@@ -98,6 +98,18 @@ function JugadorPerfil() {
   const historial = useMemo(() => equipo ? partidos.filter((partido) =>
     partido.idEquipoLocal === equipo.idEquipo || partido.idEquipoVisitante === equipo.idEquipo
   ) : [], [partidos, equipo]);
+  const equiposTrayectoria = useMemo(() => {
+    const agrupados = new Map();
+    inscripciones.forEach((item) => {
+      const actual = agrupados.get(item.idEquipo) || { idEquipo: item.idEquipo, nombreEquipo: item.nombreEquipo, torneos: 0 };
+      actual.torneos += 1;
+      agrupados.set(item.idEquipo, actual);
+    });
+    if (equipo && !agrupados.has(equipo.idEquipo)) {
+      agrupados.set(equipo.idEquipo, { idEquipo: equipo.idEquipo, nombreEquipo: equipo.nombre, torneos: 0 });
+    }
+    return [...agrupados.values()].map((item) => ({ ...item, actual: item.idEquipo === jugador?.idEquipo }));
+  }, [inscripciones, equipo, jugador?.idEquipo]);
   const amarillas = tarjetas.filter((tarjeta) => tarjeta.tipoTarjeta === "AMARILLA").length;
   const rojas = tarjetas.filter((tarjeta) => tarjeta.tipoTarjeta === "ROJA").length;
 
@@ -114,7 +126,8 @@ function JugadorPerfil() {
     </section>
     {claimMessage && <p className="profile-action-message">{claimMessage}</p>}
     <section className="player-facts"><div><span>Posición</span><strong>{jugador.posicion}</strong></div><div><span>Edad</span><strong>{calcularEdad(jugador.fechaNacimiento) ?? "—"}</strong></div><div><span>Nacimiento</span><strong>{jugador.fechaNacimiento || "—"}</strong></div><div><span>Pierna hábil</span><strong>{jugador.piernaHabil || "—"}</strong></div></section>
-    <section className="profile-panel"><h2>Equipos y torneos</h2><div className="career-list">{inscripciones.map((item) => <article key={item.idInscripcionJugador}><Link className="career-team-link" to={`/equipo/${item.idEquipo}`}>{item.nombreEquipo}</Link><Link className="career-tournament-link" to={`/torneo/${item.idTorneo}`}><span>{item.nombreTorneo}</span><b>Ver torneo →</b></Link><small>#{item.numeroCamiseta || "—"} · {item.posicion || "Sin posición"} · {item.estado}</small></article>)}</div></section>
+    <section className="profile-panel"><h2>Equipos</h2><p className="profile-note">Clubes que representa actualmente y equipos que integró anteriormente.</p><div className="career-list team-career-list">{equiposTrayectoria.map((item) => <article key={item.idEquipo}><Link className="career-team-link" to={`/equipo/${item.idEquipo}`}>{item.nombreEquipo}</Link><strong className={`career-status ${item.actual ? "active" : "historical"}`}>{item.actual ? "Equipo actual" : "Histórico"}</strong><small>{item.torneos} {item.torneos === 1 ? "torneo registrado" : "torneos registrados"}</small></article>)}</div></section>
+    <section className="profile-panel"><h2>Torneos</h2><p className="profile-note">Los torneos activos se separan de las participaciones que ya finalizaron o en las que fue dado de baja.</p><div className="career-list tournament-career-list">{inscripciones.length === 0 ? <p>Todavía no registra participaciones.</p> : inscripciones.map((item) => <article className={item.estado === "ACTIVA" ? "active" : "historical"} key={item.idInscripcionJugador}><Link className="career-team-link" to={`/equipo/${item.idEquipo}`}>{item.nombreEquipo}</Link><Link className="career-tournament-link" to={`/torneo/${item.idTorneo}`}><span>{item.nombreTorneo}</span><b>Ver torneo →</b></Link><div className="career-enrollment-detail"><strong className={`career-status ${item.estado === "ACTIVA" ? "active" : "historical"}`}>{item.estado === "ACTIVA" ? "Activo" : "Baja"}</strong><small>#{item.numeroCamiseta || "—"} · {item.posicion || "Sin posición"}{item.fechaBaja ? ` · ${item.fechaBaja}` : ""}</small></div></article>)}</div></section>
     <section className="profile-panel"><h2>Estadísticas</h2><div className="player-stats"><div><strong>{historial.filter((p) => p.estado === "JUGADO" || p.estado === "FINALIZADO").length}</strong><span>Partidos del plantel</span></div><div><strong>{goles.length}</strong><span>Goles</span></div><div><strong>{amarillas}</strong><span>Amarillas</span></div><div><strong>{rojas}</strong><span>Rojas</span></div></div></section>
     <section className="profile-panel"><h2>Historial de partidos</h2><p className="profile-note">Primera versión: se muestran los partidos del plantel. Más adelante registraremos convocatorias y minutos individuales.</p><div className="profile-match-list">{historial.length === 0 ? <p>Todavía no hay partidos.</p> : historial.slice().reverse().map((partido) => <Link to={`/partido/${partido.idPartido}`} key={partido.idPartido}><span className="profile-match-team"><EntityImage type="team" value={partido.escudoEquipoLocal} alt="" /><span>{partido.nombreEquipoLocal}</span></span><strong>{partido.estado === "JUGADO" || partido.estado === "FINALIZADO" ? `${partido.golesLocal} - ${partido.golesVisitante}` : "vs"}</strong><span className="profile-match-team profile-match-team-away"><span>{partido.nombreEquipoVisitante}</span><EntityImage type="team" value={partido.escudoEquipoVisitante} alt="" /></span></Link>)}</div></section>
     {previewImage && <ImageLightbox {...previewImage} onClose={() => setPreviewImage(null)} />}
