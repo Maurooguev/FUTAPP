@@ -101,8 +101,7 @@ function JugadorPerfil() {
   ) : [], [partidos, equipo]);
   const amarillas = tarjetas.filter((tarjeta) => tarjeta.tipoTarjeta === "AMARILLA").length;
   const rojas = tarjetas.filter((tarjeta) => tarjeta.tipoTarjeta === "ROJA").length;
-  const partidosJugados = historial.filter((p) => p.estado === "JUGADO" || p.estado === "FINALIZADO").length;
-  const tieneEstadisticas = partidosJugados > 0 || goles.length > 0 || amarillas > 0 || rojas > 0;
+  const tieneEstadisticas = goles.length > 0 || amarillas > 0 || rojas > 0;
 
   if (error) return <main className="profile-page"><div className="profile-message">{error}</div></main>;
   if (!jugador || !equipo) return <main className="profile-page"><div className="profile-message">Cargando perfil...</div></main>;
@@ -136,7 +135,7 @@ function JugadorPerfil() {
         })}
       </div>
     </section>}
-    {tieneEstadisticas && <section className="profile-panel"><h2>Estadísticas</h2><div className="player-stats">{partidosJugados > 0 && <div><strong>{partidosJugados}</strong><span>Partidos del plantel</span></div>}{goles.length > 0 && <div><strong>{goles.length}</strong><span>Goles</span></div>}{amarillas > 0 && <div><strong>{amarillas}</strong><span>Amarillas</span></div>}{rojas > 0 && <div><strong>{rojas}</strong><span>Rojas</span></div>}</div></section>}
+    {tieneEstadisticas && <section className="profile-panel"><h2>Estadísticas</h2><div className="player-stats">{goles.length > 0 && <div><strong>{goles.length}</strong><span>Goles</span></div>}{amarillas > 0 && <div><strong>{amarillas}</strong><span>Amarillas</span></div>}{rojas > 0 && <div><strong>{rojas}</strong><span>Rojas</span></div>}</div></section>}
     {historial.length > 0 && <section className="profile-panel"><h2>Historial de partidos</h2><p className="profile-note">Primera versión: se muestran los partidos del plantel. Más adelante registraremos convocatorias y minutos individuales.</p><div className="profile-match-list">{historial.slice().reverse().map((partido) => <Link to={`/partido/${partido.idPartido}`} key={partido.idPartido}><span className="profile-match-team"><EntityImage type="team" value={partido.escudoEquipoLocal} alt="" /><span>{partido.nombreEquipoLocal}</span></span><strong>{partido.estado === "JUGADO" || partido.estado === "FINALIZADO" ? `${partido.golesLocal} - ${partido.golesVisitante}` : "vs"}</strong><span className="profile-match-team profile-match-team-away"><span>{partido.nombreEquipoVisitante}</span><EntityImage type="team" value={partido.escudoEquipoVisitante} alt="" /></span></Link>)}</div></section>}
     {previewImage && <ImageLightbox {...previewImage} onClose={() => setPreviewImage(null)} />}
   </main>;

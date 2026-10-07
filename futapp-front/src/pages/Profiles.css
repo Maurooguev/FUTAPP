@@ -117,6 +117,9 @@
 :root[data-theme="dark"] .player-tournament-main small,
 :root[data-theme="dark"] .player-tournament-meta > small { color: #b9c8d2; }
 :root[data-theme="dark"] .player-current-team { color: #f5f8fa; }
+.player-stats { grid-template-columns: repeat(auto-fit,minmax(120px,180px)); justify-content: start; background: transparent; }
+.player-stats div { width: 100%; border: 1px solid #dbe3e8; border-radius: 8px; }
+@media (max-width: 700px) { .player-stats { grid-template-columns: repeat(auto-fit,minmax(105px,1fr)); } }
 :root[data-theme="dark"] .player-stats { background: #38505d; }
 :root[data-theme="dark"] .player-stats div { background: #29414f; }
 :root[data-theme="dark"] .player-stats strong { color: #67d7ee; }
