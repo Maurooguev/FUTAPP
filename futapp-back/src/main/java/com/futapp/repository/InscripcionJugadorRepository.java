@@ -4,9 +4,11 @@ import com.futapp.model.InscripcionJugador;
 import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.jpa.repository.EntityGraph;
 
 public interface InscripcionJugadorRepository extends JpaRepository<InscripcionJugador, Long> {
     List<InscripcionJugador> findByInscripcionEquipoIdInscripcionOrderByNumeroCamiseta(Long idInscripcion);
+    @EntityGraph(attributePaths = {"inscripcionEquipo", "inscripcionEquipo.equipo", "inscripcionEquipo.torneo", "inscripcionEquipo.torneo.campeon"})
     List<InscripcionJugador> findByJugadorIdJugadorOrderByFechaAltaDesc(Long idJugador);
     List<InscripcionJugador> findByInscripcionEquipoEquipoIdEquipoAndInscripcionEquipoTorneoIdTorneoAndEstado(
             Long idEquipo, Long idTorneo, String estado);

@@ -20,6 +20,7 @@ public interface GolRepository extends JpaRepository<Gol, Long> {
     boolean existsByPartidoIdPartido(Long idPartido);
 
     boolean existsByJugadorIdJugador(Long idJugador);
+    long countByJugadorIdJugador(Long idJugador);
     boolean existsByPartidoTorneoIdTorneo(Long idTorneo);
     long countByPartidoIdPartidoAndEquipoIdEquipo(Long idPartido, Long idEquipo);
 

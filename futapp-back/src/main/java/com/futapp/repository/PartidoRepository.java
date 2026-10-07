@@ -49,4 +49,26 @@ public interface PartidoRepository extends JpaRepository<Partido, Long> {
             Long idTorneoLocal, Long idEquipoLocal, Long idTorneoVisitante, Long idEquipoVisitante);
 
     long countByMvpIdJugador(Long idJugador);
+
+    @Query("""
+        select count(distinct p.idPartido) from Partido p, InscripcionJugador ij
+        where ij.jugador.idJugador = :idJugador
+          and (lower(ij.posicion) like '%arquero%' or lower(ij.posicion) like '%defensor%')
+          and p.torneo.idTorneo = ij.inscripcionEquipo.torneo.idTorneo
+          and (p.estado = 'JUGADO' or p.estado = 'FINALIZADO')
+          and ((p.equipoLocal.idEquipo = ij.inscripcionEquipo.equipo.idEquipo and p.golesVisitante = 0)
+            or (p.equipoVisitante.idEquipo = ij.inscripcionEquipo.equipo.idEquipo and p.golesLocal = 0))
+    """)
+    long countVallasInvictasJugador(@Param("idJugador") Long idJugador);
+
+    @Query("""
+        select count(distinct p.idPartido) from Partido p, InscripcionJugador ij
+        where ij.jugador.idJugador = :idJugador
+          and lower(ij.posicion) like '%delantero%'
+          and p.torneo.idTorneo = ij.inscripcionEquipo.torneo.idTorneo
+          and (p.estado = 'JUGADO' or p.estado = 'FINALIZADO')
+          and (p.equipoLocal.idEquipo = ij.inscripcionEquipo.equipo.idEquipo
+            or p.equipoVisitante.idEquipo = ij.inscripcionEquipo.equipo.idEquipo)
+    """)
+    long countPartidosComputablesDelantero(@Param("idJugador") Long idJugador);
 }

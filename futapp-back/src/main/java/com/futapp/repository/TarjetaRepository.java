@@ -26,5 +26,6 @@ public interface TarjetaRepository extends JpaRepository<Tarjeta, Long> {
     boolean existsByPartidoIdPartido(Long idPartido);
 
     boolean existsByJugadorIdJugador(Long idJugador);
+    long countByJugadorIdJugadorAndTipoTarjetaIgnoreCase(Long idJugador, String tipoTarjeta);
     boolean existsByPartidoTorneoIdTorneo(Long idTorneo);
 }

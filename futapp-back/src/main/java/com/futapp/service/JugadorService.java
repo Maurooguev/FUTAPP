@@ -87,14 +87,11 @@ public class JugadorService {
         verificarVisibilidad(jugador);
 
         List<InscripcionJugador> trayectoria = inscripcionesJugador.findByJugadorIdJugadorOrderByFechaAltaDesc(id);
-        long goles = golRepository.findByJugadorIdJugador(id).size();
-        var tarjetas = tarjetaRepository.findByJugadorIdJugador(id);
-        long amarillas = tarjetas.stream().filter(t -> "AMARILLA".equalsIgnoreCase(t.getTipoTarjeta())).count();
-        long rojas = tarjetas.stream().filter(t -> "ROJA".equalsIgnoreCase(t.getTipoTarjeta())).count();
+        long goles = golRepository.countByJugadorIdJugador(id);
+        long amarillas = tarjetaRepository.countByJugadorIdJugadorAndTipoTarjetaIgnoreCase(id, "AMARILLA");
+        long rojas = tarjetaRepository.countByJugadorIdJugadorAndTipoTarjetaIgnoreCase(id, "ROJA");
         Set<Long> torneos = new HashSet<>();
         Set<Long> equipos = new HashSet<>();
-        Set<Long> partidosComputados = new HashSet<>();
-        Set<Long> vallasComputadas = new HashSet<>();
         var campeonatos = new LinkedHashMap<Long, EstadisticasJugadorDTO.CampeonatoJugadorDTO>();
         long vecesGoleador = 0;
         boolean fueDelantero = false;
@@ -106,18 +103,7 @@ public class JugadorService {
             torneos.add(torneo.getIdTorneo());
             equipos.add(equipo.getIdEquipo());
             String posicion = alta.getPosicion() == null ? "" : alta.getPosicion().toLowerCase(Locale.ROOT);
-            boolean cuentaValla = posicion.contains("arquero") || posicion.contains("defensor");
             fueDelantero = fueDelantero || posicion.contains("delantero");
-
-            for (var partido : partidos.findByTorneoIdTorneo(torneo.getIdTorneo())) {
-                if (!"JUGADO".equalsIgnoreCase(partido.getEstado()) && !"FINALIZADO".equalsIgnoreCase(partido.getEstado())) continue;
-                boolean local = equipo.getIdEquipo().equals(partido.getEquipoLocal().getIdEquipo());
-                boolean visitante = equipo.getIdEquipo().equals(partido.getEquipoVisitante().getIdEquipo());
-                if (!local && !visitante) continue;
-                partidosComputados.add(partido.getIdPartido());
-                int golesRecibidos = local ? partido.getGolesVisitante() : partido.getGolesLocal();
-                if (cuentaValla && golesRecibidos == 0) vallasComputadas.add(partido.getIdPartido());
-            }
 
             if (torneo.getCampeon() != null && torneo.getCampeon().getIdEquipo().equals(equipo.getIdEquipo())) {
                 campeonatos.putIfAbsent(torneo.getIdTorneo(), new EstadisticasJugadorDTO.CampeonatoJugadorDTO(
@@ -132,12 +118,15 @@ public class JugadorService {
             }
         }
 
-        Double promedio = fueDelantero && !partidosComputados.isEmpty()
-                ? Math.round((goles * 100.0) / partidosComputados.size()) / 100.0 : null;
+        long partidosDelantero = fueDelantero ? partidos.countPartidosComputablesDelantero(id) : 0;
+        Double promedio = partidosDelantero > 0
+                ? Math.round((goles * 100.0) / partidosDelantero) / 100.0 : null;
         Long vallas = trayectoria.stream().anyMatch(alta -> {
             String posicion = alta.getPosicion() == null ? "" : alta.getPosicion().toLowerCase(Locale.ROOT);
             return posicion.contains("arquero") || posicion.contains("defensor");
-        }) ? (long) vallasComputadas.size() : null;
+        }) ? partidos.countVallasInvictasJugador(id) : null;
+
+        if (!fueDelantero) vecesGoleador = 0;
 
         return new EstadisticasJugadorDTO(goles, amarillas, rojas, partidos.countByMvpIdJugador(id),
                 torneos.size(), equipos.size(), List.copyOf(campeonatos.values()), vecesGoleador, promedio, vallas);
