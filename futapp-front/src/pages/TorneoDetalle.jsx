@@ -489,10 +489,13 @@ const recargarDatosTorneo = () => {
           </section>}
 
           {activeTab === "tabla" && torneo.formato?.toLowerCase() !== "eliminación directa" && torneo.formato?.toLowerCase() !== "zonas + playoffs" && <StandingsTable tabla={tabla} />}
-          {activeTab === "tabla" && torneo.formato?.toLowerCase() === "zonas + playoffs" && estructura?.divisiones?.[0]?.fases?.[0]?.zonas?.map((zona) => {
-            const ids = new Set(estructura.divisiones[0].cupos.filter((cupo) => cupo.idZona === zona.id).map((cupo) => cupo.idEquipo));
-            return <StandingsTable key={zona.id} title={`Tabla ${zona.nombre}`} tabla={tabla.filter((fila) => ids.has(fila.idEquipo))} />;
-          })}
+          {activeTab === "tabla" && torneo.formato?.toLowerCase() === "zonas + playoffs" && <>
+            {estructura?.divisiones?.[0]?.fases?.[0]?.zonas?.map((zona) => {
+              const ids = new Set(estructura.divisiones[0].cupos.filter((cupo) => cupo.idZona === zona.id).map((cupo) => cupo.idEquipo));
+              return <StandingsTable key={zona.id} title={`Tabla ${zona.nombre}`} tabla={tabla.filter((fila) => ids.has(fila.idEquipo))} />;
+            })}
+            <KnockoutBracket equipos={equipos} teamCount={cantidadEquiposLlave} partidos={partidos} canManage={false} loading={generandoFixture} />
+          </>}
 
           {activeTab === "equipos" && <TeamManagement
             torneoId={id}
