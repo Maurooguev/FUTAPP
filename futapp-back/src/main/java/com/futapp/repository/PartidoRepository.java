@@ -71,4 +71,14 @@ public interface PartidoRepository extends JpaRepository<Partido, Long> {
             or p.equipoVisitante.idEquipo = ij.inscripcionEquipo.equipo.idEquipo)
     """)
     long countPartidosComputablesDelantero(@Param("idJugador") Long idJugador);
+
+    @Query("""
+        select count(distinct p.idPartido) from Partido p, InscripcionJugador ij
+        where ij.jugador.idJugador = :idJugador
+          and p.torneo.idTorneo = ij.inscripcionEquipo.torneo.idTorneo
+          and (p.estado = 'JUGADO' or p.estado = 'FINALIZADO')
+          and (p.equipoLocal.idEquipo = ij.inscripcionEquipo.equipo.idEquipo
+            or p.equipoVisitante.idEquipo = ij.inscripcionEquipo.equipo.idEquipo)
+    """)
+    long countPartidosComputablesJugador(@Param("idJugador") Long idJugador);
 }

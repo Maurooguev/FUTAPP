@@ -3,6 +3,7 @@ package com.futapp.dto;
 import java.util.List;
 
 public record EstadisticasJugadorDTO(
+        long partidos,
         long goles,
         long amarillas,
         long rojas,

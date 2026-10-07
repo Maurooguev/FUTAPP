@@ -128,7 +128,7 @@ public class JugadorService {
 
         if (!fueDelantero) vecesGoleador = 0;
 
-        return new EstadisticasJugadorDTO(goles, amarillas, rojas, partidos.countByMvpIdJugador(id),
+        return new EstadisticasJugadorDTO(partidos.countPartidosComputablesJugador(id), goles, amarillas, rojas, partidos.countByMvpIdJugador(id),
                 torneos.size(), equipos.size(), List.copyOf(campeonatos.values()), vecesGoleador, promedio, vallas);
     }
 
