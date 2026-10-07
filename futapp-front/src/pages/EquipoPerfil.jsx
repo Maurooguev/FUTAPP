@@ -35,6 +35,9 @@ function EquipoPerfil() {
   const [showEdit, setShowEdit] = useState(false);
   const [showRoster, setShowRoster] = useState(false);
   const [previewImage, setPreviewImage] = useState(null);
+  const [expandedMatch, setExpandedMatch] = useState(null);
+  const [matchGoals, setMatchGoals] = useState({});
+  const [loadingMatch, setLoadingMatch] = useState(null);
 
   const claimTeam = async () => {
     const response = await apiFetch(`${API_URL}/reclamos/equipos/${id}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ idTorneo: equipo.idTorneo, mensaje: "Solicito administrar este equipo" }) });
@@ -77,6 +80,24 @@ function EquipoPerfil() {
   }, [id, usuario]);
 
   const hasManageAccess = Boolean(usuario && canManage);
+
+  const toggleMatchSummary = async (partido) => {
+    if (expandedMatch === partido.idPartido) {
+      setExpandedMatch(null);
+      return;
+    }
+    setExpandedMatch(partido.idPartido);
+    if (matchGoals[partido.idPartido]) return;
+    setLoadingMatch(partido.idPartido);
+    try {
+      const goals = await fetchJson(`${API_URL}/goles/partido/${partido.idPartido}`, "No se pudieron cargar los goles");
+      setMatchGoals((current) => ({ ...current, [partido.idPartido]: Array.isArray(goals) ? goals : [] }));
+    } catch {
+      setMatchGoals((current) => ({ ...current, [partido.idPartido]: [] }));
+    } finally {
+      setLoadingMatch(null);
+    }
+  };
 
   const historial = useMemo(() => partidos.filter((partido) =>
     partido.idEquipoLocal === Number(id) || partido.idEquipoVisitante === Number(id)
@@ -132,7 +153,7 @@ function EquipoPerfil() {
     <section className="profile-panel club-stats-panel"><div className="profile-section-head"><div><span>Rendimiento</span><h2>Estadísticas</h2></div></div><div className="club-profile-stats" aria-label="Estadísticas del equipo">{resumenEstadisticas.map((stat) => <article key={stat.etiqueta}><strong>{stat.valor}</strong><small>{stat.etiqueta}</small></article>)}</div></section>
     {titulos.length > 0 && <section className="profile-panel"><h2>Títulos</h2><div className="club-title-list">{titulos.map((torneo) => <Link to={`/torneo/${torneo.idTorneo}`} key={torneo.idTorneo}><span>🏆</span><div><strong>{torneo.nombre}</strong><small>{torneo.formato} · {torneo.ubicacion}</small></div><b>Ver torneo →</b></Link>)}</div></section>}
     <section className="profile-panel"><div className="profile-section-head"><div><span>Plantel</span><h2>{jugadores.length} jugadores</h2></div></div><div className="player-mini-grid">{jugadores.map((jugador) => { const nombre = jugador.nombreJugador || "Jugador"; return <Link to={`/jugador/${jugador.idJugador}`} className="player-mini" key={jugador.idJugador} title={`Ver perfil de ${nombre}`}><div><EntityImage type="player" value={jugador.foto} alt="" /></div><strong>{nombre}</strong><span>{jugador.posicion || "Sin posición"}</span></Link>; })}</div></section>
-    <section className="profile-panel club-matches-panel"><div className="profile-section-head"><div><span>Actividad</span><h2>Últimos partidos</h2></div><small>{estadisticas.victorias} G · {estadisticas.empates} E · {estadisticas.derrotas} P</small></div><div className="profile-match-list club-match-list">{historial.length === 0 ? <p>Todavía no hay partidos.</p> : historial.slice().reverse().slice(0, 8).map((partido) => <Link to={`/partido/${partido.idPartido}`} key={partido.idPartido}><span className="profile-match-team"><EntityImage type="team" value={partido.escudoEquipoLocal} alt="" /><span>{partido.nombreEquipoLocal}</span></span><strong>{partido.estado === "JUGADO" || partido.estado === "FINALIZADO" ? `${partido.golesLocal} - ${partido.golesVisitante}` : "vs"}</strong><span className="profile-match-team profile-match-team-away"><span>{partido.nombreEquipoVisitante}</span><EntityImage type="team" value={partido.escudoEquipoVisitante} alt="" /></span></Link>)}</div></section>
+    <section className="profile-panel club-matches-panel"><div className="profile-section-head"><div><span>Actividad</span><h2>Últimos partidos</h2></div><small>{estadisticas.victorias} G · {estadisticas.empates} E · {estadisticas.derrotas} P</small></div><div className="profile-match-list club-match-list">{historial.length === 0 ? <p>Todavía no hay partidos.</p> : historial.slice().reverse().slice(0, 8).map((partido) => { const abierto = expandedMatch === partido.idPartido; const goals = matchGoals[partido.idPartido] || []; return <article className={`club-match-item ${abierto ? "open" : ""}`} key={partido.idPartido}><button type="button" className="club-match-row" onClick={() => toggleMatchSummary(partido)} aria-expanded={abierto}><span className="profile-match-team"><EntityImage type="team" value={partido.escudoEquipoLocal} alt="" /><span>{partido.nombreEquipoLocal}</span></span><strong>{partido.estado === "JUGADO" || partido.estado === "FINALIZADO" ? `${partido.golesLocal} - ${partido.golesVisitante}` : "vs"}</strong><span className="profile-match-team profile-match-team-away"><span>{partido.nombreEquipoVisitante}</span><EntityImage type="team" value={partido.escudoEquipoVisitante} alt="" /></span><span className="club-match-chevron" aria-hidden="true">⌄</span></button>{abierto && <div className="club-match-summary">{loadingMatch === partido.idPartido ? <p>Cargando resumen...</p> : goals.length > 0 ? <div className="club-match-scorers"><div>{goals.filter((gol) => gol.idEquipo === partido.idEquipoLocal).map((gol) => <span key={gol.idGol}><b>{gol.minuto ? `${gol.minuto}'` : "Gol"}</b> {gol.nombreJugador}</span>)}</div><div>{goals.filter((gol) => gol.idEquipo === partido.idEquipoVisitante).map((gol) => <span key={gol.idGol}><b>{gol.minuto ? `${gol.minuto}'` : "Gol"}</b> {gol.nombreJugador}</span>)}</div></div> : <p>{["JUGADO", "FINALIZADO"].includes(partido.estado?.toUpperCase()) ? "No hay goleadores cargados." : "Partido programado."}</p>}<div className="club-match-summary-footer"><small>{partido.fechaHora ? new Date(partido.fechaHora).toLocaleString("es-AR", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" }) : "Fecha a confirmar"}{partido.cancha ? ` · ${partido.cancha}` : ""}</small><Link to={`/partido/${partido.idPartido}`}>Ver detalle completo →</Link></div></div>}</article>; })}</div></section>
     {showEdit && <TeamFormModal torneoId={equipo.idTorneo} equipo={equipo} onClose={() => setShowEdit(false)} onSaved={setEquipo} />}
     {showRoster && <TeamRosterModal equipo={equipo} torneoId={equipo.idTorneo} canManage={hasManageAccess} onClose={() => setShowRoster(false)} />}
     {previewImage && <ImageLightbox {...previewImage} onClose={() => setPreviewImage(null)} />}
