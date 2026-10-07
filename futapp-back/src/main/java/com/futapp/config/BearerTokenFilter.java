@@ -20,7 +20,6 @@ public class BearerTokenFilter extends OncePerRequestFilter {
         String rawToken = resolveToken(request);
         if (rawToken != null && !rawToken.isBlank()) {
             var storedToken = tokens.findById(TokenSecurity.hash(rawToken));
-            if (storedToken.isEmpty()) storedToken = tokens.findById(rawToken); // Sesiones anteriores al hash.
             storedToken.filter(token -> token.getExpiresAt().isAfter(LocalDateTime.now())).ifPresent(token -> {
                 var user = token.getUsuario();
                 var authorities = user.getRoles().stream().map(role -> new SimpleGrantedAuthority("ROLE_" + role)).toList();

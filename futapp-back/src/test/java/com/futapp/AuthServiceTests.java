@@ -78,4 +78,14 @@ class AuthServiceTests {
         assertNotNull(existente.tokenDesarrollo()); // Solo se expone en el perfil de pruebas.
         assertNull(inexistente.tokenDesarrollo());
     }
+
+    @Test
+    void conservaSoloLasCincoSesionesMasRecientes() {
+        var registration = authService.register(new RegisterRequestDTO(
+                "Sesiones Test", "sesiones@test.local", "password123", "JUGADOR"));
+        for (int i = 0; i < 7; i++) {
+            authService.login(new LoginRequestDTO("sesiones@test.local", "password123"));
+        }
+        assertEquals(5, authTokens.findByUsuarioIdUsuarioOrderByExpiresAtDesc(registration.idUsuario()).size());
+    }
 }

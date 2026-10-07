@@ -3,6 +3,9 @@ package com.futapp;
 import com.futapp.dto.RegisterRequestDTO;
 import com.futapp.model.Usuario;
 import com.futapp.repository.UsuarioRepository;
+import com.futapp.repository.AuthTokenRepository;
+import com.futapp.security.TokenSecurity;
+import java.time.LocalDateTime;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -26,6 +29,7 @@ class RolePermissionIntegrationTests {
     @Autowired MockMvc mockMvc;
     @Autowired JsonMapper jsonMapper;
     @Autowired UsuarioRepository usuarios;
+    @Autowired AuthTokenRepository authTokens;
 
     @Test
     void visitanteSoloAccedeALaInformacionPublica() throws Exception {
@@ -115,6 +119,19 @@ class RolePermissionIntegrationTests {
         mockMvc.perform(get("/auth/me").cookie(session)).andExpect(status().isOk());
         mockMvc.perform(post("/auth/logout").cookie(session)).andExpect(status().isOk());
         mockMvc.perform(get("/auth/me").cookie(session)).andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void unaSesionVencidaNoAutenticaYSeElimina() throws Exception {
+        String token = registrar("JUGADOR");
+        String hash = TokenSecurity.hash(token);
+        var session = authTokens.findById(hash).orElseThrow();
+        session.setExpiresAt(LocalDateTime.now().minusSeconds(1));
+        authTokens.saveAndFlush(session);
+
+        mockMvc.perform(get("/auth/me").header("Authorization", bearer(token)))
+                .andExpect(status().isUnauthorized());
+        org.junit.jupiter.api.Assertions.assertFalse(authTokens.existsById(hash));
     }
 
     private String registrar(String rol) throws Exception {
