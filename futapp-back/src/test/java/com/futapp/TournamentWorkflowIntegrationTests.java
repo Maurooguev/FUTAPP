@@ -543,6 +543,63 @@ class TournamentWorkflowIntegrationTests {
     }
 
     @Test
+    void solicitudesYNotificacionesLleganSoloAlResponsableCorrecto() throws Exception {
+        String organizador = registrarUsuario("ORGANIZADOR");
+        String director = registrarUsuario("DIRECTOR_EQUIPO");
+        String cuentaJugador = registrarUsuario("JUGADOR");
+        long torneoId = postJson("/torneos", organizador, torneo()).get("idTorneo").asLong();
+        long equipoId = postJson("/equipos", organizador,
+                equipo("Equipo de notificaciones", "Azul", torneoId)).get("idEquipo").asLong();
+        long jugadorId = postJson("/jugadores", organizador,
+                jugador("Jugador", "Notificado", 5, equipoId)).get("idJugador").asLong();
+
+        JsonNode reclamoEquipo = postJson("/reclamos/equipos/" + equipoId, director,
+                Map.of("idTorneo", torneoId, "mensaje", "Administro este equipo"));
+        mockMvc.perform(get("/notificaciones/no-leidas/count").header("Authorization", "Bearer " + organizador))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.cantidad").value(1));
+        mockMvc.perform(get("/notificaciones").header("Authorization", "Bearer " + organizador))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].titulo").value("Nueva solicitud pendiente"))
+                .andExpect(jsonPath("$[0].url").value("/solicitudes"));
+        mockMvc.perform(get("/reclamos/pendientes").header("Authorization", "Bearer " + cuentaJugador))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.length()").value(0));
+
+        putJson("/reclamos/" + reclamoEquipo.get("idSolicitud").asLong() + "/aprobar", organizador, null)
+                .andExpect(status().isOk());
+        mockMvc.perform(get("/notificaciones/no-leidas/count").header("Authorization", "Bearer " + director))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.cantidad").value(1));
+        putJson("/notificaciones/leer-todas", organizador, null).andExpect(status().isOk());
+        putJson("/notificaciones/leer-todas", director, null).andExpect(status().isOk());
+
+        JsonNode reclamoJugador = postJson("/reclamos/jugadores/" + jugadorId, cuentaJugador,
+                Map.of("idTorneo", torneoId, "mensaje", "Este perfil soy yo"));
+        mockMvc.perform(get("/notificaciones/no-leidas/count").header("Authorization", "Bearer " + director))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.cantidad").value(1));
+        mockMvc.perform(get("/notificaciones/no-leidas/count").header("Authorization", "Bearer " + organizador))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.cantidad").value(0));
+        mockMvc.perform(get("/reclamos/pendientes").header("Authorization", "Bearer " + director))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].idSolicitud").value(reclamoJugador.get("idSolicitud").asInt()));
+        mockMvc.perform(get("/reclamos/pendientes").header("Authorization", "Bearer " + organizador))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.length()").value(0));
+        putJson("/reclamos/" + reclamoJugador.get("idSolicitud").asLong() + "/aprobar", organizador, null)
+                .andExpect(status().isForbidden());
+        putJson("/reclamos/" + reclamoJugador.get("idSolicitud").asLong() + "/aprobar", director, null)
+                .andExpect(status().isOk());
+
+        String notificacionesJugador = mockMvc.perform(get("/notificaciones")
+                        .header("Authorization", "Bearer " + cuentaJugador))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].titulo").value("Solicitud aprobada"))
+                .andReturn().getResponse().getContentAsString();
+        long idNotificacionJugador = jsonMapper.readTree(notificacionesJugador).get(0).get("idNotificacion").asLong();
+        putJson("/notificaciones/" + idNotificacionJugador + "/leer", organizador, null)
+                .andExpect(status().isForbidden());
+        putJson("/notificaciones/" + idNotificacionJugador + "/leer", cuentaJugador, null)
+                .andExpect(status().isOk()).andExpect(jsonPath("$.leida").value(true));
+    }
+
+    @Test
     void directorAprobadoEsElUnicoGestorDelPerfilDelEquipo() throws Exception {
         String organizador = registrarUsuario("ORGANIZADOR");
         String otroOrganizador = registrarUsuario("ORGANIZADOR");
