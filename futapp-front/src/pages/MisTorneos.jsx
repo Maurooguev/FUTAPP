@@ -6,6 +6,14 @@ import "./MisTorneos.css";
 import "./OrganizerProfile.css";
 import { tieneRol } from "../utils/roles";
 
+const GRUPOS = [
+  { id: "EN_CURSO", label: "En curso", estados: ["ACTIVO", "PUBLICADO"] },
+  { id: "BORRADORES", label: "Borradores", estados: ["BORRADOR"] },
+  { id: "FINALIZADOS", label: "Finalizados", estados: ["FINALIZADO"] },
+  { id: "OCULTOS", label: "Ocultos", estados: ["ELIMINADO", "CANCELADO", "ARCHIVADO"] },
+];
+const ESTADOS_OCULTOS = new Set(["ELIMINADO", "CANCELADO", "ARCHIVADO"]);
+
 function MisTorneos() {
   const { usuario } = useAuth();
   const navigate = useNavigate();
@@ -14,6 +22,7 @@ function MisTorneos() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [perfilOrganizador, setPerfilOrganizador] = useState(null);
+  const [grupoActivo, setGrupoActivo] = useState("EN_CURSO");
 
   useEffect(() => {
     if (!usuario || (!tieneRol(usuario, "ORGANIZADOR") && !tieneRol(usuario, "ADMIN"))) return;
@@ -36,11 +45,20 @@ function MisTorneos() {
     }).catch((requestError) => setError(requestError.message)).finally(() => setLoading(false));
   }, [usuario]);
 
-  const totales = useMemo(() => resumenes.reduce((acc, item) => ({
+  const torneosVisibles = useMemo(() => resumenes.filter(
+    (item) => !ESTADOS_OCULTOS.has(item.torneo.estado?.toUpperCase())
+  ), [resumenes]);
+  const totales = useMemo(() => torneosVisibles.reduce((acc, item) => ({
     equipos: acc.equipos + item.equiposInscriptos,
     partidos: acc.partidos + item.partidosPendientes,
     alertas: acc.alertas + item.equiposSinPlantel,
-  }), { equipos: 0, partidos: 0, alertas: 0 }), [resumenes]);
+  }), { equipos: 0, partidos: 0, alertas: 0 }), [torneosVisibles]);
+
+  const grupos = useMemo(() => GRUPOS.map((grupo) => ({
+    ...grupo,
+    torneos: resumenes.filter((item) => grupo.estados.includes(item.torneo.estado?.toUpperCase())),
+  })), [resumenes]);
+  const grupoSeleccionado = grupos.find((grupo) => grupo.id === grupoActivo) || grupos[0];
 
   if (!usuario) return <Navigate to="/login" replace />;
   if (!tieneRol(usuario, "ORGANIZADOR") && !tieneRol(usuario, "ADMIN")) return <main className="organizer-page"><div className="organizer-shell"><section className="organizer-empty"><h2>Cuenta de organizador requerida</h2><p>Debés crear una cuenta de organizador de torneos. El tipo de una cuenta existente no se puede cambiar.</p><Link to="/register?intent=crear-torneo">Crear cuenta de organizador</Link></section></div></main>;
@@ -49,21 +67,29 @@ function MisTorneos() {
     <header className="organizer-heading"><div><span>Panel del organizador</span><h1>Mis torneos</h1><p>Lo importante para continuar cada competencia, en un solo lugar.</p></div><button onClick={() => navigate("/")}>+ Crear torneo</button></header>
     {!loading && resumenes.length > 0 && <section className="organizer-profile-entry"><div><strong>{perfilOrganizador ? "Tu perfil público está activo" : "Perfil público de organizador"}</strong><span>{perfilOrganizador ? "Mostrá quién organiza y reuní tus torneos publicados." : "Es opcional: crealo cuando tengas lista tu descripción y tus fotos."}</span></div><Link to={perfilOrganizador ? `/organizador/${perfilOrganizador.idUsuario}` : "/mi-perfil-organizador"}>{perfilOrganizador ? "Ver perfil" : "Generar perfil"}</Link></section>}
     <section className="organizer-totals">
-      <article><span>Torneos</span><strong>{resumenes.length}</strong></article>
+      <article><span>Torneos visibles</span><strong>{torneosVisibles.length}</strong></article>
       <article><span>Equipos</span><strong>{totales.equipos}</strong></article>
       <article><span>Partidos pendientes</span><strong>{totales.partidos}</strong></article>
       <article className={totales.alertas ? "has-alert" : ""}><span>Planteles incompletos</span><strong>{totales.alertas}</strong></article>
       <article className={pendientes ? "has-alert" : ""}><span>Solicitudes</span><strong>{pendientes}</strong>{pendientes > 0 && <button onClick={() => navigate("/solicitudes")}>Revisar</button>}</article>
     </section>
-    {loading ? <div className="organizer-message">Cargando panel…</div> : error ? <div className="organizer-message error">{error}</div> : resumenes.length === 0 ? <div className="organizer-empty"><h2>Todavía no creaste torneos</h2><p>Creá el primero y empezá cargando sus equipos.</p><button onClick={() => navigate("/")}>Crear torneo</button></div> : <section className="organizer-list">
-      {resumenes.map((item) => <article className="organizer-tournament" key={item.torneo.idTorneo}>
+    {loading ? <div className="organizer-message">Cargando panel…</div> : error ? <div className="organizer-message error">{error}</div> : resumenes.length === 0 ? <div className="organizer-empty"><h2>Todavía no creaste torneos</h2><p>Creá el primero y empezá cargando sus equipos.</p><button onClick={() => navigate("/")}>Crear torneo</button></div> : <>
+      <nav className="organizer-filters" aria-label="Filtrar torneos">
+        {grupos.map((grupo) => <button type="button" className={grupoActivo === grupo.id ? "active" : ""} onClick={() => setGrupoActivo(grupo.id)} key={grupo.id}>
+          {grupo.label}<span>{grupo.torneos.length}</span>
+        </button>)}
+      </nav>
+      {grupoSeleccionado.id === "OCULTOS" && <p className="organizer-hidden-note">Acá se guardan los torneos eliminados, cancelados o archivados. No aparecen públicamente y podés abrirlos en modo consulta.</p>}
+      {grupoSeleccionado.torneos.length === 0 ? <div className="organizer-category-empty">No hay torneos en esta sección.</div> : <section className="organizer-list">
+      {grupoSeleccionado.torneos.map((item) => <article className={`organizer-tournament state-${item.torneo.estado?.toLowerCase()}`} key={item.torneo.idTorneo}>
         <div className="organizer-tournament-main"><div className="organizer-badge">{item.torneo.estado}</div><div><span>{item.torneo.codigoPublico}</span><h2>{item.torneo.nombre}</h2><p>{item.torneo.ubicacion} · {item.torneo.formato}</p></div></div>
         <div className="organizer-progress">
           <div><span>Equipos</span><strong>{item.equiposInscriptos}/{item.torneo.cantidadEquipos}</strong></div><div><span>Sin plantel</span><strong>{item.equiposSinPlantel}</strong></div><div><span>Jugados</span><strong>{item.partidosJugados}</strong></div><div><span>Pendientes</span><strong>{item.partidosPendientes}</strong></div><div><span>Próxima jornada</span><strong>{item.proximaJornada ? `Fecha ${item.proximaJornada}` : "—"}</strong></div>
         </div>
-        <footer><div><span>Siguiente paso</span><strong>{item.accionRecomendada}</strong>{item.idProximoPartido && <small>{item.proximoPartidoLocal} vs {item.proximoPartidoVisitante}</small>}</div><div className="organizer-tournament-actions">{item.idProximoPartido && <button className="result" onClick={() => navigate(`/torneo/${item.torneo.idTorneo}?partido=${item.idProximoPartido}&accion=resultado`)}>Cargar resultado</button>}<button onClick={() => navigate(`/torneo/${item.torneo.idTorneo}`)}>Administrar →</button></div></footer>
+        <footer><div><span>{grupoSeleccionado.id === "OCULTOS" ? "Estado" : "Siguiente paso"}</span><strong>{item.accionRecomendada}</strong>{item.idProximoPartido && grupoSeleccionado.id !== "OCULTOS" && <small>{item.proximoPartidoLocal} vs {item.proximoPartidoVisitante}</small>}</div><div className="organizer-tournament-actions">{item.idProximoPartido && grupoSeleccionado.id !== "OCULTOS" && <button className="result" onClick={() => navigate(`/torneo/${item.torneo.idTorneo}?partido=${item.idProximoPartido}&accion=resultado`)}>Cargar resultado</button>}<button onClick={() => navigate(`/torneo/${item.torneo.idTorneo}`)}>{grupoSeleccionado.id === "OCULTOS" || item.torneo.estado?.toUpperCase() === "FINALIZADO" ? "Abrir →" : "Administrar →"}</button></div></footer>
       </article>)}
-    </section>}
+      </section>}
+    </>}
   </div></main>;
 }
 

@@ -132,7 +132,11 @@ public class TorneoService {
                 .orElse(null);
 
         String accion;
-        if (equipos.size() < 2) accion = "Agregá al menos 2 equipos";
+        String estado = torneo.getEstado() == null ? "" : torneo.getEstado().toUpperCase();
+        if ("ELIMINADO".equals(estado)) accion = "Torneo eliminado";
+        else if ("CANCELADO".equals(estado)) accion = "Torneo cancelado";
+        else if ("ARCHIVADO".equals(estado)) accion = "Torneo archivado";
+        else if (equipos.size() < 2) accion = "Agregá al menos 2 equipos";
         else if (sinPlantel > 0) accion = "Completá los planteles";
         else if (partidosTorneo.isEmpty()) accion = "Generá el fixture";
         else if (pendientes > 0) accion = "Gestioná la próxima jornada";
