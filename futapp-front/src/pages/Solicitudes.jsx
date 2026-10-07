@@ -13,20 +13,23 @@ function SolicitudCard({ item, onResolve, rejecting, onReject, onCancelReject, c
   const [reason, setReason] = useState("");
   const isFusion = item.tipo === "FUSION_EQUIPO";
   const isInvitation = item.tipo === "INVITACION_TORNEO";
+  const isManagementInvitation = item.tipo === "VINCULACION_EQUIPO";
   const isPlayerChange = item.tipo === "CAMBIO_JUGADOR";
   const isTeam = item.tipo === "EQUIPO";
-  const targetUrl = isFusion ? `/equipo/${item.idEquipoDestino}` : isTeam ? `/equipo/${item.idEquipo}` : `/jugador/${item.idJugador}`;
-  const targetName = isFusion ? item.nombreEquipoDestino : isTeam ? item.nombreEquipo : item.nombreJugador;
+  const targetUrl = isFusion ? `/equipo/${item.idEquipoDestino}` : (isTeam || isManagementInvitation) ? `/equipo/${item.idEquipo}` : `/jugador/${item.idJugador}`;
+  const targetName = isFusion ? item.nombreEquipoDestino : (isTeam || isManagementInvitation) ? item.nombreEquipo : item.nombreJugador;
 
   return <article className="request-card">
     <div className="request-avatar">{item.fotoSolicitante ? <img src={assetUrl(item.fotoSolicitante)} alt="" /> : item.nombreSolicitante?.slice(0, 2).toUpperCase()}</div>
     <div className="request-content">
-      <div className="request-title"><div><span>{isPlayerChange ? "Cambio de datos privados" : isInvitation ? "Invitación a torneo" : isFusion ? "Vinculación de equipos" : isTeam ? "Reclamo de equipo" : "Reclamo de jugador"}</span><h2>{item.nombreSolicitante}</h2></div><strong className={`request-status ${item.estado.toLowerCase()}`}>{item.estado}</strong></div>
+      <div className="request-title"><div><span>{isPlayerChange ? "Cambio de datos privados" : isInvitation ? "Invitación a torneo" : isManagementInvitation ? "Invitación para administrar club" : isFusion ? "Vinculación de equipos" : isTeam ? "Reclamo de equipo" : "Reclamo de jugador"}</span><h2>{item.nombreSolicitante}</h2></div><strong className={`request-status ${item.estado.toLowerCase()}`}>{item.estado}</strong></div>
       <div className="request-meta"><span>{item.rolSolicitante?.replaceAll("_", " ")}</span><a href={`mailto:${item.emailSolicitante}`}>{item.emailSolicitante}</a><span>{formatDate(item.fechaSolicitud)}</span></div>
       {isPlayerChange
         ? <><p>Propone modificar los datos privados de <Link to={targetUrl}>{targetName}</Link>.</p><dl className="request-changes"><div><dt>Nombre</dt><dd>{item.nombrePropuesto || "—"}</dd></div><div><dt>Apellido</dt><dd>{item.apellidoPropuesto || "—"}</dd></div><div><dt>DNI</dt><dd>{item.dniPropuesto || "Sin informar"}</dd></div><div><dt>Nacimiento</dt><dd>{item.fechaNacimientoPropuesta || "—"}</dd></div></dl></>
         : isInvitation
         ? <p>Invita a <Link to={`/equipo/${item.idEquipo}`}>{item.nombreEquipo}</Link> a participar en <Link to={`/torneo/${item.idTorneo}`}>{item.nombreTorneo}</Link>{item.categoria ? ` en la categoría ${item.categoria}` : ""}. Al aceptar se inscribirá también su plantel actual.</p>
+        : isManagementInvitation
+        ? <p>Te invita a administrar <Link to={targetUrl}>{targetName}</Link>. Al aceptar, este será el único club asociado a tu cuenta de director.</p>
         : isFusion
         ? <p>Solicita vincular <Link to={`/equipo/${item.idEquipo}`}>{item.nombreEquipo}</Link> con el perfil oficial <Link to={targetUrl}>{targetName}</Link> ({item.codigoEquipoDestino}).</p>
         : <p>{isTeam ? "Solicita administrar" : "Solicita vincular su cuenta con"} <Link to={targetUrl}>{targetName}</Link> en <Link to={`/torneo/${item.idTorneo}`}>{item.nombreTorneo}</Link>.</p>}

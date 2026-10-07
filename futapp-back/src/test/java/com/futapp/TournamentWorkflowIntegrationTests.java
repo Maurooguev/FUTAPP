@@ -600,6 +600,44 @@ class TournamentWorkflowIntegrationTests {
     }
 
     @Test
+    void emailDeContactoInvitaAlDirectorYUnDirectorConClubRecibeSolicitudDeFusion() throws Exception {
+        String organizador = registrarOrganizador();
+        String emailDirector = "director-email-" + System.nanoTime() + "@test.local";
+        String registro = mockMvc.perform(post("/auth/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonMapper.writeValueAsString(new RegisterRequestDTO(
+                                "Director Email", emailDirector, "password123", "DIRECTOR_EQUIPO"))))
+                .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+        String director = jsonMapper.readTree(registro).get("token").asString();
+
+        long torneoUno = postJson("/torneos", organizador, torneo()).get("idTorneo").asLong();
+        Map<String, Object> clubUno = equipo("Club oficial", "Azul", torneoUno);
+        clubUno.put("emailContacto", emailDirector);
+        long clubUnoId = postJson("/equipos", organizador, clubUno).get("idEquipo").asLong();
+
+        String invitacion = mockMvc.perform(get("/reclamos/pendientes")
+                        .header("Authorization", "Bearer " + director))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].tipo").value("VINCULACION_EQUIPO"))
+                .andExpect(jsonPath("$[0].idEquipo").value((int) clubUnoId))
+                .andReturn().getResponse().getContentAsString();
+        long invitacionId = jsonMapper.readTree(invitacion).get(0).get("idSolicitud").asLong();
+        putJson("/reclamos/" + invitacionId + "/aprobar", director, null).andExpect(status().isOk());
+        mockMvc.perform(get("/equipos/mios").header("Authorization", "Bearer " + director))
+                .andExpect(status().isOk()).andExpect(jsonPath("$", org.hamcrest.Matchers.hasSize(1)))
+                .andExpect(jsonPath("$[0].idEquipo").value((int) clubUnoId));
+
+        long torneoDos = postJson("/torneos", organizador, torneo()).get("idTorneo").asLong();
+        Map<String, Object> clubDuplicado = equipo("Club duplicado", "Rojo", torneoDos);
+        clubDuplicado.put("emailContacto", emailDirector);
+        postJson("/equipos", organizador, clubDuplicado);
+        mockMvc.perform(get("/reclamos/pendientes").header("Authorization", "Bearer " + director))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].tipo").value("FUSION_EQUIPO"))
+                .andExpect(jsonPath("$[0].idEquipoDestino").value((int) clubUnoId));
+    }
+
+    @Test
     void directorAprobadoEsElUnicoGestorDelPerfilDelEquipo() throws Exception {
         String organizador = registrarUsuario("ORGANIZADOR");
         String otroOrganizador = registrarUsuario("ORGANIZADOR");

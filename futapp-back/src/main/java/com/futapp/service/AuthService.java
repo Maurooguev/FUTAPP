@@ -31,6 +31,7 @@ public class AuthService {
     private final String registrationInviteCode;
     private final Duration passwordResetDuration;
     private final String dummyPasswordHash;
+    private final ReclamoService reclamos;
     public AuthService(UsuarioRepository usuarios, AuthTokenRepository tokens,
                        PasswordResetTokenRepository resetTokens, PasswordEncoder encoder,
                        PasswordResetMailService passwordResetMail,
@@ -38,7 +39,8 @@ public class AuthService {
                        @Value("${futapp.auth.session-duration:7d}") Duration sessionDuration,
                        @Value("${futapp.auth.maximum-sessions:5}") int maximumSessions,
                        @Value("${futapp.password-reset.duration:30m}") Duration passwordResetDuration,
-                       @Value("${futapp.registration.invite-code:}") String registrationInviteCode) {
+                       @Value("${futapp.registration.invite-code:}") String registrationInviteCode,
+                       ReclamoService reclamos) {
         this.usuarios = usuarios;
         this.tokens = tokens;
         this.resetTokens = resetTokens;
@@ -55,6 +57,7 @@ public class AuthService {
         this.passwordResetDuration = passwordResetDuration;
         this.dummyPasswordHash = encoder.encode(TokenSecurity.generate());
         this.registrationInviteCode = registrationInviteCode == null ? "" : registrationInviteCode;
+        this.reclamos = reclamos;
     }
     public AuthResponseDTO register(RegisterRequestDTO request) {
         if (!registrationInviteCode.isBlank() && !secureEquals(registrationInviteCode, request.codigoInvitacion())) {
@@ -67,7 +70,9 @@ public class AuthService {
             throw new IllegalArgumentException("Tipo de cuenta inválido");
         }
         Usuario user = new Usuario(); user.setNombre(request.nombre().trim()); user.setEmail(email); user.setPasswordHash(encoder.encode(request.password())); user.setRol(rol);
-        return createToken(usuarios.save(user));
+        user = usuarios.save(user);
+        reclamos.activarInvitacionesPendientes(user);
+        return createToken(user);
     }
     public AuthResponseDTO login(LoginRequestDTO request) {
         Usuario user = usuarios.findByEmailIgnoreCase(request.email().trim()).orElse(null);

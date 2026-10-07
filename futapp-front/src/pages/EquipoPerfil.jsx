@@ -14,7 +14,7 @@ import { equipoGenerico } from "../utils/defaultEntityImages";
 import CopyableCode from "../components/CopyableCode/CopyableCode";
 
 async function fetchJson(url, message) {
-  const response = await fetch(url);
+  const response = await apiFetch(url);
   if (!response.ok) throw new Error(message);
   return response.json();
 }

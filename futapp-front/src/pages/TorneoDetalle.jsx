@@ -512,6 +512,15 @@ const recargarDatosTorneo = () => {
                   ? current.map((team) => team.idEquipo === savedTeam.idEquipo ? savedTeam : team)
                   : [...current, savedTeam];
               });
+              setPartidos((current) => current.map((partido) => ({
+                ...partido,
+                ...(partido.idEquipoLocal === savedTeam.idEquipo
+                  ? { nombreEquipoLocal: savedTeam.nombre, escudoEquipoLocal: savedTeam.escudo }
+                  : {}),
+                ...(partido.idEquipoVisitante === savedTeam.idEquipo
+                  ? { nombreEquipoVisitante: savedTeam.nombre, escudoEquipoVisitante: savedTeam.escudo }
+                  : {}),
+              })));
             }}
           />}
 

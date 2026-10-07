@@ -10,6 +10,8 @@ public class SolicitudReclamo {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY) @Column(name = "id_solicitud") private Long idSolicitud;
     private String tipo; private String estado = "PENDIENTE";
     @ManyToOne(optional = false) @JoinColumn(name = "id_solicitante") private Usuario solicitante;
+    @ManyToOne @JoinColumn(name = "id_usuario_destino") private Usuario usuarioDestino;
+    @Column(name = "email_destino") private String emailDestino;
     @ManyToOne @JoinColumn(name = "id_equipo") private Equipo equipo;
     @ManyToOne @JoinColumn(name = "id_equipo_destino") private Equipo equipoDestino;
     @ManyToOne @JoinColumn(name = "id_jugador") private Jugador jugador;
@@ -25,6 +27,8 @@ public class SolicitudReclamo {
     public Long getIdSolicitud() { return idSolicitud; } public String getTipo() { return tipo; } public void setTipo(String tipo) { this.tipo = tipo; }
     public String getEstado() { return estado; } public void setEstado(String estado) { this.estado = estado; }
     public Usuario getSolicitante() { return solicitante; } public void setSolicitante(Usuario solicitante) { this.solicitante = solicitante; }
+    public Usuario getUsuarioDestino() { return usuarioDestino; } public void setUsuarioDestino(Usuario value) { usuarioDestino = value; }
+    public String getEmailDestino() { return emailDestino; } public void setEmailDestino(String value) { emailDestino = value == null ? null : value.trim().toLowerCase(); }
     public Equipo getEquipo() { return equipo; } public void setEquipo(Equipo equipo) { this.equipo = equipo; }
     public Equipo getEquipoDestino() { return equipoDestino; } public void setEquipoDestino(Equipo value) { this.equipoDestino = value; }
     public Jugador getJugador() { return jugador; } public void setJugador(Jugador jugador) { this.jugador = jugador; }

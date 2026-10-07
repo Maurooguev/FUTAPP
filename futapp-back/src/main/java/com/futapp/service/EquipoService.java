@@ -41,6 +41,7 @@ public class EquipoService {
     private final EquipoAdministradorRepository administradores;
     private final EquipoAliasRepository aliases;
     private final TorneoVisibilityService visibility;
+    private final ReclamoService reclamos;
 
     public EquipoService(EquipoRepository equipoRepository, TorneoRepository torneoRepository,
                          JugadorRepository jugadorRepository, PartidoRepository partidoRepository,
@@ -49,7 +50,8 @@ public class EquipoService {
                          InscripcionJugadorRepository inscripcionesJugador,
                          EquipoAuthorizationService equipoAuthorization,
                          EquipoAdministradorRepository administradores,
-                         EquipoAliasRepository aliases, TorneoVisibilityService visibility) {
+                         EquipoAliasRepository aliases, TorneoVisibilityService visibility,
+                         ReclamoService reclamos) {
         this.equipoRepository = equipoRepository;
         this.torneoRepository = torneoRepository;
         this.jugadorRepository = jugadorRepository;
@@ -61,6 +63,7 @@ public class EquipoService {
         this.administradores = administradores;
         this.aliases = aliases;
         this.visibility = visibility;
+        this.reclamos = reclamos;
     }
 
     public List<EquipoResponseDTO> listarEquipos() {
@@ -152,6 +155,7 @@ public class EquipoService {
 
         Equipo equipoGuardado = equipoRepository.save(equipo);
         crearInscripcionSiFalta(equipoGuardado, torneo);
+        reclamos.invitarGestionPorEmail(equipoGuardado, torneo, usuarioActual(), equipoGuardado.getEmailContacto());
         return convertirAResponseDTO(equipoGuardado);
     }
 
@@ -181,6 +185,7 @@ public class EquipoService {
 
         Equipo equipoActualizado = equipoRepository.save(equipo);
         crearInscripcionSiFalta(equipoActualizado, torneo);
+        reclamos.invitarGestionPorEmail(equipoActualizado, torneo, usuarioActual(), equipoActualizado.getEmailContacto());
         return convertirAResponseDTO(equipoActualizado);
     }
 

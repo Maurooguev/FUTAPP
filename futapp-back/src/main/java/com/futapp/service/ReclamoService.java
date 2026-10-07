@@ -21,7 +21,47 @@ public class ReclamoService {
     private final NotificacionService notificaciones;
     private final EquipoAliasRepository aliases; private final FusionEquipoService fusiones; private final InscripcionService inscripcionService;
     private final FusionJugadorService fusionJugadores;
-    public ReclamoService(SolicitudReclamoRepository r, EquipoRepository e, JugadorRepository j, TorneoRepository t, EquipoAdministradorRepository a, InscripcionEquipoRepository i, InscripcionJugadorRepository ij, NotificacionService n, EquipoAliasRepository al, FusionEquipoService f, InscripcionService is, FusionJugadorService fj) { reclamos=r; equipos=e; jugadores=j; torneos=t; administradores=a; inscripciones=i; planteles=ij; notificaciones=n; aliases=al; fusiones=f; inscripcionService=is; fusionJugadores=fj; }
+    private final UsuarioRepository usuarios;
+    public ReclamoService(SolicitudReclamoRepository r, EquipoRepository e, JugadorRepository j, TorneoRepository t, EquipoAdministradorRepository a, InscripcionEquipoRepository i, InscripcionJugadorRepository ij, NotificacionService n, EquipoAliasRepository al, FusionEquipoService f, InscripcionService is, FusionJugadorService fj, UsuarioRepository u) { reclamos=r; equipos=e; jugadores=j; torneos=t; administradores=a; inscripciones=i; planteles=ij; notificaciones=n; aliases=al; fusiones=f; inscripcionService=is; fusionJugadores=fj; usuarios=u; }
+
+    public void invitarGestionPorEmail(Equipo equipo, Torneo torneo, Usuario solicitante, String email) {
+        String destino = normalizar(email);
+        if (destino == null || administradores.existsByEquipoIdEquipoAndEstado(equipo.getIdEquipo(), "ACTIVO")) return;
+        Usuario usuarioDestino = usuarios.findByEmailIgnoreCase(destino).orElse(null);
+        if (usuarioDestino != null && !usuarioDestino.tieneRol("DIRECTOR_EQUIPO") && !usuarioDestino.tieneRol("ADMIN")) {
+            throw new IllegalArgumentException("El email de contacto pertenece a una cuenta que no es de director de equipo");
+        }
+        List<EquipoAdministrador> clubes = usuarioDestino == null ? List.of()
+                : administradores.findByUsuarioIdUsuarioAndEstado(usuarioDestino.getIdUsuario(), "ACTIVO");
+        if (clubes.stream().anyMatch(link -> link.getEquipo().getIdEquipo().equals(equipo.getIdEquipo()))) return;
+        String tipo = clubes.isEmpty() ? "VINCULACION_EQUIPO" : "FUSION_EQUIPO";
+        if (reclamos.existsByEquipoIdEquipoAndEmailDestinoIgnoreCaseAndTipoAndEstado(
+                equipo.getIdEquipo(), destino, tipo, "PENDIENTE")) return;
+        SolicitudReclamo item = base(solicitante, torneo,
+                "Te invitaron a administrar " + equipo.getNombre() + " en FUTAPP.");
+        item.setTipo(tipo); item.setEquipo(equipo); item.setEmailDestino(destino); item.setUsuarioDestino(usuarioDestino);
+        if (!clubes.isEmpty()) item.setEquipoDestino(clubes.get(0).getEquipo());
+        item = reclamos.save(item);
+        if (usuarioDestino != null) notificaciones.enviar(usuarioDestino, "SOLICITUD", "Invitación para vincular un equipo",
+                clubes.isEmpty()
+                        ? solicitante.getNombre() + " te invitó a administrar " + equipo.getNombre()
+                        : solicitante.getNombre() + " solicita vincular " + equipo.getNombre() + " con tu club " + clubes.get(0).getEquipo().getNombre(),
+                "/solicitudes");
+    }
+
+    public void activarInvitacionesPendientes(Usuario usuario) {
+        if (!usuario.tieneRol("DIRECTOR_EQUIPO") && !usuario.tieneRol("ADMIN")) return;
+        reclamos.findByEmailDestinoIgnoreCaseAndUsuarioDestinoIsNullAndEstado(usuario.getEmail(), "PENDIENTE").forEach(item -> {
+            item.setUsuarioDestino(usuario);
+            List<EquipoAdministrador> clubes = administradores.findByUsuarioIdUsuarioAndEstado(usuario.getIdUsuario(), "ACTIVO");
+            if (!clubes.isEmpty() && "VINCULACION_EQUIPO".equals(item.getTipo())) {
+                item.setTipo("FUSION_EQUIPO"); item.setEquipoDestino(clubes.get(0).getEquipo());
+            }
+            reclamos.save(item);
+            notificaciones.enviar(usuario, "SOLICITUD", "Invitación para vincular un equipo",
+                    item.getSolicitante().getNombre() + " te invitó a vincular " + item.getEquipo().getNombre(), "/solicitudes");
+        });
+    }
 
     @Transactional
     public ReclamoResponseDTO solicitarFusion(Long idDuplicado, String codigoOficial, ReclamoRequestDTO request) {
@@ -57,6 +97,7 @@ public class ReclamoService {
         Torneo torneo = torneos.findById(request.idTorneo()).orElseThrow(() -> new ResourceNotFoundException("Torneo no encontrado"));
         if (!inscripciones.existsByEquipoIdEquipoAndTorneoIdTorneo(idEquipo, torneo.getIdTorneo())) throw new IllegalArgumentException("El equipo no participa en ese torneo");
         if (administradores.existsByEquipoIdEquipoAndUsuarioIdUsuarioAndEstado(idEquipo, user.getIdUsuario(), "ACTIVO")) throw new IllegalArgumentException("Ya administrás este equipo");
+        if (administradores.existsByUsuarioIdUsuarioAndEstado(user.getIdUsuario(), "ACTIVO")) throw new IllegalArgumentException("Cada cuenta de director puede administrar un solo club");
         if (administradores.existsByEquipoIdEquipoAndEstado(idEquipo, "ACTIVO")) throw new IllegalArgumentException("Este equipo ya tiene un director verificado");
         if (reclamos.existsBySolicitanteIdUsuarioAndEquipoIdEquipoAndEstado(user.getIdUsuario(), idEquipo, "PENDIENTE")) throw new IllegalArgumentException("Ya tenés una solicitud pendiente");
         SolicitudReclamo item = base(user, torneo, request.mensaje()); item.setTipo("EQUIPO"); item.setEquipo(equipo); item=reclamos.save(item); notificaciones.avisarResponsablesReclamo(item); return dto(item);
@@ -112,9 +153,20 @@ public class ReclamoService {
         if (!puedeRevisar(user,item)) throw new AccessDeniedException("No tenés permiso para resolver esta solicitud");
         if (!aprobar && normalizar(motivo) == null) throw new IllegalArgumentException("Indicá el motivo del rechazo");
         if (aprobar && "EQUIPO".equals(item.getTipo())) {
+            if (administradores.existsByUsuarioIdUsuarioAndEstado(item.getSolicitante().getIdUsuario(), "ACTIVO"))
+                throw new IllegalArgumentException("Esta cuenta de director ya administra otro club");
             if (administradores.existsByEquipoIdEquipoAndEstado(item.getEquipo().getIdEquipo(), "ACTIVO"))
                 throw new IllegalArgumentException("Este equipo ya tiene un director verificado");
             EquipoAdministrador link=new EquipoAdministrador(); link.setEquipo(item.getEquipo()); link.setUsuario(item.getSolicitante()); link.setAprobadoPor(user); administradores.save(link);
+        }
+        if (aprobar && "VINCULACION_EQUIPO".equals(item.getTipo())) {
+            if (item.getUsuarioDestino() == null || !item.getUsuarioDestino().getIdUsuario().equals(user.getIdUsuario()))
+                throw new AccessDeniedException("Esta invitación pertenece a otra cuenta");
+            if (administradores.existsByUsuarioIdUsuarioAndEstado(user.getIdUsuario(), "ACTIVO"))
+                throw new IllegalArgumentException("Tu cuenta ya administra un club; primero debés vincular ambos perfiles");
+            if (administradores.existsByEquipoIdEquipoAndEstado(item.getEquipo().getIdEquipo(), "ACTIVO"))
+                throw new IllegalArgumentException("Este club ya tiene un director");
+            EquipoAdministrador link = new EquipoAdministrador(); link.setEquipo(item.getEquipo()); link.setUsuario(user); link.setAprobadoPor(user); administradores.save(link);
         }
         if (aprobar && "JUGADOR".equals(item.getTipo())) {
             if (item.getJugador().getUsuario() != null) throw new IllegalArgumentException("Este jugador ya tiene una cuenta verificada");
@@ -157,9 +209,12 @@ public class ReclamoService {
         boolean esPropietarioDelTorneo = reclamo.getTorneo().getPropietario() != null
                 && reclamo.getTorneo().getPropietario().getIdUsuario().equals(usuario.getIdUsuario());
         if ("EQUIPO".equals(reclamo.getTipo())) return esPropietarioDelTorneo;
+        if ("VINCULACION_EQUIPO".equals(reclamo.getTipo())) return reclamo.getUsuarioDestino() != null
+                && reclamo.getUsuarioDestino().getIdUsuario().equals(usuario.getIdUsuario());
         if ("CAMBIO_JUGADOR".equals(reclamo.getTipo())) return reclamo.getJugador().getUsuario() != null
                 && reclamo.getJugador().getUsuario().getIdUsuario().equals(usuario.getIdUsuario());
         if ("FUSION_EQUIPO".equals(reclamo.getTipo())) {
+            if (reclamo.getUsuarioDestino() != null) return reclamo.getUsuarioDestino().getIdUsuario().equals(usuario.getIdUsuario());
             boolean tieneAdministradores=administradores.existsByEquipoIdEquipoAndEstado(reclamo.getEquipoDestino().getIdEquipo(), "ACTIVO");
             return administradores.existsByEquipoIdEquipoAndUsuarioIdUsuarioAndEstado(reclamo.getEquipoDestino().getIdEquipo(), usuario.getIdUsuario(), "ACTIVO")
                     || (!tieneAdministradores && reclamo.getEquipoDestino().getCreador()!=null && reclamo.getEquipoDestino().getCreador().getIdUsuario().equals(usuario.getIdUsuario()));
