@@ -29,7 +29,7 @@ function TeamRosterModal({ equipo, torneoId, canManage, onClose }) {
   const savePlayer = async (savedPlayer, options = {}) => {
     setActionError("");
     if (enrollmentId) {
-      const history = await fetch(`${API_URL}/inscripciones/jugadores/${savedPlayer.idJugador}`).then((res) => res.json()).catch(() => []);
+      const history = await apiFetch(`${API_URL}/inscripciones/jugadores/${savedPlayer.idJugador}`).then((res) => res.ok ? res.json() : []).catch(() => []);
       const alreadyEnrolled = Array.isArray(history) && history.some((item) => item.idInscripcionEquipo === enrollmentId);
       if (!alreadyEnrolled) {
         const response = await apiFetch(`${API_URL}/inscripciones/${enrollmentId}/jugadores`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ idJugador: savedPlayer.idJugador, numeroCamiseta: savedPlayer.numeroCamiseta, posicion: savedPlayer.posicion }) });
@@ -65,14 +65,22 @@ function TeamRosterModal({ equipo, torneoId, canManage, onClose }) {
   };
 
   useEffect(() => {
-    fetch(`${API_URL}/inscripciones/equipos/${equipo.idEquipo}`)
-      .then((response) => response.json())
+    setLoading(true);
+    setActionError("");
+    apiFetch(`${API_URL}/inscripciones/equipos/${equipo.idEquipo}`)
+      .then(async (response) => {
+        const payload = await response.json().catch(() => null);
+        if (!response.ok) throw new Error(payload?.message || "No se pudo cargar la inscripción del equipo");
+        return payload;
+      })
       .then(async (history) => {
         const enrollment = Array.isArray(history) ? history.find((item) => item.idTorneo === Number(torneoId)) : null;
         if (!enrollment) throw new Error("No se encontró la inscripción del equipo");
         setEnrollmentId(enrollment.idInscripcion);
         setTournamentName(enrollment.nombreTorneo);
-        const roster = await fetch(`${API_URL}/inscripciones/${enrollment.idInscripcion}/jugadores`).then((response) => response.json());
+        const rosterResponse = await apiFetch(`${API_URL}/inscripciones/${enrollment.idInscripcion}/jugadores`);
+        const roster = await rosterResponse.json().catch(() => null);
+        if (!rosterResponse.ok) throw new Error(roster?.message || "No se pudo cargar el plantel del torneo");
         const fullPlayers = await Promise.all((Array.isArray(roster) ? roster : []).map(async (item) => {
           const player = await apiFetch(`${API_URL}/jugadores/${item.idJugador}`).then((response) => response.json());
           return { ...player, ...item, nombre: player.nombre, apellido: player.apellido };

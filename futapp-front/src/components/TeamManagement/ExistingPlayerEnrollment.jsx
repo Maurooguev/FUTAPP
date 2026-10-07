@@ -14,7 +14,7 @@ function ExistingPlayerEnrollment({ equipoId, enrollmentId, currentPlayers, onSa
   const currentIds = useMemo(() => new Set(currentPlayers.map((player) => player.idJugador)), [currentPlayers]);
 
   useEffect(() => {
-    fetch(`${API_URL}/jugadores/equipo/${equipoId}`).then(async (response) => {
+    apiFetch(`${API_URL}/jugadores/equipo/${equipoId}`).then(async (response) => {
       const data = await response.json().catch(() => []);
       if (!response.ok) throw new Error("No se pudieron cargar los jugadores del club");
       setPlayers(data.filter((player) => !currentIds.has(player.idJugador)));
@@ -31,7 +31,7 @@ function ExistingPlayerEnrollment({ equipoId, enrollmentId, currentPlayers, onSa
   const searchByCode = async () => {
     setError(""); setSelected(null);
     if (!code.trim()) return setError("Ingresá el código del jugador.");
-    const response = await fetch(`${API_URL}/jugadores/codigo/${encodeURIComponent(code.trim())}`);
+    const response = await apiFetch(`${API_URL}/jugadores/codigo/${encodeURIComponent(code.trim())}`);
     const data = await response.json().catch(() => null);
     if (!response.ok) return setError(data?.message || "No encontramos ese jugador.");
     if (currentIds.has(data.idJugador)) return setError("Ese jugador ya está en el plantel de este torneo.");
