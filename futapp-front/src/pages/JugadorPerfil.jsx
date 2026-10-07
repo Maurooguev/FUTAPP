@@ -100,7 +100,18 @@ function JugadorPerfil() {
     estadisticas.vecesMvp, estadisticas.torneosDisputados, estadisticas.equiposRepresentados,
     estadisticas.vecesGoleador, estadisticas.vallasInvictas].some((valor) => Number(valor) > 0)
     || estadisticas?.promedioGolesPorPartido != null;
-  const tieneLogros = (estadisticas?.campeonatos?.length || 0) > 0 || estadisticas?.vecesGoleador > 0;
+  const tarjetasEstadisticas = estadisticas ? [
+    estadisticas.goles > 0 && { clave: "goles", valor: estadisticas.goles, etiqueta: "Goles" },
+    estadisticas.vecesMvp > 0 && { clave: "mvp", valor: estadisticas.vecesMvp, etiqueta: "MVP" },
+    estadisticas.vecesGoleador > 0 && { clave: "goleador", valor: estadisticas.vecesGoleador, etiqueta: "Veces goleador" },
+    estadisticas.vallasInvictas > 0 && { clave: "vallas", valor: estadisticas.vallasInvictas, etiqueta: "Vallas invictas" },
+    estadisticas.promedioGolesPorPartido != null && { clave: "promedio", valor: estadisticas.promedioGolesPorPartido, etiqueta: "Goles por partido" },
+    estadisticas.torneosDisputados > 0 && { clave: "torneos", valor: estadisticas.torneosDisputados, etiqueta: "Torneos" },
+    estadisticas.equiposRepresentados > 0 && { clave: "equipos", valor: estadisticas.equiposRepresentados, etiqueta: "Equipos" },
+    estadisticas.amarillas > 0 && { clave: "amarillas", valor: estadisticas.amarillas, etiqueta: "Amarillas", clase: "yellow" },
+    estadisticas.rojas > 0 && { clave: "rojas", valor: estadisticas.rojas, etiqueta: "Rojas", clase: "red" },
+  ].filter(Boolean).slice(0, 4) : [];
+  const tieneCampeonatos = (estadisticas?.campeonatos?.length || 0) > 0;
 
   if (error) return <main className="profile-page"><div className="profile-message">{error}</div></main>;
   if (!jugador || !equipo) return <main className="profile-page"><div className="profile-message">Cargando perfil...</div></main>;
@@ -134,21 +145,8 @@ function JugadorPerfil() {
         })}
       </div>
     </section>}
-    {tieneLogros && <section className="profile-panel player-achievements"><h2>Logros</h2><div className="player-achievement-grid">
-      {estadisticas.campeonatos.length > 0 && <div className="championship-achievement"><span className="championship-stars">{"★".repeat(Math.min(3, estadisticas.campeonatos.length))}</span><strong>{estadisticas.campeonatos.length} {estadisticas.campeonatos.length === 1 ? "campeonato" : "campeonatos"}</strong><ul>{estadisticas.campeonatos.map((titulo) => <li key={titulo.idTorneo}><Link to={`/torneo/${titulo.idTorneo}`}>{titulo.nombreTorneo}</Link><small>{titulo.nombreEquipo}</small></li>)}</ul></div>}
-      {estadisticas.vecesGoleador > 0 && <div className="scorer-achievement"><span>🏆</span><strong>{estadisticas.vecesGoleador} {estadisticas.vecesGoleador === 1 ? "premio de goleador" : "premios de goleador"}</strong></div>}
-    </div></section>}
-    {tieneEstadisticas && <section className="profile-panel"><h2>Estadísticas</h2><div className="player-stats">
-      {estadisticas.goles > 0 && <div><strong>{estadisticas.goles}</strong><span>Goles</span></div>}
-      {estadisticas.vecesMvp > 0 && <div><strong>{estadisticas.vecesMvp}</strong><span>MVP</span></div>}
-      {estadisticas.torneosDisputados > 0 && <div><strong>{estadisticas.torneosDisputados}</strong><span>Torneos</span></div>}
-      {estadisticas.equiposRepresentados > 0 && <div><strong>{estadisticas.equiposRepresentados}</strong><span>Equipos</span></div>}
-      {estadisticas.vecesGoleador > 0 && <div><strong>{estadisticas.vecesGoleador}</strong><span>Goleador</span></div>}
-      {estadisticas.promedioGolesPorPartido != null && <div><strong>{estadisticas.promedioGolesPorPartido}</strong><span>Goles por partido</span></div>}
-      {estadisticas.vallasInvictas != null && estadisticas.vallasInvictas > 0 && <div><strong>{estadisticas.vallasInvictas}</strong><span>Vallas invictas</span></div>}
-      {estadisticas.amarillas > 0 && <div className="discipline-stat yellow"><strong>{estadisticas.amarillas}</strong><span>Amarillas</span></div>}
-      {estadisticas.rojas > 0 && <div className="discipline-stat red"><strong>{estadisticas.rojas}</strong><span>Rojas</span></div>}
-    </div></section>}
+    {tieneCampeonatos && <section className="profile-panel player-championships"><div className="championship-heading"><div><span className="championship-stars">{"★".repeat(Math.min(3, estadisticas.campeonatos.length))}</span><h2>Campeonatos</h2></div><strong>{estadisticas.campeonatos.length}</strong></div><div className="championship-list">{estadisticas.campeonatos.map((titulo) => <Link to={`/torneo/${titulo.idTorneo}`} key={titulo.idTorneo}><span>★</span><div><strong>{titulo.nombreTorneo}</strong><small>{titulo.nombreEquipo}</small></div><b>Ver torneo →</b></Link>)}</div></section>}
+    {tieneEstadisticas && <section className="profile-panel"><h2>Estadísticas</h2><div className="player-stats">{tarjetasEstadisticas.map((tarjeta) => <div className={tarjeta.clase ? `discipline-stat ${tarjeta.clase}` : ""} key={tarjeta.clave}><strong>{tarjeta.valor}</strong><span>{tarjeta.etiqueta}</span></div>)}</div></section>}
     {historial.length > 0 && <section className="profile-panel"><h2>Historial de partidos</h2><p className="profile-note">Primera versión: se muestran los partidos del plantel. Más adelante registraremos convocatorias y minutos individuales.</p><div className="profile-match-list">{historial.slice().reverse().map((partido) => <Link to={`/partido/${partido.idPartido}`} key={partido.idPartido}><span className="profile-match-team"><EntityImage type="team" value={partido.escudoEquipoLocal} alt="" /><span>{partido.nombreEquipoLocal}</span></span><strong>{partido.estado === "JUGADO" || partido.estado === "FINALIZADO" ? `${partido.golesLocal} - ${partido.golesVisitante}` : "vs"}</strong><span className="profile-match-team profile-match-team-away"><span>{partido.nombreEquipoVisitante}</span><EntityImage type="team" value={partido.escudoEquipoVisitante} alt="" /></span></Link>)}</div></section>}
     {previewImage && <ImageLightbox {...previewImage} onClose={() => setPreviewImage(null)} />}
   </main>;
