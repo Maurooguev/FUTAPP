@@ -42,6 +42,9 @@ function JugadorPerfil() {
   const [organizerProfileExists, setOrganizerProfileExists] = useState(false);
   const [previewImage, setPreviewImage] = useState(null);
   const [showAllStats, setShowAllStats] = useState(false);
+  const [expandedMatch, setExpandedMatch] = useState(null);
+  const [matchGoals, setMatchGoals] = useState({});
+  const [loadingMatch, setLoadingMatch] = useState(null);
   const visitedPlayer = useRef(null);
 
   const claimPlayer = async () => {
@@ -93,6 +96,24 @@ function JugadorPerfil() {
   }, [usuario]);
 
   const isOwnProfile = ownPlayerId === Number(id);
+
+  const toggleMatchSummary = async (partido) => {
+    if (expandedMatch === partido.idPartido) {
+      setExpandedMatch(null);
+      return;
+    }
+    setExpandedMatch(partido.idPartido);
+    if (matchGoals[partido.idPartido]) return;
+    setLoadingMatch(partido.idPartido);
+    try {
+      const goals = await fetchJson(`${API_URL}/goles/partido/${partido.idPartido}`, "No se pudieron cargar los goles");
+      setMatchGoals((current) => ({ ...current, [partido.idPartido]: Array.isArray(goals) ? goals : [] }));
+    } catch {
+      setMatchGoals((current) => ({ ...current, [partido.idPartido]: [] }));
+    } finally {
+      setLoadingMatch(null);
+    }
+  };
 
   const historial = useMemo(() => equipo ? partidos.filter((partido) =>
     partido.idEquipoLocal === equipo.idEquipo || partido.idEquipoVisitante === equipo.idEquipo
@@ -149,7 +170,7 @@ function JugadorPerfil() {
       </div>
     </section>}
     {tieneEstadisticas && <section className="profile-panel"><h2>Estadísticas</h2><div className="player-stats">{tarjetasPrincipales.map((tarjeta) => <div className={tarjeta.clase ? `discipline-stat ${tarjeta.clase}` : ""} key={tarjeta.clave}><span className="stat-content"><strong>{tarjeta.valor}</strong><span>{tarjeta.etiqueta}</span></span></div>)}</div>{tarjetasEstadisticas.length > 4 && <button type="button" className="stats-toggle stats-toggle-bottom" onClick={() => setShowAllStats(true)}>Ver todas las estadísticas →</button>}</section>}
-    {historial.length > 0 && <section className="profile-panel"><h2>Historial de partidos</h2><p className="profile-note">Primera versión: se muestran los partidos del plantel. Más adelante registraremos convocatorias y minutos individuales.</p><div className="profile-match-list">{historial.slice().reverse().map((partido) => <Link to={`/partido/${partido.idPartido}`} key={partido.idPartido}><span className="profile-match-team"><EntityImage type="team" value={partido.escudoEquipoLocal} alt="" /><span>{partido.nombreEquipoLocal}</span></span><strong>{partido.estado === "JUGADO" || partido.estado === "FINALIZADO" ? `${partido.golesLocal} - ${partido.golesVisitante}` : "vs"}</strong><span className="profile-match-team profile-match-team-away"><span>{partido.nombreEquipoVisitante}</span><EntityImage type="team" value={partido.escudoEquipoVisitante} alt="" /></span></Link>)}</div></section>}
+    {historial.length > 0 && <section className="profile-panel club-matches-panel"><div className="profile-section-head"><div><span>Actividad</span><h2>Historial de partidos</h2></div></div><p className="profile-note">Se muestran los partidos del plantel mientras estuvo inscripto.</p><div className="profile-match-list club-match-list">{historial.slice().reverse().map((partido) => { const abierto = expandedMatch === partido.idPartido; const goals = matchGoals[partido.idPartido] || []; return <article className={`club-match-item ${abierto ? "open" : ""}`} key={partido.idPartido}><button type="button" className="club-match-row" onClick={() => toggleMatchSummary(partido)} aria-expanded={abierto}><span className="profile-match-team"><EntityImage type="team" value={partido.escudoEquipoLocal} alt="" /><span>{partido.nombreEquipoLocal}</span></span><strong>{["JUGADO", "FINALIZADO"].includes(partido.estado?.toUpperCase()) ? `${partido.golesLocal} - ${partido.golesVisitante}` : "vs"}</strong><span className="profile-match-team profile-match-team-away"><span>{partido.nombreEquipoVisitante}</span><EntityImage type="team" value={partido.escudoEquipoVisitante} alt="" /></span><span className="club-match-chevron" aria-hidden="true">⌄</span></button>{abierto && <div className="club-match-summary">{loadingMatch === partido.idPartido ? <p>Cargando resumen...</p> : goals.length > 0 ? <div className="club-match-scorers"><div>{goals.filter((gol) => gol.idEquipo === partido.idEquipoLocal).map((gol) => <span key={gol.idGol}><b>{gol.minuto ? `${gol.minuto}'` : "Gol"}</b> {gol.nombreJugador}</span>)}</div><div>{goals.filter((gol) => gol.idEquipo === partido.idEquipoVisitante).map((gol) => <span key={gol.idGol}><b>{gol.minuto ? `${gol.minuto}'` : "Gol"}</b> {gol.nombreJugador}</span>)}</div></div> : <p>{["JUGADO", "FINALIZADO"].includes(partido.estado?.toUpperCase()) ? "No hay goleadores cargados." : "Partido programado."}</p>}<div className="club-match-summary-footer"><small>{partido.fechaHora ? new Date(partido.fechaHora).toLocaleString("es-AR", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" }) : "Fecha a confirmar"}{partido.cancha ? ` · ${partido.cancha}` : ""}</small><Link to={`/partido/${partido.idPartido}`}>Ver detalle completo →</Link></div></div>}</article>; })}</div></section>}
     {showAllStats && <div className="player-stats-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setShowAllStats(false); }}><section className="player-stats-modal" role="dialog" aria-modal="true" aria-labelledby="player-stats-title"><header><div><span>Rendimiento</span><h2 id="player-stats-title">Todas las estadísticas</h2></div><button type="button" onClick={() => setShowAllStats(false)} aria-label="Cerrar estadísticas">✕</button></header><div className="player-stats-detail">{tarjetasEstadisticas.map((tarjeta) => <article className={tarjeta.clase ? `discipline-stat ${tarjeta.clase}` : ""} key={tarjeta.clave}><span className="stat-sticker" aria-hidden="true">{tarjeta.sticker}</span><span className="stat-content"><strong>{tarjeta.valor}</strong><span>{tarjeta.etiqueta}</span><small>{tarjeta.detalle}</small></span></article>)}</div></section></div>}
     {previewImage && <ImageLightbox {...previewImage} onClose={() => setPreviewImage(null)} />}
   </main>;
