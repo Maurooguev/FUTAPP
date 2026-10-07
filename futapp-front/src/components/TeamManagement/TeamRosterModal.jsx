@@ -18,6 +18,7 @@ function TeamRosterModal({ equipo, torneoId, canManage, onClose }) {
   const [showExisting, setShowExisting] = useState(false);
   const [editingEnrollment, setEditingEnrollment] = useState(null);
   const [reactivating, setReactivating] = useState(false);
+  const [generatingPlayers, setGeneratingPlayers] = useState(false);
   const [tournamentName, setTournamentName] = useState("");
   const [reloadKey, setReloadKey] = useState(0);
 
@@ -64,6 +65,32 @@ function TeamRosterModal({ equipo, torneoId, canManage, onClose }) {
     }
   };
 
+  const generateTestPlayers = async () => {
+    const suggested = Math.max(1, 5 - players.filter((player) => player.estado === "ACTIVA").length);
+    const value = window.prompt("¿Cuántos jugadores de prueba querés generar?", String(suggested));
+    if (value === null) return;
+    const amount = Number(value);
+    if (!Number.isInteger(amount) || amount < 1 || amount > 30) {
+      setActionError("Ingresá una cantidad entre 1 y 30");
+      return;
+    }
+    if (!window.confirm(`Se crearán ${amount} jugadores editables con nombres aleatorios. ¿Continuar?`)) return;
+    setGeneratingPlayers(true);
+    setActionError("");
+    setActionNotice("");
+    try {
+      const response = await apiFetch(`${API_URL}/inscripciones/${enrollmentId}/jugadores/prueba?cantidad=${amount}`, { method: "POST" });
+      const payload = await response.json().catch(() => null);
+      if (!response.ok) throw new Error(payload?.message || "No se pudieron generar los jugadores");
+      setActionNotice(`Se generaron ${payload.length} jugadores de prueba. Podés editar sus datos cuando quieras.`);
+      setReloadKey((current) => current + 1);
+    } catch (requestError) {
+      setActionError(requestError.message);
+    } finally {
+      setGeneratingPlayers(false);
+    }
+  };
+
   useEffect(() => {
     setLoading(true);
     setActionError("");
@@ -98,7 +125,7 @@ function TeamRosterModal({ equipo, torneoId, canManage, onClose }) {
         <span className="tournament-form-chip">Plantel por torneo</span>
         <h2>{equipo.nombre}</h2>
         <p><strong>{tournamentName || "Torneo"}</strong> · {players.filter((player) => player.estado === "ACTIVA").length} activos · {players.filter((player) => player.estado === "INACTIVA").length} bajas.</p>
-        {canManage && !showForm && !showExisting && <div className="roster-add-actions"><button type="button" className="tournament-form-save" onClick={() => { setEditingPlayer(null); setShowForm(true); }}>+ Crear jugador</button><button type="button" className="tournament-form-cancel" onClick={() => setShowExisting(true)}>Agregar jugador existente</button></div>}
+        {canManage && !showForm && !showExisting && <div className="roster-add-actions"><button type="button" className="tournament-form-save" onClick={() => { setEditingPlayer(null); setShowForm(true); }}>+ Crear jugador</button><button type="button" className="tournament-form-cancel" onClick={() => setShowExisting(true)}>Agregar jugador existente</button><button type="button" className="roster-generate-players" onClick={generateTestPlayers} disabled={!enrollmentId || generatingPlayers}>{generatingPlayers ? "Generando..." : "✨ Generar jugadores de prueba"}</button></div>}
         {showForm && <PlayerForm equipoId={equipo.idEquipo} torneoId={torneoId} player={editingPlayer} onCancel={closeForm} onSaved={savePlayer} />}
         {showExisting && enrollmentId && <ExistingPlayerEnrollment equipoId={equipo.idEquipo} enrollmentId={enrollmentId} currentPlayers={players} onCancel={() => setShowExisting(false)} onSaved={() => { setShowExisting(false); setReloadKey((current) => current + 1); }} />}
         {actionNotice && <p className="roster-notice">{actionNotice}</p>}

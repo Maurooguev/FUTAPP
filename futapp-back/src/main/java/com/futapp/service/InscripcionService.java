@@ -19,6 +19,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.HashSet;
+import java.util.concurrent.ThreadLocalRandom;
 import java.time.LocalDate;
 import com.futapp.model.Usuario;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -167,6 +169,61 @@ public class InscripcionService {
         inscripcion.setPosicion(normalizar(request.posicion()) == null ? jugador.getPosicion() : request.posicion().trim());
         inscripcion.setEstado("ACTIVA");
         return jugadorDto(inscripcionesJugador.save(inscripcion));
+    }
+
+    @Transactional
+    public List<InscripcionJugadorResponseDTO> generarJugadoresDePrueba(Long idInscripcion, int cantidad) {
+        if (cantidad < 1 || cantidad > 30) {
+            throw new IllegalArgumentException("Podés generar entre 1 y 30 jugadores por vez");
+        }
+        var inscripcionEquipo = inscripcionesEquipo.findById(idInscripcion)
+                .orElseThrow(() -> new ResourceNotFoundException("Inscripción no encontrada con id: " + idInscripcion));
+        equipoAuthorization.verificarGestionPlantel(inscripcionEquipo);
+        String estadoTorneo = inscripcionEquipo.getTorneo().getEstado();
+        if (!"BORRADOR".equalsIgnoreCase(estadoTorneo) && !"PUBLICADO".equalsIgnoreCase(estadoTorneo)) {
+            throw new IllegalArgumentException("Los jugadores de prueba solo se pueden generar antes de iniciar el torneo");
+        }
+
+        var actuales = inscripcionesJugador.findByInscripcionEquipoIdInscripcionOrderByNumeroCamiseta(idInscripcion);
+        if (actuales.size() + cantidad > 30) {
+            throw new IllegalArgumentException("El plantel no puede superar los 30 jugadores");
+        }
+        var dorsalesUsados = new HashSet<Integer>();
+        actuales.stream().filter(item -> "ACTIVA".equalsIgnoreCase(item.getEstado()))
+                .map(InscripcionJugador::getNumeroCamiseta).filter(java.util.Objects::nonNull)
+                .forEach(dorsalesUsados::add);
+
+        String[] nombres = {"Mateo", "Santiago", "Thiago", "Benjamín", "Bautista", "Joaquín", "Lautaro", "Tomás", "Franco", "Agustín", "Nicolás", "Valentín", "Facundo", "Lucas", "Bruno", "Martín", "Juan", "Ramiro", "Gonzalo", "Emiliano"};
+        String[] apellidos = {"González", "Rodríguez", "Fernández", "López", "Martínez", "García", "Pérez", "Sánchez", "Romero", "Díaz", "Torres", "Álvarez", "Ruiz", "Ramírez", "Acosta", "Benítez", "Medina", "Herrera", "Suárez", "Castro"};
+        String[] posiciones = {"Arquero", "Defensor", "Defensor", "Mediocampista", "Mediocampista", "Delantero"};
+        var random = ThreadLocalRandom.current();
+        var generados = new java.util.ArrayList<InscripcionJugadorResponseDTO>();
+        for (int indice = 0; indice < cantidad; indice++) {
+            int dorsal = 1;
+            while (dorsalesUsados.contains(dorsal) && dorsal <= 99) dorsal++;
+            if (dorsal > 99) throw new IllegalArgumentException("No quedan dorsales disponibles en el plantel");
+            dorsalesUsados.add(dorsal);
+
+            var jugador = new com.futapp.model.Jugador();
+            jugador.setNombre(nombres[random.nextInt(nombres.length)]);
+            jugador.setApellido(apellidos[random.nextInt(apellidos.length)]);
+            jugador.setFechaNacimiento(LocalDate.of(random.nextInt(1990, 2008), random.nextInt(1, 13), random.nextInt(1, 28)).toString());
+            jugador.setNumeroCamiseta(dorsal);
+            jugador.setPosicion(posiciones[indice % posiciones.length]);
+            jugador.setPiernaHabil(random.nextBoolean() ? "Derecha" : "Izquierda");
+            jugador.setEstado("ACTIVO");
+            jugador.setEquipo(inscripcionEquipo.getEquipo());
+            jugador = jugadores.save(jugador);
+
+            var alta = new InscripcionJugador();
+            alta.setInscripcionEquipo(inscripcionEquipo);
+            alta.setJugador(jugador);
+            alta.setNumeroCamiseta(dorsal);
+            alta.setPosicion(jugador.getPosicion());
+            alta.setEstado("ACTIVA");
+            generados.add(jugadorDto(inscripcionesJugador.save(alta)));
+        }
+        return generados;
     }
 
     @Transactional

@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
 
@@ -57,6 +58,13 @@ public class InscripcionController {
             @PathVariable Long idInscripcion,
             @Valid @RequestBody InscripcionJugadorRequestDTO request) {
         return inscripciones.inscribirJugador(idInscripcion, request);
+    }
+
+    @PostMapping("/{idInscripcion}/jugadores/prueba")
+    public List<InscripcionJugadorResponseDTO> generarJugadoresDePrueba(
+            @PathVariable Long idInscripcion,
+            @RequestParam(defaultValue = "5") int cantidad) {
+        return inscripciones.generarJugadoresDePrueba(idInscripcion, cantidad);
     }
 
     @PutMapping("/jugadores/{id}")

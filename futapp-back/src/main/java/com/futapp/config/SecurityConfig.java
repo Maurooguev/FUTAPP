@@ -43,7 +43,8 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.PUT, "/equipos/*", "/jugadores/*").authenticated()
                 .requestMatchers(HttpMethod.DELETE, "/equipos/*").authenticated()
                 .requestMatchers(HttpMethod.POST, "/equipos/*/fusionar/*").authenticated()
-                .requestMatchers(HttpMethod.POST, "/jugadores", "/inscripciones/*/jugadores").authenticated()
+                .requestMatchers(HttpMethod.POST, "/jugadores", "/inscripciones/*/jugadores",
+                        "/inscripciones/*/jugadores/prueba").authenticated()
                 .requestMatchers(HttpMethod.POST, "/equipos", "/inscripciones/equipos").authenticated()
                 .requestMatchers(HttpMethod.GET, "/equipos/creados").hasAnyRole("ORGANIZADOR", "ADMIN")
                 .requestMatchers(HttpMethod.PUT, "/inscripciones/jugadores/**").authenticated()
