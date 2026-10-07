@@ -16,6 +16,7 @@ public record InscripcionJugadorResponseDTO(
         LocalDate fechaBaja,
         Long idEquipo,
         String nombreEquipo,
+        String escudoEquipo,
         Long idTorneo,
         String nombreTorneo
 ) {}

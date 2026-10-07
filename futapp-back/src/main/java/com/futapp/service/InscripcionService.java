@@ -246,6 +246,7 @@ public class InscripcionService {
                 jugador.getNombre() + " " + jugador.getApellido(), jugador.getCodigoPublico(), jugador.getFoto(),
                 item.getNumeroCamiseta(), item.getPosicion(), item.getEstado(), item.getFechaAlta(),
                 item.getFechaBaja(), inscripcion.getEquipo().getIdEquipo(), inscripcion.getEquipo().getNombre(),
+                inscripcion.getEquipo().getEscudo(),
                 inscripcion.getTorneo().getIdTorneo(), inscripcion.getTorneo().getNombre()
         );
     }
