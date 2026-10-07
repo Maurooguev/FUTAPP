@@ -41,7 +41,7 @@ public class AuthController {
     @PostMapping("/login")
     public AuthResponseDTO login(@Valid @RequestBody LoginRequestDTO request, HttpServletRequest servletRequest,
                                  HttpServletResponse response) {
-        String key = servletRequest.getRemoteAddr() + ":" + request.email().trim().toLowerCase();
+        String key = request.email().trim().toLowerCase();
         loginAttempts.verify(key);
         try { AuthResponseDTO session = auth.login(request); loginAttempts.succeeded(key); return establishSession(session, response); }
         catch (IllegalArgumentException exception) { loginAttempts.failed(key); throw exception; }

@@ -30,6 +30,7 @@ public class AuthService {
     private final int maximumSessions;
     private final String registrationInviteCode;
     private final Duration passwordResetDuration;
+    private final String dummyPasswordHash;
     public AuthService(UsuarioRepository usuarios, AuthTokenRepository tokens,
                        PasswordResetTokenRepository resetTokens, PasswordEncoder encoder,
                        PasswordResetMailService passwordResetMail,
@@ -52,6 +53,7 @@ public class AuthService {
         this.sessionDuration = sessionDuration;
         this.maximumSessions = maximumSessions;
         this.passwordResetDuration = passwordResetDuration;
+        this.dummyPasswordHash = encoder.encode(TokenSecurity.generate());
         this.registrationInviteCode = registrationInviteCode == null ? "" : registrationInviteCode;
     }
     public AuthResponseDTO register(RegisterRequestDTO request) {
@@ -68,7 +70,11 @@ public class AuthService {
         return createToken(usuarios.save(user));
     }
     public AuthResponseDTO login(LoginRequestDTO request) {
-        Usuario user = usuarios.findByEmailIgnoreCase(request.email().trim()).orElseThrow(() -> new IllegalArgumentException("Email o contraseña incorrectos"));
+        Usuario user = usuarios.findByEmailIgnoreCase(request.email().trim()).orElse(null);
+        if (user == null) {
+            encoder.matches(request.password(), dummyPasswordHash);
+            throw new IllegalArgumentException("Email o contraseña incorrectos");
+        }
         if (!encoder.matches(request.password(), user.getPasswordHash())) throw new IllegalArgumentException("Email o contraseña incorrectos");
         return createToken(user);
     }

@@ -2,6 +2,7 @@ package com.futapp.model;
 
 import jakarta.persistence.*;
 import com.futapp.util.TextNormalizer;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "usuario", uniqueConstraints = @UniqueConstraint(columnNames = "email"))
@@ -12,6 +13,9 @@ public class Usuario {
     @Column(nullable = false) private String email;
     @Column(name = "password_hash", nullable = false) private String passwordHash;
     @Column(nullable = false) private String rol;
+    @Column(name = "failed_login_attempts", nullable = false) private int failedLoginAttempts;
+    @Column(name = "login_failure_started_at") private LocalDateTime loginFailureStartedAt;
+    @Column(name = "locked_until") private LocalDateTime lockedUntil;
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "usuario_rol", joinColumns = @JoinColumn(name = "id_usuario"))
     @Column(name = "rol")
@@ -27,6 +31,12 @@ public class Usuario {
     public void setRol(String rol) { this.rol = rol; this.roles.clear(); this.roles.add(rol); }
     public java.util.Set<String> getRoles() { return this.rol == null ? java.util.Set.of() : java.util.Set.of(this.rol); }
     public boolean tieneRol(String rol) { return rol.equals(this.rol); }
+    public int getFailedLoginAttempts() { return failedLoginAttempts; }
+    public void setFailedLoginAttempts(int value) { this.failedLoginAttempts = value; }
+    public LocalDateTime getLoginFailureStartedAt() { return loginFailureStartedAt; }
+    public void setLoginFailureStartedAt(LocalDateTime value) { this.loginFailureStartedAt = value; }
+    public LocalDateTime getLockedUntil() { return lockedUntil; }
+    public void setLockedUntil(LocalDateTime value) { this.lockedUntil = value; }
     public void agregarRol(String rol) {
         if (this.rol == null || prioridad(rol) > prioridad(this.rol)) setRol(rol);
     }
