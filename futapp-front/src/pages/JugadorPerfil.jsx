@@ -34,9 +34,8 @@ function JugadorPerfil() {
   const [jugador, setJugador] = useState(null);
   const [equipo, setEquipo] = useState(null);
   const [partidos, setPartidos] = useState([]);
-  const [goles, setGoles] = useState([]);
-  const [tarjetas, setTarjetas] = useState([]);
   const [inscripciones, setInscripciones] = useState([]);
+  const [estadisticas, setEstadisticas] = useState(null);
   const [error, setError] = useState("");
   const [claimMessage, setClaimMessage] = useState("");
   const [ownPlayerId, setOwnPlayerId] = useState(null);
@@ -58,16 +57,14 @@ function JugadorPerfil() {
         setEquipo(team);
         return Promise.all([
           fetchJson(`${API_URL}/partidos/torneo/${team.idTorneo}`, "No se pudieron cargar los partidos"),
-          fetchJson(`${API_URL}/goles/jugador/${id}`, "No se pudieron cargar los goles"),
-          fetchJson(`${API_URL}/tarjetas/jugador/${id}`, "No se pudieron cargar las tarjetas"),
           fetchJson(`${API_URL}/inscripciones/jugadores/${id}`, "No se pudo cargar la trayectoria"),
+          fetchJson(`${API_URL}/jugadores/${id}/estadisticas`, "No se pudieron cargar las estadísticas"),
         ]);
       })
-      .then(([matches, goals, cards, enrollments]) => {
+      .then(([matches, enrollments, playerStats]) => {
         setPartidos(Array.isArray(matches) ? matches : []);
-        setGoles(Array.isArray(goals) ? goals : []);
-        setTarjetas(Array.isArray(cards) ? cards : []);
         setInscripciones(Array.isArray(enrollments) ? enrollments : []);
+        setEstadisticas(playerStats);
       })
       .catch((requestError) => setError(`${requestError.message}. Actualizá la página para reintentar.`));
   }, [id]);
@@ -99,9 +96,11 @@ function JugadorPerfil() {
   const historial = useMemo(() => equipo ? partidos.filter((partido) =>
     partido.idEquipoLocal === equipo.idEquipo || partido.idEquipoVisitante === equipo.idEquipo
   ) : [], [partidos, equipo]);
-  const amarillas = tarjetas.filter((tarjeta) => tarjeta.tipoTarjeta === "AMARILLA").length;
-  const rojas = tarjetas.filter((tarjeta) => tarjeta.tipoTarjeta === "ROJA").length;
-  const tieneEstadisticas = goles.length > 0 || amarillas > 0 || rojas > 0;
+  const tieneEstadisticas = estadisticas && [estadisticas.goles, estadisticas.amarillas, estadisticas.rojas,
+    estadisticas.vecesMvp, estadisticas.torneosDisputados, estadisticas.equiposRepresentados,
+    estadisticas.vecesGoleador, estadisticas.vallasInvictas].some((valor) => Number(valor) > 0)
+    || estadisticas?.promedioGolesPorPartido != null;
+  const tieneLogros = (estadisticas?.campeonatos?.length || 0) > 0 || estadisticas?.vecesGoleador > 0;
 
   if (error) return <main className="profile-page"><div className="profile-message">{error}</div></main>;
   if (!jugador || !equipo) return <main className="profile-page"><div className="profile-message">Cargando perfil...</div></main>;
@@ -135,7 +134,21 @@ function JugadorPerfil() {
         })}
       </div>
     </section>}
-    {tieneEstadisticas && <section className="profile-panel"><h2>Estadísticas</h2><div className="player-stats">{goles.length > 0 && <div><strong>{goles.length}</strong><span>Goles</span></div>}{amarillas > 0 && <div><strong>{amarillas}</strong><span>Amarillas</span></div>}{rojas > 0 && <div><strong>{rojas}</strong><span>Rojas</span></div>}</div></section>}
+    {tieneLogros && <section className="profile-panel player-achievements"><h2>Logros</h2><div className="player-achievement-grid">
+      {estadisticas.campeonatos.length > 0 && <div className="championship-achievement"><span className="championship-stars">{"★".repeat(Math.min(3, estadisticas.campeonatos.length))}</span><strong>{estadisticas.campeonatos.length} {estadisticas.campeonatos.length === 1 ? "campeonato" : "campeonatos"}</strong><ul>{estadisticas.campeonatos.map((titulo) => <li key={titulo.idTorneo}><Link to={`/torneo/${titulo.idTorneo}`}>{titulo.nombreTorneo}</Link><small>{titulo.nombreEquipo}</small></li>)}</ul></div>}
+      {estadisticas.vecesGoleador > 0 && <div className="scorer-achievement"><span>🏆</span><strong>{estadisticas.vecesGoleador} {estadisticas.vecesGoleador === 1 ? "premio de goleador" : "premios de goleador"}</strong></div>}
+    </div></section>}
+    {tieneEstadisticas && <section className="profile-panel"><h2>Estadísticas</h2><div className="player-stats">
+      {estadisticas.goles > 0 && <div><strong>{estadisticas.goles}</strong><span>Goles</span></div>}
+      {estadisticas.vecesMvp > 0 && <div><strong>{estadisticas.vecesMvp}</strong><span>MVP</span></div>}
+      {estadisticas.torneosDisputados > 0 && <div><strong>{estadisticas.torneosDisputados}</strong><span>Torneos</span></div>}
+      {estadisticas.equiposRepresentados > 0 && <div><strong>{estadisticas.equiposRepresentados}</strong><span>Equipos</span></div>}
+      {estadisticas.vecesGoleador > 0 && <div><strong>{estadisticas.vecesGoleador}</strong><span>Goleador</span></div>}
+      {estadisticas.promedioGolesPorPartido != null && <div><strong>{estadisticas.promedioGolesPorPartido}</strong><span>Goles por partido</span></div>}
+      {estadisticas.vallasInvictas != null && estadisticas.vallasInvictas > 0 && <div><strong>{estadisticas.vallasInvictas}</strong><span>Vallas invictas</span></div>}
+      {estadisticas.amarillas > 0 && <div className="discipline-stat yellow"><strong>{estadisticas.amarillas}</strong><span>Amarillas</span></div>}
+      {estadisticas.rojas > 0 && <div className="discipline-stat red"><strong>{estadisticas.rojas}</strong><span>Rojas</span></div>}
+    </div></section>}
     {historial.length > 0 && <section className="profile-panel"><h2>Historial de partidos</h2><p className="profile-note">Primera versión: se muestran los partidos del plantel. Más adelante registraremos convocatorias y minutos individuales.</p><div className="profile-match-list">{historial.slice().reverse().map((partido) => <Link to={`/partido/${partido.idPartido}`} key={partido.idPartido}><span className="profile-match-team"><EntityImage type="team" value={partido.escudoEquipoLocal} alt="" /><span>{partido.nombreEquipoLocal}</span></span><strong>{partido.estado === "JUGADO" || partido.estado === "FINALIZADO" ? `${partido.golesLocal} - ${partido.golesVisitante}` : "vs"}</strong><span className="profile-match-team profile-match-team-away"><span>{partido.nombreEquipoVisitante}</span><EntityImage type="team" value={partido.escudoEquipoVisitante} alt="" /></span></Link>)}</div></section>}
     {previewImage && <ImageLightbox {...previewImage} onClose={() => setPreviewImage(null)} />}
   </main>;

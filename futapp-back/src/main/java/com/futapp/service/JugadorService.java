@@ -3,6 +3,7 @@ package com.futapp.service;
 import com.futapp.dto.JugadorRequestDTO;
 import com.futapp.dto.JugadorResponseDTO;
 import com.futapp.dto.PaginaDTO;
+import com.futapp.dto.EstadisticasJugadorDTO;
 import com.futapp.exception.ResourceNotFoundException;
 import com.futapp.model.Equipo;
 import com.futapp.model.Jugador;
@@ -14,12 +15,17 @@ import com.futapp.repository.TarjetaRepository;
 import com.futapp.repository.InscripcionEquipoRepository;
 import com.futapp.repository.InscripcionJugadorRepository;
 import com.futapp.repository.JugadorAliasRepository;
+import com.futapp.repository.PartidoRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.security.core.context.SecurityContextHolder;
 import com.futapp.model.Usuario;
 
 import java.util.List;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.Locale;
+import java.util.Set;
 import java.util.stream.Collectors;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -37,13 +43,15 @@ public class JugadorService {
     private final EquipoAuthorizationService equipoAuthorization;
     private final JugadorAliasRepository aliases;
     private final TorneoVisibilityService visibility;
+    private final PartidoRepository partidos;
 
     public JugadorService(JugadorRepository jugadorRepository, EquipoRepository equipoRepository,
                           GolRepository golRepository, TarjetaRepository tarjetaRepository,
                           InscripcionEquipoRepository inscripcionesEquipo,
                           InscripcionJugadorRepository inscripcionesJugador,
                           EquipoAuthorizationService equipoAuthorization,
-                          JugadorAliasRepository aliases, TorneoVisibilityService visibility) {
+                          JugadorAliasRepository aliases, TorneoVisibilityService visibility,
+                          PartidoRepository partidos) {
         this.jugadorRepository = jugadorRepository;
         this.equipoRepository = equipoRepository;
         this.golRepository = golRepository;
@@ -53,6 +61,7 @@ public class JugadorService {
         this.equipoAuthorization = equipoAuthorization;
         this.aliases = aliases;
         this.visibility = visibility;
+        this.partidos = partidos;
     }
 
     public List<JugadorResponseDTO> listarJugadores() {
@@ -69,6 +78,69 @@ public class JugadorService {
         verificarVisibilidad(jugador);
 
         return convertirAResponseDTO(jugador);
+    }
+
+    @Transactional(readOnly = true)
+    public EstadisticasJugadorDTO estadisticas(Long id) {
+        Jugador jugador = jugadorRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Jugador no encontrado con id: " + id));
+        verificarVisibilidad(jugador);
+
+        List<InscripcionJugador> trayectoria = inscripcionesJugador.findByJugadorIdJugadorOrderByFechaAltaDesc(id);
+        long goles = golRepository.findByJugadorIdJugador(id).size();
+        var tarjetas = tarjetaRepository.findByJugadorIdJugador(id);
+        long amarillas = tarjetas.stream().filter(t -> "AMARILLA".equalsIgnoreCase(t.getTipoTarjeta())).count();
+        long rojas = tarjetas.stream().filter(t -> "ROJA".equalsIgnoreCase(t.getTipoTarjeta())).count();
+        Set<Long> torneos = new HashSet<>();
+        Set<Long> equipos = new HashSet<>();
+        Set<Long> partidosComputados = new HashSet<>();
+        Set<Long> vallasComputadas = new HashSet<>();
+        var campeonatos = new LinkedHashMap<Long, EstadisticasJugadorDTO.CampeonatoJugadorDTO>();
+        long vecesGoleador = 0;
+        boolean fueDelantero = false;
+
+        for (InscripcionJugador alta : trayectoria) {
+            var inscripcion = alta.getInscripcionEquipo();
+            var torneo = inscripcion.getTorneo();
+            var equipo = inscripcion.getEquipo();
+            torneos.add(torneo.getIdTorneo());
+            equipos.add(equipo.getIdEquipo());
+            String posicion = alta.getPosicion() == null ? "" : alta.getPosicion().toLowerCase(Locale.ROOT);
+            boolean cuentaValla = posicion.contains("arquero") || posicion.contains("defensor");
+            fueDelantero = fueDelantero || posicion.contains("delantero");
+
+            for (var partido : partidos.findByTorneoIdTorneo(torneo.getIdTorneo())) {
+                if (!"JUGADO".equalsIgnoreCase(partido.getEstado()) && !"FINALIZADO".equalsIgnoreCase(partido.getEstado())) continue;
+                boolean local = equipo.getIdEquipo().equals(partido.getEquipoLocal().getIdEquipo());
+                boolean visitante = equipo.getIdEquipo().equals(partido.getEquipoVisitante().getIdEquipo());
+                if (!local && !visitante) continue;
+                partidosComputados.add(partido.getIdPartido());
+                int golesRecibidos = local ? partido.getGolesVisitante() : partido.getGolesLocal();
+                if (cuentaValla && golesRecibidos == 0) vallasComputadas.add(partido.getIdPartido());
+            }
+
+            if (torneo.getCampeon() != null && torneo.getCampeon().getIdEquipo().equals(equipo.getIdEquipo())) {
+                campeonatos.putIfAbsent(torneo.getIdTorneo(), new EstadisticasJugadorDTO.CampeonatoJugadorDTO(
+                        torneo.getIdTorneo(), torneo.getNombre(), equipo.getIdEquipo(), equipo.getNombre()));
+            }
+            if ("FINALIZADO".equalsIgnoreCase(torneo.getEstado())) {
+                var goleadores = golRepository.obtenerGoleadoresPorTorneo(torneo.getIdTorneo());
+                if (!goleadores.isEmpty()) {
+                    long maximo = goleadores.getFirst().getCantidadGoles();
+                    if (goleadores.stream().anyMatch(g -> g.getIdJugador().equals(id) && g.getCantidadGoles() == maximo)) vecesGoleador++;
+                }
+            }
+        }
+
+        Double promedio = fueDelantero && !partidosComputados.isEmpty()
+                ? Math.round((goles * 100.0) / partidosComputados.size()) / 100.0 : null;
+        Long vallas = trayectoria.stream().anyMatch(alta -> {
+            String posicion = alta.getPosicion() == null ? "" : alta.getPosicion().toLowerCase(Locale.ROOT);
+            return posicion.contains("arquero") || posicion.contains("defensor");
+        }) ? (long) vallasComputadas.size() : null;
+
+        return new EstadisticasJugadorDTO(goles, amarillas, rojas, partidos.countByMvpIdJugador(id),
+                torneos.size(), equipos.size(), List.copyOf(campeonatos.values()), vecesGoleador, promedio, vallas);
     }
 
     public List<JugadorResponseDTO> listarJugadoresPorEquipo(Long idEquipo) {

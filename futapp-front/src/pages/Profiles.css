@@ -120,6 +120,20 @@
 .player-stats { grid-template-columns: repeat(auto-fit,minmax(120px,180px)); justify-content: start; background: transparent; }
 .player-stats div { width: 100%; border: 1px solid #dbe3e8; border-radius: 8px; }
 @media (max-width: 700px) { .player-stats { grid-template-columns: repeat(auto-fit,minmax(105px,1fr)); } }
+.player-achievement-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(220px,1fr)); gap: 12px; margin-top: 14px; }
+.player-achievement-grid > div { padding: 16px; border: 1px solid #f0d98d; border-radius: 12px; background: linear-gradient(135deg,#fff9df,#fff); }
+.championship-achievement { display: grid; gap: 6px; }
+.championship-stars { color: #f5b700; font-size: 24px; letter-spacing: 3px; }
+.championship-achievement ul { display: grid; gap: 6px; margin: 6px 0 0; padding: 10px 0 0; border-top: 1px solid #f0dfa5; list-style: none; }
+.championship-achievement li { display: flex; justify-content: space-between; gap: 10px; font-size: 11px; }
+.championship-achievement a { color: #0877a7; font-weight: 800; text-decoration: none; }
+.championship-achievement small { color: #64748b; text-align: right; }
+.scorer-achievement { display: flex; align-items: center; gap: 12px; }
+.scorer-achievement > span { font-size: 30px; }
+.discipline-stat.yellow { border-color: #facc15; }.discipline-stat.red { border-color: #f87171; }
+:root[data-theme="dark"] .player-achievement-grid > div { border-color: #6f602d; background: linear-gradient(135deg,#3d402e,#29414f); }
+:root[data-theme="dark"] .championship-achievement ul { border-color: #665a30; }
+:root[data-theme="dark"] .championship-achievement small { color: #b9c8d2; }
 :root[data-theme="dark"] .player-stats { background: #38505d; }
 :root[data-theme="dark"] .player-stats div { background: #29414f; }
 :root[data-theme="dark"] .player-stats strong { color: #67d7ee; }

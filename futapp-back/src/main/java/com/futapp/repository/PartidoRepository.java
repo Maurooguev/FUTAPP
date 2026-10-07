@@ -47,4 +47,6 @@ public interface PartidoRepository extends JpaRepository<Partido, Long> {
 
     boolean existsByTorneoIdTorneoAndEquipoLocalIdEquipoOrTorneoIdTorneoAndEquipoVisitanteIdEquipo(
             Long idTorneoLocal, Long idEquipoLocal, Long idTorneoVisitante, Long idEquipoVisitante);
+
+    long countByMvpIdJugador(Long idJugador);
 }
