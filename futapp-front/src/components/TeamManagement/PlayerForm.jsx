@@ -25,9 +25,11 @@ function PlayerForm({ equipoId, torneoId, player, onSaved, onCancel }) {
     setSaving(true);
     setError("");
     try {
-      const privateChangeRequested = isEditing && player.verificado && ["nombre", "apellido", "dni", "fechaNacimiento"]
-        .some((field) => (form[field] || "").trim() !== (player[field] || "").trim());
-      const managedChangeRequested = !isEditing || ["numeroCamiseta", "posicion", "foto", "apodo", "piernaHabil", "estado"]
+      const identityChangeRequested = isEditing && ["nombre", "apellido", "dni", "fechaNacimiento"]
+        .some((field) => String(form[field] ?? "").trim() !== String(player[field] ?? "").trim());
+      const privateChangeRequested = identityChangeRequested && player.verificado;
+      const directChangeRequested = !isEditing || (identityChangeRequested && !player.verificado)
+        || ["numeroCamiseta", "posicion", "foto", "apodo", "piernaHabil", "estado"]
         .some((field) => String(form[field] ?? "").trim() !== String(player?.[field] ?? "").trim());
       if (privateChangeRequested) {
         const requestResponse = await apiFetch(`${API_URL}/reclamos/jugadores/${player.idJugador}/cambios`, {
@@ -47,7 +49,7 @@ function PlayerForm({ equipoId, torneoId, player, onSaved, onCancel }) {
         }
         window.dispatchEvent(new Event("requests-updated"));
       }
-      if (isEditing && !managedChangeRequested) {
+      if (isEditing && !directChangeRequested) {
         onSaved(player, {
           privateChangeRequested,
           message: privateChangeRequested
