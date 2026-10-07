@@ -15,7 +15,9 @@
 .bracket-round:last-child .bracket-match::after { display: none; }
 .bracket-team { display: flex; justify-content: space-between; gap: 8px; padding: 8px 10px; color: #334155; font-size: 11px; }
 .bracket-team + .bracket-team { border-top: 1px solid #dbe3e8; }
-.bracket-team a { overflow: hidden; color: inherit; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+.bracket-team a { display: flex; min-width: 0; align-items: center; gap: 7px; overflow: hidden; color: inherit; font-weight: 700; text-decoration: none; }
+.bracket-team a img { width: 25px; height: 25px; flex: 0 0 auto; object-fit: contain; }
+.bracket-team a span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .bracket-team.winner { border-left: 3px solid #16a34a; background: #effcf3; color: #166534; }
 .bracket-team.pending { color: #94a3b8; font-style: italic; }
 .bracket-final-champion { border-top: 1px solid #ead88b; background: #fff7d6; padding: 9px 10px; color: #795e00; font-size: 11px; font-weight: 900; text-align: center; }

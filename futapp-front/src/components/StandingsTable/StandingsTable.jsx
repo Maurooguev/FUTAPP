@@ -1,6 +1,7 @@
 import "./StandingsTable.css";
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
+import EntityImage from "../EntityImage/EntityImage";
 
 function StandingsTable({ tabla, title = "Tabla de posiciones" }) {
   const [showFullTable, setShowFullTable] = useState(false);
@@ -28,7 +29,7 @@ function StandingsTable({ tabla, title = "Tabla de posiciones" }) {
         {tabla.map((fila, index) => (
           <tr key={fila.idEquipo} className={index === 0 ? "top-row" : ""}>
             <td>{index + 1}</td>
-            <td className="team-cell"><Link to={`/equipo/${fila.idEquipo}`}>{fila.nombreEquipo}</Link></td>
+            <td className="team-cell"><Link to={`/equipo/${fila.idEquipo}`}><EntityImage type="team" value={fila.escudoEquipo} alt="" /><span>{fila.nombreEquipo}</span></Link></td>
             <td>{fila.puntos}</td><td>{fila.partidosJugados}</td><td>{fila.ganados}</td><td>{fila.empatados}</td><td>{fila.perdidos}</td><td>{fila.golesFavor}</td><td>{fila.golesContra}</td><td>{fila.diferenciaGol}</td>
           </tr>
         ))}

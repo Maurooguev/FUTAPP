@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import "./KnockoutBracket.css";
+import EntityImage from "../EntityImage/EntityImage";
 
 const roundsFor = (teams) => {
   const power = 2 ** Math.floor(Math.log2(Math.max(2, teams)));
@@ -10,9 +11,9 @@ const roundsFor = (teams) => {
   return ["Octavos de final", "Cuartos de final", "Semifinales", "Final"];
 };
 
-function Team({ id, name, score, penalties, winner }) {
+function Team({ id, name, image, score, penalties, winner }) {
   if (!id) return <div className="bracket-team pending"><span>Por definir</span><b>–</b></div>;
-  return <div className={`bracket-team ${winner ? "winner" : ""}`}><Link to={`/equipo/${id}`}>{name}</Link><b>{score ?? "–"}{penalties != null ? ` (${penalties})` : ""}</b></div>;
+  return <div className={`bracket-team ${winner ? "winner" : ""}`}><Link to={`/equipo/${id}`}><EntityImage type="team" value={image} alt="" /><span>{name}</span></Link><b>{score ?? "–"}{penalties != null ? ` (${penalties})` : ""}</b></div>;
 }
 
 const winnerId = (match) => {
@@ -78,8 +79,8 @@ function KnockoutBracket({ equipos, teamCount = equipos.length, partidos, canMan
             const match = matches[index];
             const finished = match?.estado?.toUpperCase() === "FINALIZADO";
             return <article className="bracket-match" key={match?.idPartido || `${round}-${index}`}>
-              <Team id={match?.idEquipoLocal} name={match?.nombreEquipoLocal} score={finished ? match.golesLocal : null} penalties={finished ? match.penalesLocal : null} winner={finished && (match.golesLocal > match.golesVisitante || match.golesLocal === match.golesVisitante && match.penalesLocal > match.penalesVisitante)} />
-              <Team id={match?.idEquipoVisitante} name={match?.nombreEquipoVisitante} score={finished ? match.golesVisitante : null} penalties={finished ? match.penalesVisitante : null} winner={finished && (match.golesVisitante > match.golesLocal || match.golesLocal === match.golesVisitante && match.penalesVisitante > match.penalesLocal)} />
+              <Team id={match?.idEquipoLocal} name={match?.nombreEquipoLocal} image={match?.escudoEquipoLocal} score={finished ? match.golesLocal : null} penalties={finished ? match.penalesLocal : null} winner={finished && (match.golesLocal > match.golesVisitante || match.golesLocal === match.golesVisitante && match.penalesLocal > match.penalesVisitante)} />
+              <Team id={match?.idEquipoVisitante} name={match?.nombreEquipoVisitante} image={match?.escudoEquipoVisitante} score={finished ? match.golesVisitante : null} penalties={finished ? match.penalesVisitante : null} winner={finished && (match.golesVisitante > match.golesLocal || match.golesLocal === match.golesVisitante && match.penalesVisitante > match.penalesLocal)} />
               {round === "Final" && match?.idPartido === final?.idPartido && champion && <div className="bracket-final-champion">🏆 {champion}</div>}
             </article>;
           })}
