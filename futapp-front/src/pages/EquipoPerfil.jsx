@@ -12,6 +12,7 @@ import plantelGenerico from "../assets/plantel-generico.png";
 import EntityImage from "../components/EntityImage/EntityImage";
 import { equipoGenerico } from "../utils/defaultEntityImages";
 import CopyableCode from "../components/CopyableCode/CopyableCode";
+import TournamentIcon from "../components/TournamentIcon/TournamentIcon";
 
 async function fetchJson(url, message) {
   const response = await apiFetch(url);
@@ -98,12 +99,12 @@ function EquipoPerfil() {
   }, [historial, id]);
 
   const resumenEstadisticas = [
-    { valor: estadisticas.partidos, etiqueta: "Partidos", icono: "⚽" },
-    { valor: estadisticas.victorias, etiqueta: "Victorias", icono: "✓" },
-    { valor: estadisticas.goles, etiqueta: "Goles a favor", icono: "🥅" },
-    { valor: estadisticas.vallas, etiqueta: "Vallas invictas", icono: "🧤" },
-    { valor: inscripciones.length, etiqueta: "Torneos", icono: "🏟️" },
-    { valor: titulos.length, etiqueta: "Títulos", icono: "🏆" },
+    { valor: estadisticas.partidos, etiqueta: "Partidos" },
+    { valor: estadisticas.victorias, etiqueta: "Victorias" },
+    { valor: estadisticas.goles, etiqueta: "Goles a favor" },
+    { valor: estadisticas.vallas, etiqueta: "Vallas invictas" },
+    { valor: inscripciones.length, etiqueta: "Torneos" },
+    { valor: titulos.length, etiqueta: "Títulos" },
   ];
 
   if (error) return <main className="profile-page"><div className="profile-message">{error}</div></main>;
@@ -124,13 +125,11 @@ function EquipoPerfil() {
       </div>
     </section>
     {claimMessage && <p className="profile-action-message">{claimMessage}</p>}
-    <section className="club-profile-stats" aria-label="Estadísticas del equipo">
-      {resumenEstadisticas.map((stat) => <article key={stat.etiqueta}><span>{stat.icono}</span><div><strong>{stat.valor}</strong><small>{stat.etiqueta}</small></div></article>)}
-    </section>
     <div className="profile-layout">
       <section className="profile-panel"><h2>Sobre el club</h2><p>{equipo.descripcion || "El club todavía no agregó una descripción."}</p><dl><div><dt>Responsable</dt><dd>{equipo.responsable}</dd></div><div><dt>Contacto</dt><dd>{equipo.telefonoContacto}</dd></div>{equipo.emailContacto && <div><dt>Email</dt><dd>{equipo.emailContacto}</dd></div>}</dl></section>
-      <section className="profile-panel"><h2>Historial de torneos</h2><div className="enrollment-list">{inscripciones.map((item) => <Link className="history-link" to={`/torneo/${item.idTorneo}`} key={item.idInscripcion}><strong>{item.nombreTorneo}</strong><small>{item.estado} · {item.cantidadJugadores} jugadores</small><span>Ver torneo →</span></Link>)}</div></section>
+      <section className="profile-panel club-tournaments-panel"><h2>Historial de torneos</h2><div className="player-tournament-grid club-tournament-grid">{inscripciones.map((item) => { const activa = item.estado === "ACTIVA"; return <article className={`player-tournament-card ${activa ? "active" : "historical"}`} key={item.idInscripcion}><Link className="player-tournament-main" to={`/torneo/${item.idTorneo}`}><TournamentIcon /><span><small>Torneo</small><strong>{item.nombreTorneo}</strong></span><b className={`career-status ${activa ? "active" : "historical"}`}>{activa ? "Activo" : item.estado}</b></Link><div className="player-tournament-meta"><span>{item.cantidadJugadores} jugadores</span><Link to={`/torneo/${item.idTorneo}`}>Ver torneo →</Link></div></article>; })}</div></section>
     </div>
+    <section className="profile-panel club-stats-panel"><div className="profile-section-head"><div><span>Rendimiento</span><h2>Estadísticas</h2></div></div><div className="club-profile-stats" aria-label="Estadísticas del equipo">{resumenEstadisticas.map((stat) => <article key={stat.etiqueta}><strong>{stat.valor}</strong><small>{stat.etiqueta}</small></article>)}</div></section>
     {titulos.length > 0 && <section className="profile-panel"><h2>Títulos</h2><div className="club-title-list">{titulos.map((torneo) => <Link to={`/torneo/${torneo.idTorneo}`} key={torneo.idTorneo}><span>🏆</span><div><strong>{torneo.nombre}</strong><small>{torneo.formato} · {torneo.ubicacion}</small></div><b>Ver torneo →</b></Link>)}</div></section>}
     <section className="profile-panel"><div className="profile-section-head"><div><span>Plantel</span><h2>{jugadores.length} jugadores</h2></div></div><div className="player-mini-grid">{jugadores.map((jugador) => { const nombre = jugador.nombreJugador || "Jugador"; return <Link to={`/jugador/${jugador.idJugador}`} className="player-mini" key={jugador.idJugador} title={`Ver perfil de ${nombre}`}><div><EntityImage type="player" value={jugador.foto} alt="" /></div><strong>{nombre}</strong><span>{jugador.posicion || "Sin posición"}</span></Link>; })}</div></section>
     <section className="profile-panel"><div className="profile-section-head"><div><span>Actividad</span><h2>Últimos partidos</h2></div><small>{estadisticas.victorias} G · {estadisticas.empates} E · {estadisticas.derrotas} P</small></div><div className="profile-match-list">{historial.length === 0 ? <p>Todavía no hay partidos.</p> : historial.slice().reverse().slice(0, 8).map((partido) => <Link to={`/partido/${partido.idPartido}`} key={partido.idPartido}><span className="profile-match-team"><EntityImage type="team" value={partido.escudoEquipoLocal} alt="" /><span>{partido.nombreEquipoLocal}</span></span><strong>{partido.estado === "JUGADO" || partido.estado === "FINALIZADO" ? `${partido.golesLocal} - ${partido.golesVisitante}` : "vs"}</strong><span className="profile-match-team profile-match-team-away"><span>{partido.nombreEquipoVisitante}</span><EntityImage type="team" value={partido.escudoEquipoVisitante} alt="" /></span></Link>)}</div></section>

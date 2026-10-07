@@ -11,13 +11,18 @@
 .club-profile-identity { padding: 0 20px; }
 .club-profile-identity > div:nth-child(2) { min-width: 0; }
 .club-profile-identity h1 { line-height: 1.08; }
-.club-profile-stats { display: grid; grid-template-columns: repeat(6,minmax(0,1fr)); gap: 8px; margin-top: 4px; }
-.club-profile-stats article { display: flex; min-width: 0; align-items: center; gap: 9px; padding: 12px; border: 1px solid #dbe3e8; border-radius: 9px; background: #fff; }
-.club-profile-stats article > span { display: grid; width: 30px; height: 30px; flex: 0 0 auto; place-items: center; border-radius: 8px; background: #eaf6fa; font-size: 14px; }
-.club-profile-stats article div { min-width: 0; }
+.club-stats-panel { margin-top: 14px; }
+.club-profile-stats { display: grid; grid-template-columns: repeat(6,minmax(0,1fr)); gap: 1px; margin-top: 14px; overflow: hidden; border-radius: 8px; background: #dbe3e8; }
+.club-profile-stats article { min-width: 0; padding: 15px 8px; background: #f5f8fa; text-align: center; }
 .club-profile-stats strong,.club-profile-stats small { display: block; }
-.club-profile-stats strong { color: #0877a7; font-size: 18px; line-height: 1; }
-.club-profile-stats small { margin-top: 3px; overflow: hidden; color: #64748b; font-size: 8px; font-weight: 800; line-height: 1.15; text-overflow: ellipsis; text-transform: uppercase; }
+.club-profile-stats strong { color: #0877a7; font-size: 23px; line-height: 1; }
+.club-profile-stats small { margin-top: 6px; overflow: hidden; color: #64748b; font-size: 9px; font-weight: 800; line-height: 1.15; text-overflow: ellipsis; text-transform: uppercase; }
+.club-tournaments-panel { min-width: 0; }
+.club-tournament-grid { grid-template-columns: 1fr; margin-top: 12px; }
+.club-tournament-grid .player-tournament-main { grid-template-columns: 42px minmax(0,1fr) auto; padding: 12px; }
+.club-tournament-grid .player-tournament-main .tournament-icon { width: 42px; height: 42px; }
+.club-tournament-grid .player-tournament-meta > span { color: #64748b; font-size: 10px; }
+.club-tournament-grid .player-tournament-meta > a { margin-left: auto; }
 .profile-code { color: #0877a7; font-size: 11px; font-weight: 900; letter-spacing: .08em; }
 .club-stars { color: #eab308; font-size: 14px; letter-spacing: 2px; vertical-align: middle; }.club-title-list { display: grid; gap: 6px; }.club-title-list a { display: grid; grid-template-columns: 30px 1fr auto; align-items: center; gap: 9px; padding: 10px; background: #fffaf0; color: #334155; }.club-title-list div { display: grid; }.club-title-list small { color: #64748b; font-size: 9px; }.club-title-list b { color: #0877a7; font-size: 9px; }
 .profile-layout { display: grid; grid-template-columns: 1.5fr 1fr; gap: 14px; }
@@ -35,11 +40,11 @@
 .player-mini { min-width: 0; color: #0f172a; text-align: center; text-decoration: none; }
 .player-mini div { display: grid; width: 58px; height: 58px; margin: auto; place-items: center; overflow: hidden; border-radius: 50%; background: #e2e8f0; font-weight: 900; }
 .player-mini img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }.player-mini div { position: relative; }.player-mini strong,.player-mini span { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }.player-mini strong { margin-top: 6px; color: #17212b; font-size: 11px; }.player-mini span { margin-top: 2px; color: #64748b; font-size: 9px; }
-.profile-match-list { display: grid; gap: 6px; margin-top: 12px; }.profile-match-list a { display: grid; grid-template-columns: 1fr 50px 1fr; gap: 10px; align-items: center; padding: 10px; background: #f7f9fa; color: #334155; font-size: 11px; text-align: center; text-decoration: none; }.profile-match-list strong { color: #0f172a; }
-.profile-match-team { display: flex; min-width: 0; align-items: center; justify-content: center; gap: 8px; }
+.profile-match-list { display: grid; width: min(720px,100%); gap: 7px; margin: 14px auto 0; }.profile-match-list a { display: grid; grid-template-columns: minmax(0,1fr) 64px minmax(0,1fr); gap: 12px; align-items: center; min-height: 64px; padding: 9px 16px; border: 1px solid #e4ebef; border-radius: 8px; background: #f7f9fa; color: #334155; font-size: 11px; text-align: center; text-decoration: none; }.profile-match-list a:hover { border-color: #9ccbd9; background: #f0f8fa; }.profile-match-list strong { color: #0f172a; font-size: 14px; }
+.profile-match-team { display: flex; min-width: 0; align-items: center; justify-content: flex-end; gap: 9px; flex-direction: row-reverse; }
 .profile-match-team > img { width: 32px; height: 32px; flex: 0 0 auto; border-radius: 50%; object-fit: cover; }
 .profile-match-team > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.profile-match-team-away { flex-direction: row-reverse; }
+.profile-match-team-away { justify-content: flex-start; flex-direction: row; }
 .player-hero { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 22px; padding: 26px; border-radius: 8px; background: linear-gradient(120deg,#102d44,#0877a7); color: #fff; }.player-hero h1 { color: #fff; }.player-hero a { color: #bfe8fa; font-size: 12px; }.player-avatar { width: 112px; height: 112px; border-radius: 50%; font-size: 28px; }.player-nickname { color: #d8edf6; }.shirt-number { font-size: 48px; opacity: .3; }
 .player-hero-side { display: grid; justify-items: end; gap: 6px; }.player-hero-side .favorite-button { min-height: 34px; border-color: rgba(255,255,255,.5); background: rgba(255,255,255,.94); }.profile-views { color: #d4edf7; font-size: 9px; font-weight: 800; }
 .player-facts,.player-stats { display: grid; grid-template-columns: repeat(4,1fr); gap: 1px; margin-top: 14px; overflow: hidden; border: 1px solid #dbe3e8; border-radius: 7px; background: #dbe3e8; }.player-facts div,.player-stats div { padding: 14px; background: #fff; }.player-facts span,.player-stats span { display: block; color: #64748b; font-size: 10px; }.player-facts strong { font-size: 13px; }.player-stats { border: 0; }.player-stats div { background: #f1f5f7; text-align: center; }.player-stats strong { display: block; color: #0877a7; font-size: 24px; }.profile-note { color: #64748b; }
@@ -51,8 +56,9 @@
 .profile-back-link { display: inline-block; margin-bottom: 8px; color: #0877a7; font-size: 11px; font-weight: 800; text-decoration: none; }
 .profile-back-button { padding: 8px 0; border: 0; background: transparent; cursor: pointer; }
 .profile-back-button:hover { color: #08a4d6; }
-.profile-owner-actions { display: flex; align-items: center; gap: 7px; margin-left: auto; }
-.profile-owner-actions button { padding: 8px 11px; border: 1px solid #0877a7; background: #0877a7; color: #fff; font-size: 10px; }
+.profile-owner-actions { display: flex; align-items: center; gap: 6px; margin-left: auto; padding: 6px; border: 1px solid #d5e1e7; border-radius: 9px; background: rgba(255,255,255,.94); box-shadow: 0 5px 16px rgba(15,45,65,.1); }
+.profile-owner-actions > button:not(.favorite-button) { min-height: 38px; padding: 8px 12px; border: 1px solid #0877a7; border-radius: 6px; background: #0877a7; color: #fff; font-size: 10px; font-weight: 800; }
+.profile-owner-actions > button:not(.favorite-button):hover { background: #06658e; }
 .profile-owner-badge { padding: 6px 9px; border-radius: 999px; background: #e8f7ef; color: #17603a; font-size: 10px; font-weight: 800; }
 .verified-badge { display: inline-flex; align-items: center; vertical-align: middle; padding: 4px 8px; border-radius: 999px; background: #e0f2fe; color: #0369a1; font-size: 10px; font-weight: 900; white-space: nowrap; }
 .verified-badge.compact { padding: 2px 5px; font-size: 9px; }
@@ -101,10 +107,14 @@
 
 :root[data-theme="dark"] .profile-page { color: #dbe5ea; }
 :root[data-theme="dark"] .profile-panel { background: #213744; border-color: #38505d; }
-:root[data-theme="dark"] .club-profile-stats article { border-color: #38505d; background: #213744; }
-:root[data-theme="dark"] .club-profile-stats article > span { background: #294b59; }
+:root[data-theme="dark"] .club-title-list a { background: #29414f; color: #f3f7f9; }
+:root[data-theme="dark"] .club-title-list small { color: #b9c8d2; }
+:root[data-theme="dark"] .club-title-list b { color: #67d7ee; }
+:root[data-theme="dark"] .club-profile-stats { background: #38505d; }
+:root[data-theme="dark"] .club-profile-stats article { background: #29414f; }
 :root[data-theme="dark"] .club-profile-stats strong { color: #67d7ee; }
 :root[data-theme="dark"] .club-profile-stats small { color: #b9c8d2; }
+:root[data-theme="dark"] .profile-owner-actions { border-color: #3b5665; background: rgba(33,55,68,.96); }
 :root[data-theme="dark"] .history-link { border: 1px solid #3d5866; background: #29414f; color: #f3f7f9; }
 :root[data-theme="dark"] .history-link:hover { border-color: #4b7182; background: #304b59; }
 :root[data-theme="dark"] .history-link strong { color: #f3f7f9; }
@@ -199,9 +209,7 @@
   .profile-identity { align-items: flex-end; gap: 12px; padding-inline: 8px; transform: translateY(-22px); }
   .club-avatar { width: 76px; height: 76px; border-width: 4px; }
   .club-profile-stats { grid-template-columns: repeat(3,minmax(0,1fr)); gap: 6px; }
-  .club-profile-stats article { justify-content: center; padding: 10px 7px; }
-  .club-profile-stats article > span { display: none; }
-  .club-profile-stats article div { text-align: center; }
+  .club-profile-stats article { padding: 12px 6px; }
   .profile-identity > div:nth-child(2) { min-width: 0; }
   .profile-identity h1 { font-size: 24px; }
   .profile-owner-actions { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); }
