@@ -41,6 +41,7 @@ function JugadorPerfil() {
   const [ownPlayerId, setOwnPlayerId] = useState(null);
   const [organizerProfileExists, setOrganizerProfileExists] = useState(false);
   const [previewImage, setPreviewImage] = useState(null);
+  const [showAllStats, setShowAllStats] = useState(false);
   const visitedPlayer = useRef(null);
 
   const claimPlayer = async () => {
@@ -101,17 +102,18 @@ function JugadorPerfil() {
     estadisticas.vecesGoleador, estadisticas.vallasInvictas].some((valor) => Number(valor) > 0)
     || estadisticas?.promedioGolesPorPartido != null;
   const tarjetasEstadisticas = estadisticas ? [
-    estadisticas.goles > 0 && { clave: "goles", valor: estadisticas.goles, etiqueta: "Goles" },
-    estadisticas.vecesMvp > 0 && { clave: "mvp", valor: estadisticas.vecesMvp, etiqueta: "MVP" },
-    estadisticas.campeonatos.length > 0 && { clave: "campeonatos", valor: estadisticas.campeonatos.length, etiqueta: "Campeonatos" },
-    estadisticas.vecesGoleador > 0 && { clave: "goleador", valor: estadisticas.vecesGoleador, etiqueta: "Goleador de torneo" },
-    estadisticas.vallasInvictas > 0 && { clave: "vallas", valor: estadisticas.vallasInvictas, etiqueta: "Vallas invictas" },
-    estadisticas.promedioGolesPorPartido != null && { clave: "promedio", valor: estadisticas.promedioGolesPorPartido, etiqueta: "Goles por partido" },
-    estadisticas.torneosDisputados > 0 && { clave: "torneos", valor: estadisticas.torneosDisputados, etiqueta: "Torneos" },
-    estadisticas.equiposRepresentados > 0 && { clave: "equipos", valor: estadisticas.equiposRepresentados, etiqueta: "Equipos" },
-    estadisticas.amarillas > 0 && { clave: "amarillas", valor: estadisticas.amarillas, etiqueta: "Amarillas", clase: "yellow" },
-    estadisticas.rojas > 0 && { clave: "rojas", valor: estadisticas.rojas, etiqueta: "Rojas", clase: "red" },
-  ].filter(Boolean).slice(0, 4) : [];
+    estadisticas.goles > 0 && { clave: "goles", valor: estadisticas.goles, etiqueta: "Goles", sticker: "⚽", detalle: "Goles oficiales registrados" },
+    estadisticas.vecesMvp > 0 && { clave: "mvp", valor: estadisticas.vecesMvp, etiqueta: "MVP", sticker: "⭐", detalle: "Veces elegido figura del partido" },
+    estadisticas.campeonatos.length > 0 && { clave: "campeonatos", valor: estadisticas.campeonatos.length, etiqueta: "Campeonatos", sticker: "🏆", detalle: "Torneos ganados con sus equipos" },
+    estadisticas.vecesGoleador > 0 && { clave: "goleador", valor: estadisticas.vecesGoleador, etiqueta: "Goleador de torneo", sticker: "👑", detalle: "Torneos finalizados como máximo goleador" },
+    estadisticas.vallasInvictas > 0 && { clave: "vallas", valor: estadisticas.vallasInvictas, etiqueta: "Vallas invictas", sticker: "🧤", detalle: "Partidos del equipo sin recibir goles" },
+    estadisticas.promedioGolesPorPartido != null && { clave: "promedio", valor: estadisticas.promedioGolesPorPartido, etiqueta: "Goles por partido", sticker: "📈", detalle: "Promedio en los partidos computados" },
+    estadisticas.torneosDisputados > 0 && { clave: "torneos", valor: estadisticas.torneosDisputados, etiqueta: "Torneos", sticker: "🏟️", detalle: "Competencias en las que estuvo inscripto" },
+    estadisticas.equiposRepresentados > 0 && { clave: "equipos", valor: estadisticas.equiposRepresentados, etiqueta: "Equipos", sticker: "🛡️", detalle: "Clubes representados en su trayectoria" },
+    estadisticas.amarillas > 0 && { clave: "amarillas", valor: estadisticas.amarillas, etiqueta: "Amarillas", sticker: "🟨", detalle: "Tarjetas amarillas recibidas", clase: "yellow" },
+    estadisticas.rojas > 0 && { clave: "rojas", valor: estadisticas.rojas, etiqueta: "Rojas", sticker: "🟥", detalle: "Expulsiones registradas", clase: "red" },
+  ].filter(Boolean) : [];
+  const tarjetasVisibles = showAllStats ? tarjetasEstadisticas : tarjetasEstadisticas.slice(0, 4);
 
   if (error) return <main className="profile-page"><div className="profile-message">{error}</div></main>;
   if (!jugador || !equipo) return <main className="profile-page"><div className="profile-message">Cargando perfil...</div></main>;
@@ -145,7 +147,7 @@ function JugadorPerfil() {
         })}
       </div>
     </section>}
-    {tieneEstadisticas && <section className="profile-panel"><h2>Estadísticas</h2><div className="player-stats">{tarjetasEstadisticas.map((tarjeta) => <div className={tarjeta.clase ? `discipline-stat ${tarjeta.clase}` : ""} key={tarjeta.clave}><strong>{tarjeta.valor}</strong><span>{tarjeta.etiqueta}</span></div>)}</div></section>}
+    {tieneEstadisticas && <section className="profile-panel"><div className="profile-section-head"><h2>Estadísticas</h2>{tarjetasEstadisticas.length > 4 && <button type="button" className="stats-toggle" onClick={() => setShowAllStats((visible) => !visible)}>{showAllStats ? "Ver principales" : "Ver todas las estadísticas"}</button>}</div><div className={`player-stats ${showAllStats ? "expanded" : ""}`}>{tarjetasVisibles.map((tarjeta) => <div className={tarjeta.clase ? `discipline-stat ${tarjeta.clase}` : ""} key={tarjeta.clave}><span className="stat-sticker" aria-hidden="true">{tarjeta.sticker}</span><span className="stat-content"><strong>{tarjeta.valor}</strong><span>{tarjeta.etiqueta}</span>{showAllStats && <small>{tarjeta.detalle}</small>}</span></div>)}</div></section>}
     {historial.length > 0 && <section className="profile-panel"><h2>Historial de partidos</h2><p className="profile-note">Primera versión: se muestran los partidos del plantel. Más adelante registraremos convocatorias y minutos individuales.</p><div className="profile-match-list">{historial.slice().reverse().map((partido) => <Link to={`/partido/${partido.idPartido}`} key={partido.idPartido}><span className="profile-match-team"><EntityImage type="team" value={partido.escudoEquipoLocal} alt="" /><span>{partido.nombreEquipoLocal}</span></span><strong>{partido.estado === "JUGADO" || partido.estado === "FINALIZADO" ? `${partido.golesLocal} - ${partido.golesVisitante}` : "vs"}</strong><span className="profile-match-team profile-match-team-away"><span>{partido.nombreEquipoVisitante}</span><EntityImage type="team" value={partido.escudoEquipoVisitante} alt="" /></span></Link>)}</div></section>}
     {previewImage && <ImageLightbox {...previewImage} onClose={() => setPreviewImage(null)} />}
   </main>;
