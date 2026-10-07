@@ -124,6 +124,17 @@ public class PartidoService {
                 .collect(Collectors.toList());
     }
 
+    public List<PartidoResponseDTO> listarPartidosPorEquipo(Long idEquipo) {
+        if (!equipoRepository.existsById(idEquipo)) {
+            throw new ResourceNotFoundException("Equipo no encontrado con id: " + idEquipo);
+        }
+        return partidoRepository.findByEquipoLocalIdEquipoOrEquipoVisitanteIdEquipo(idEquipo, idEquipo)
+                .stream()
+                .filter(partido -> visibility.puedeVer(partido.getTorneo()))
+                .map(this::convertirAResponseDTO)
+                .collect(Collectors.toList());
+    }
+
     public List<PartidoResponseDTO> listarPartidosPorFecha(Long idFecha) {
         Fecha fecha = fechaRepository.findById(idFecha)
                 .orElseThrow(() -> new ResourceNotFoundException("Fecha no encontrada"));

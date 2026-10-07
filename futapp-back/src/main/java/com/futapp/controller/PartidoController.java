@@ -40,6 +40,11 @@ public class PartidoController {
         return partidoService.listarPartidosPorTorneo(idTorneo);
     }
 
+    @GetMapping("/equipo/{idEquipo}")
+    public List<PartidoResponseDTO> listarPartidosPorEquipo(@PathVariable Long idEquipo) {
+        return partidoService.listarPartidosPorEquipo(idEquipo);
+    }
+
     @GetMapping("/fecha/{idFecha}")
     public List<PartidoResponseDTO> listarPartidosPorFecha(@PathVariable Long idFecha) {
         return partidoService.listarPartidosPorFecha(idFecha);

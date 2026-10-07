@@ -46,7 +46,7 @@ function EquipoPerfil() {
       .then(async (team) => {
         setEquipo(team);
         const [matches, enrollments, championships] = await Promise.all([
-          fetchJson(`${API_URL}/partidos/torneo/${team.idTorneo}`, "No se pudieron cargar los partidos"),
+          fetchJson(`${API_URL}/partidos/equipo/${id}`, "No se pudieron cargar los partidos"),
           fetchJson(`${API_URL}/inscripciones/equipos/${id}`, "No se pudo cargar el historial de torneos"),
           fetchJson(`${API_URL}/torneos/campeones/equipo/${id}`, "No se pudieron cargar los títulos"),
         ]);
@@ -81,6 +81,31 @@ function EquipoPerfil() {
     partido.idEquipoLocal === Number(id) || partido.idEquipoVisitante === Number(id)
   ), [partidos, id]);
 
+  const estadisticas = useMemo(() => {
+    const jugados = historial.filter((partido) => ["JUGADO", "FINALIZADO"].includes(partido.estado?.toUpperCase()));
+    return jugados.reduce((acc, partido) => {
+      const local = partido.idEquipoLocal === Number(id);
+      const favor = Number(local ? partido.golesLocal : partido.golesVisitante) || 0;
+      const contra = Number(local ? partido.golesVisitante : partido.golesLocal) || 0;
+      acc.partidos += 1;
+      acc.goles += favor;
+      if (favor > contra) acc.victorias += 1;
+      else if (favor === contra) acc.empates += 1;
+      else acc.derrotas += 1;
+      if (contra === 0) acc.vallas += 1;
+      return acc;
+    }, { partidos: 0, victorias: 0, empates: 0, derrotas: 0, goles: 0, vallas: 0 });
+  }, [historial, id]);
+
+  const resumenEstadisticas = [
+    { valor: estadisticas.partidos, etiqueta: "Partidos", icono: "⚽" },
+    { valor: estadisticas.victorias, etiqueta: "Victorias", icono: "✓" },
+    { valor: estadisticas.goles, etiqueta: "Goles a favor", icono: "🥅" },
+    { valor: estadisticas.vallas, etiqueta: "Vallas invictas", icono: "🧤" },
+    { valor: inscripciones.length, etiqueta: "Torneos", icono: "🏟️" },
+    { valor: titulos.length, etiqueta: "Títulos", icono: "🏆" },
+  ];
+
   if (error) return <main className="profile-page"><div className="profile-message">{error}</div></main>;
   if (!equipo) return <main className="profile-page"><div className="profile-message">Cargando perfil...</div></main>;
 
@@ -89,7 +114,7 @@ function EquipoPerfil() {
     <section className="club-cover">
       <img src={equipo.fotoPlantel ? assetUrl(equipo.fotoPlantel) : plantelGenerico} alt={equipo.fotoPlantel ? `Plantel de ${equipo.nombre}` : `Fondo genérico del plantel de ${equipo.nombre}`} onError={(event) => { event.currentTarget.onerror = null; event.currentTarget.src = plantelGenerico; }} />
     </section>
-    <section className="profile-identity">
+    <section className="profile-identity club-profile-identity">
       <button type="button" className="profile-avatar club-avatar image-preview-trigger" onClick={() => setPreviewImage({ src: equipo.escudo ? assetUrl(equipo.escudo) : equipoGenerico, alt: `Escudo de ${equipo.nombre}` })} aria-label={`Ampliar escudo de ${equipo.nombre}`}><EntityImage type="team" value={equipo.escudo} alt={`Escudo de ${equipo.nombre}`} /></button>
       <div><CopyableCode className="profile-code" value={equipo.codigoPublico} /><h1>{equipo.nombre} {equipo.verificado && <span className="verified-badge" title="Equipo administrado por un director aprobado">✓ Verificado</span>} {titulos.length > 0 && <span className="club-stars" title={`${titulos.length} título${titulos.length === 1 ? "" : "s"}`}>{"★".repeat(titulos.length)}</span>}</h1><p>{equipo.barrio || "Barrio sin informar"}</p></div>
       <div className="profile-owner-actions">
@@ -99,13 +124,16 @@ function EquipoPerfil() {
       </div>
     </section>
     {claimMessage && <p className="profile-action-message">{claimMessage}</p>}
+    <section className="club-profile-stats" aria-label="Estadísticas del equipo">
+      {resumenEstadisticas.map((stat) => <article key={stat.etiqueta}><span>{stat.icono}</span><div><strong>{stat.valor}</strong><small>{stat.etiqueta}</small></div></article>)}
+    </section>
     <div className="profile-layout">
       <section className="profile-panel"><h2>Sobre el club</h2><p>{equipo.descripcion || "El club todavía no agregó una descripción."}</p><dl><div><dt>Responsable</dt><dd>{equipo.responsable}</dd></div><div><dt>Contacto</dt><dd>{equipo.telefonoContacto}</dd></div>{equipo.emailContacto && <div><dt>Email</dt><dd>{equipo.emailContacto}</dd></div>}</dl></section>
       <section className="profile-panel"><h2>Historial de torneos</h2><div className="enrollment-list">{inscripciones.map((item) => <Link className="history-link" to={`/torneo/${item.idTorneo}`} key={item.idInscripcion}><strong>{item.nombreTorneo}</strong><small>{item.estado} · {item.cantidadJugadores} jugadores</small><span>Ver torneo →</span></Link>)}</div></section>
     </div>
     {titulos.length > 0 && <section className="profile-panel"><h2>Títulos</h2><div className="club-title-list">{titulos.map((torneo) => <Link to={`/torneo/${torneo.idTorneo}`} key={torneo.idTorneo}><span>🏆</span><div><strong>{torneo.nombre}</strong><small>{torneo.formato} · {torneo.ubicacion}</small></div><b>Ver torneo →</b></Link>)}</div></section>}
     <section className="profile-panel"><div className="profile-section-head"><div><span>Plantel</span><h2>{jugadores.length} jugadores</h2></div></div><div className="player-mini-grid">{jugadores.map((jugador) => { const nombre = jugador.nombreJugador || "Jugador"; return <Link to={`/jugador/${jugador.idJugador}`} className="player-mini" key={jugador.idJugador} title={`Ver perfil de ${nombre}`}><div><EntityImage type="player" value={jugador.foto} alt="" /></div><strong>{nombre}</strong><span>{jugador.posicion || "Sin posición"}</span></Link>; })}</div></section>
-    <section className="profile-panel"><h2>Partidos</h2><div className="profile-match-list">{historial.length === 0 ? <p>Todavía no hay partidos.</p> : historial.slice().reverse().map((partido) => <Link to={`/partido/${partido.idPartido}`} key={partido.idPartido}><span className="profile-match-team"><EntityImage type="team" value={partido.escudoEquipoLocal} alt="" /><span>{partido.nombreEquipoLocal}</span></span><strong>{partido.estado === "JUGADO" || partido.estado === "FINALIZADO" ? `${partido.golesLocal} - ${partido.golesVisitante}` : "vs"}</strong><span className="profile-match-team profile-match-team-away"><span>{partido.nombreEquipoVisitante}</span><EntityImage type="team" value={partido.escudoEquipoVisitante} alt="" /></span></Link>)}</div></section>
+    <section className="profile-panel"><div className="profile-section-head"><div><span>Actividad</span><h2>Últimos partidos</h2></div><small>{estadisticas.victorias} G · {estadisticas.empates} E · {estadisticas.derrotas} P</small></div><div className="profile-match-list">{historial.length === 0 ? <p>Todavía no hay partidos.</p> : historial.slice().reverse().slice(0, 8).map((partido) => <Link to={`/partido/${partido.idPartido}`} key={partido.idPartido}><span className="profile-match-team"><EntityImage type="team" value={partido.escudoEquipoLocal} alt="" /><span>{partido.nombreEquipoLocal}</span></span><strong>{partido.estado === "JUGADO" || partido.estado === "FINALIZADO" ? `${partido.golesLocal} - ${partido.golesVisitante}` : "vs"}</strong><span className="profile-match-team profile-match-team-away"><span>{partido.nombreEquipoVisitante}</span><EntityImage type="team" value={partido.escudoEquipoVisitante} alt="" /></span></Link>)}</div></section>
     {showEdit && <TeamFormModal torneoId={equipo.idTorneo} equipo={equipo} onClose={() => setShowEdit(false)} onSaved={setEquipo} />}
     {showRoster && <TeamRosterModal equipo={equipo} torneoId={equipo.idTorneo} canManage={hasManageAccess} onClose={() => setShowRoster(false)} />}
     {previewImage && <ImageLightbox {...previewImage} onClose={() => setPreviewImage(null)} />}

@@ -8,6 +8,16 @@
 .profile-avatar { display: grid; flex: 0 0 auto; place-items: center; overflow: hidden; border: 5px solid #fff; background: #0877a7; color: #fff; font-weight: 900; }
 .profile-avatar img { width: 100%; height: 100%; object-fit: cover; }
 .club-avatar { width: 94px; height: 94px; border-radius: 50%; font-size: 24px; }
+.club-profile-identity { padding: 0 20px; }
+.club-profile-identity > div:nth-child(2) { min-width: 0; }
+.club-profile-identity h1 { line-height: 1.08; }
+.club-profile-stats { display: grid; grid-template-columns: repeat(6,minmax(0,1fr)); gap: 8px; margin-top: 4px; }
+.club-profile-stats article { display: flex; min-width: 0; align-items: center; gap: 9px; padding: 12px; border: 1px solid #dbe3e8; border-radius: 9px; background: #fff; }
+.club-profile-stats article > span { display: grid; width: 30px; height: 30px; flex: 0 0 auto; place-items: center; border-radius: 8px; background: #eaf6fa; font-size: 14px; }
+.club-profile-stats article div { min-width: 0; }
+.club-profile-stats strong,.club-profile-stats small { display: block; }
+.club-profile-stats strong { color: #0877a7; font-size: 18px; line-height: 1; }
+.club-profile-stats small { margin-top: 3px; overflow: hidden; color: #64748b; font-size: 8px; font-weight: 800; line-height: 1.15; text-overflow: ellipsis; text-transform: uppercase; }
 .profile-code { color: #0877a7; font-size: 11px; font-weight: 900; letter-spacing: .08em; }
 .club-stars { color: #eab308; font-size: 14px; letter-spacing: 2px; vertical-align: middle; }.club-title-list { display: grid; gap: 6px; }.club-title-list a { display: grid; grid-template-columns: 30px 1fr auto; align-items: center; gap: 9px; padding: 10px; background: #fffaf0; color: #334155; }.club-title-list div { display: grid; }.club-title-list small { color: #64748b; font-size: 9px; }.club-title-list b { color: #0877a7; font-size: 9px; }
 .profile-layout { display: grid; grid-template-columns: 1.5fr 1fr; gap: 14px; }
@@ -19,6 +29,7 @@
 .history-link { display: flex; flex-direction: column; gap: 6px; padding: 12px; background: #f1f5f7; color: #0f172a; text-decoration: none; }
 .history-link span { color: #0877a7; font-size: 11px; font-weight: 800; }
 .history-link small { color: #64748b; font-size: 10px; }.enrollment-list { display: grid; gap: 7px; }
+.profile-section-head { display: flex; align-items: end; justify-content: space-between; gap: 12px; }.profile-section-head h2 { margin: 3px 0 0; }.profile-section-head > small { color: #64748b; font-size: 10px; font-weight: 800; }
 .profile-section-head span { color: #0877a7; font-size: 10px; font-weight: 900; text-transform: uppercase; }
 .player-mini-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin-top: 14px; }
 .player-mini { min-width: 0; color: #0f172a; text-align: center; text-decoration: none; }
@@ -90,6 +101,10 @@
 
 :root[data-theme="dark"] .profile-page { color: #dbe5ea; }
 :root[data-theme="dark"] .profile-panel { background: #213744; border-color: #38505d; }
+:root[data-theme="dark"] .club-profile-stats article { border-color: #38505d; background: #213744; }
+:root[data-theme="dark"] .club-profile-stats article > span { background: #294b59; }
+:root[data-theme="dark"] .club-profile-stats strong { color: #67d7ee; }
+:root[data-theme="dark"] .club-profile-stats small { color: #b9c8d2; }
 :root[data-theme="dark"] .history-link { border: 1px solid #3d5866; background: #29414f; color: #f3f7f9; }
 :root[data-theme="dark"] .history-link:hover { border-color: #4b7182; background: #304b59; }
 :root[data-theme="dark"] .history-link strong { color: #f3f7f9; }
@@ -183,6 +198,10 @@
   .club-cover { height: auto; aspect-ratio: 16 / 7; border-radius: 7px; }
   .profile-identity { align-items: flex-end; gap: 12px; padding-inline: 8px; transform: translateY(-22px); }
   .club-avatar { width: 76px; height: 76px; border-width: 4px; }
+  .club-profile-stats { grid-template-columns: repeat(3,minmax(0,1fr)); gap: 6px; }
+  .club-profile-stats article { justify-content: center; padding: 10px 7px; }
+  .club-profile-stats article > span { display: none; }
+  .club-profile-stats article div { text-align: center; }
   .profile-identity > div:nth-child(2) { min-width: 0; }
   .profile-identity h1 { font-size: 24px; }
   .profile-owner-actions { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); }
