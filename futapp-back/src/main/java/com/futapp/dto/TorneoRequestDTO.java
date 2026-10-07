@@ -56,8 +56,7 @@ public class TorneoRequestDTO {
     @Max(value = 16, message = "No pueden clasificar más de 16 equipos por zona")
     private Integer clasificadosPorZona = 2;
     private Boolean generarEquiposPrueba = true;
-    @Min(value = 5, message = "Cada equipo de prueba necesita al menos 5 jugadores")
-    @Max(30) private Integer jugadoresPorEquipoPrueba = 5;
+    @Min(0) @Max(30) private Integer jugadoresPorEquipoPrueba = 5;
 
     public TorneoRequestDTO() {
     }

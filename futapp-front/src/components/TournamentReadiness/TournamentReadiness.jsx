@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { API_URL } from "../../config/api";
+import { API_URL, apiFetch } from "../../config/api";
 import "./TournamentReadiness.css";
 
 function TournamentReadiness({ torneoId, torneo, equipos, fechas = [], partidos, onGenerateFixture, onNextRound, onNavigate }) {
@@ -9,7 +9,7 @@ function TournamentReadiness({ torneoId, torneo, equipos, fechas = [], partidos,
     let active = true;
     if (equipos.length === 0) return () => { active = false; };
     Promise.all(equipos.map(async (equipo) => {
-      const response = await fetch(`${API_URL}/inscripciones/equipos/${equipo.idEquipo}`);
+      const response = await apiFetch(`${API_URL}/inscripciones/equipos/${equipo.idEquipo}`);
       if (!response.ok) return [equipo.idEquipo, null];
       const history = await response.json();
       const enrollment = history.find((item) => Number(item.idTorneo) === Number(torneoId) && item.estado === "ACTIVA");
