@@ -99,28 +99,10 @@ function JugadorPerfil() {
   const historial = useMemo(() => equipo ? partidos.filter((partido) =>
     partido.idEquipoLocal === equipo.idEquipo || partido.idEquipoVisitante === equipo.idEquipo
   ) : [], [partidos, equipo]);
-  const equiposTrayectoria = useMemo(() => {
-    const agrupados = new Map();
-    inscripciones.forEach((item) => {
-      if (!agrupados.has(item.idEquipo)) {
-        agrupados.set(item.idEquipo, {
-          idEquipo: item.idEquipo,
-          nombreEquipo: item.nombreEquipo,
-          escudoEquipo: item.escudoEquipo,
-        });
-      }
-    });
-    if (equipo && !agrupados.has(equipo.idEquipo)) {
-      agrupados.set(equipo.idEquipo, {
-        idEquipo: equipo.idEquipo,
-        nombreEquipo: equipo.nombre,
-        escudoEquipo: equipo.escudo,
-      });
-    }
-    return [...agrupados.values()];
-  }, [inscripciones, equipo]);
   const amarillas = tarjetas.filter((tarjeta) => tarjeta.tipoTarjeta === "AMARILLA").length;
   const rojas = tarjetas.filter((tarjeta) => tarjeta.tipoTarjeta === "ROJA").length;
+  const partidosJugados = historial.filter((p) => p.estado === "JUGADO" || p.estado === "FINALIZADO").length;
+  const tieneEstadisticas = partidosJugados > 0 || goles.length > 0 || amarillas > 0 || rojas > 0;
 
   if (error) return <main className="profile-page"><div className="profile-message">{error}</div></main>;
   if (!jugador || !equipo) return <main className="profile-page"><div className="profile-message">Cargando perfil...</div></main>;
@@ -129,22 +111,13 @@ function JugadorPerfil() {
     <button type="button" className="profile-back-link profile-back-button" onClick={() => navigate(-1)}>← Volver</button>
     <section className="player-hero">
       <button type="button" className="profile-avatar player-avatar image-preview-trigger" onClick={() => setPreviewImage({ src: jugador.foto ? assetUrl(jugador.foto) : jugadorGenerico, alt: `${jugador.nombre} ${jugador.apellido}` })} aria-label={`Ampliar foto de ${jugador.nombre} ${jugador.apellido}`}><EntityImage type="player" value={jugador.foto} alt={`${jugador.nombre} ${jugador.apellido}`} /></button>
-      <div><CopyableCode className="profile-code" value={jugador.codigoPublico} /><h1>{jugador.nombre} {jugador.apellido} {jugador.verificado && <span className="verified-badge" title="Perfil vinculado con la cuenta del jugador">✓ Verificado</span>}</h1>{jugador.apodo && <p className="player-nickname">“{jugador.apodo}”</p>}<Link to={`/equipo/${equipo.idEquipo}`}>{equipo.nombre}</Link></div>
+      <div><CopyableCode className="profile-code" value={jugador.codigoPublico} /><h1>{jugador.nombre} {jugador.apellido} {jugador.verificado && <span className="verified-badge" title="Perfil vinculado con la cuenta del jugador">✓ Verificado</span>}</h1>{jugador.apodo && <p className="player-nickname">“{jugador.apodo}”</p>}<Link className="player-current-team" to={`/equipo/${equipo.idEquipo}`}><EntityImage type="team" value={equipo.escudo} alt="" /><span>{equipo.nombre}</span></Link></div>
       <div className="player-hero-side"><strong className="shirt-number">#{jugador.numeroCamiseta}</strong><FavoriteButton type="jugadores" id={jugador.idJugador} /><span className="profile-views">👁 {jugador.visitas || 0} visitas</span></div>
       {isOwnProfile ? <div className="player-profile-actions"><Link className="profile-edit-link" to="/mi-perfil-jugador/editar">Editar perfil de jugador</Link>{(tieneRol(usuario, "ORGANIZADOR") || tieneRol(usuario, "ADMIN")) && <Link className="profile-organizer-link" to={organizerProfileExists ? "/mi-perfil-organizador" : "/mi-perfil-organizador/editar"}>{organizerProfileExists ? "Ver perfil de organizador" : "Generar perfil de organizador"}</Link>}</div> : tieneRol(usuario, "JUGADOR") && !jugador.verificado && <button className="profile-claim-button" onClick={claimPlayer}>Este jugador soy yo</button>}
     </section>
     {claimMessage && <p className="profile-action-message">{claimMessage}</p>}
     <section className="player-facts"><div><span>Posición</span><strong>{jugador.posicion}</strong></div><div><span>Edad</span><strong>{calcularEdad(jugador.fechaNacimiento) ?? "—"}</strong></div><div><span>Nacimiento</span><strong>{jugador.fechaNacimiento || "—"}</strong></div><div><span>Pierna hábil</span><strong>{jugador.piernaHabil || "—"}</strong></div></section>
-    <section className="profile-panel">
-      <h2>Equipos</h2>
-      <div className="player-team-grid">
-        {equiposTrayectoria.map((item) => <Link className="player-team-card" to={`/equipo/${item.idEquipo}`} key={item.idEquipo}>
-          <EntityImage type="team" value={item.escudoEquipo} alt={`Escudo de ${item.nombreEquipo}`} />
-          <strong>{item.nombreEquipo}</strong>
-        </Link>)}
-      </div>
-    </section>
-    <section className="profile-panel">
+    {inscripciones.length > 0 && <section className="profile-panel">
       <h2>Torneos</h2>
       <div className="player-tournament-grid">
         {inscripciones.length === 0 ? <p>Todavía no registra participaciones.</p> : inscripciones.map((item) => {
@@ -162,9 +135,9 @@ function JugadorPerfil() {
           </article>;
         })}
       </div>
-    </section>
-    <section className="profile-panel"><h2>Estadísticas</h2><div className="player-stats"><div><strong>{historial.filter((p) => p.estado === "JUGADO" || p.estado === "FINALIZADO").length}</strong><span>Partidos del plantel</span></div><div><strong>{goles.length}</strong><span>Goles</span></div><div><strong>{amarillas}</strong><span>Amarillas</span></div><div><strong>{rojas}</strong><span>Rojas</span></div></div></section>
-    <section className="profile-panel"><h2>Historial de partidos</h2><p className="profile-note">Primera versión: se muestran los partidos del plantel. Más adelante registraremos convocatorias y minutos individuales.</p><div className="profile-match-list">{historial.length === 0 ? <p>Todavía no hay partidos.</p> : historial.slice().reverse().map((partido) => <Link to={`/partido/${partido.idPartido}`} key={partido.idPartido}><span className="profile-match-team"><EntityImage type="team" value={partido.escudoEquipoLocal} alt="" /><span>{partido.nombreEquipoLocal}</span></span><strong>{partido.estado === "JUGADO" || partido.estado === "FINALIZADO" ? `${partido.golesLocal} - ${partido.golesVisitante}` : "vs"}</strong><span className="profile-match-team profile-match-team-away"><span>{partido.nombreEquipoVisitante}</span><EntityImage type="team" value={partido.escudoEquipoVisitante} alt="" /></span></Link>)}</div></section>
+    </section>}
+    {tieneEstadisticas && <section className="profile-panel"><h2>Estadísticas</h2><div className="player-stats">{partidosJugados > 0 && <div><strong>{partidosJugados}</strong><span>Partidos del plantel</span></div>}{goles.length > 0 && <div><strong>{goles.length}</strong><span>Goles</span></div>}{amarillas > 0 && <div><strong>{amarillas}</strong><span>Amarillas</span></div>}{rojas > 0 && <div><strong>{rojas}</strong><span>Rojas</span></div>}</div></section>}
+    {historial.length > 0 && <section className="profile-panel"><h2>Historial de partidos</h2><p className="profile-note">Primera versión: se muestran los partidos del plantel. Más adelante registraremos convocatorias y minutos individuales.</p><div className="profile-match-list">{historial.slice().reverse().map((partido) => <Link to={`/partido/${partido.idPartido}`} key={partido.idPartido}><span className="profile-match-team"><EntityImage type="team" value={partido.escudoEquipoLocal} alt="" /><span>{partido.nombreEquipoLocal}</span></span><strong>{partido.estado === "JUGADO" || partido.estado === "FINALIZADO" ? `${partido.golesLocal} - ${partido.golesVisitante}` : "vs"}</strong><span className="profile-match-team profile-match-team-away"><span>{partido.nombreEquipoVisitante}</span><EntityImage type="team" value={partido.escudoEquipoVisitante} alt="" /></span></Link>)}</div></section>}
     {previewImage && <ImageLightbox {...previewImage} onClose={() => setPreviewImage(null)} />}
   </main>;
 }
