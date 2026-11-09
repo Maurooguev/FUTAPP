@@ -3,7 +3,20 @@ import { Link } from "react-router-dom";
 import EntityImage from "../EntityImage/EntityImage";
 import "./FixtureByDate.css";
 
-function FixtureByDate({ fechas, partidos, onSelectPartido, canManage, onEditDate, onCloseDate, onDeleteDate, onEditMatch, onSuspendMatch, onDeleteMatch, onLoadResult, onQuickResult }) {
+const formatMatchDate = (value) => {
+  if (!value) return "Horario a confirmar";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+
+  return new Intl.DateTimeFormat("es-AR", {
+    day: "2-digit",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(date);
+};
+
+function FixtureByDate({ fechas, partidos, equipos = [], mostrarLibres = false, onSelectPartido, canManage, onEditDate, onCloseDate, onDeleteDate, onEditMatch, onSuspendMatch, onDeleteMatch, onLoadResult, onQuickResult }) {
   const fechasOrdenadas = useMemo(() => {
     return [...fechas].sort((a, b) => a.numeroFecha - b.numeroFecha);
   }, [fechas]);
@@ -50,6 +63,24 @@ function FixtureByDate({ fechas, partidos, onSelectPartido, canManage, onEditDat
       (partido) => partido.idFecha === fechaActual.idFecha
     );
   }, [partidos, fechaActual]);
+
+  const calendarioCompatibleConLibres = useMemo(() => {
+    if (!mostrarLibres || equipos.length < 3 || equipos.length % 2 === 0) return false;
+    const rondasEsperadas = equipos.length;
+    return fechasOrdenadas.length === rondasEsperadas || fechasOrdenadas.length === rondasEsperadas * 2;
+  }, [equipos.length, fechasOrdenadas.length, mostrarLibres]);
+
+  const equiposFueraDelFixture = useMemo(() => {
+    const participantes = new Set(partidos.flatMap((partido) => [partido.idEquipoLocal, partido.idEquipoVisitante]));
+    return equipos.filter((equipo) => !participantes.has(equipo.idEquipo));
+  }, [equipos, partidos]);
+  const fixtureConResultados = partidos.some((partido) => partido.estado?.toUpperCase() === "FINALIZADO");
+
+  const equiposLibres = useMemo(() => {
+    if (!calendarioCompatibleConLibres || !fechaActual) return [];
+    const participantes = new Set(partidosDeFecha.flatMap((partido) => [partido.idEquipoLocal, partido.idEquipoVisitante]));
+    return equipos.filter((equipo) => !participantes.has(equipo.idEquipo));
+  }, [calendarioCompatibleConLibres, equipos, fechaActual, partidosDeFecha]);
 
   const partidosResueltos = partidosDeFecha.filter((partido) => ["FINALIZADO", "CANCELADO"].includes(partido.estado?.toUpperCase()));
   const partidosPendientes = partidosDeFecha.filter((partido) => !["FINALIZADO", "CANCELADO"].includes(partido.estado?.toUpperCase()));
@@ -103,19 +134,37 @@ function FixtureByDate({ fechas, partidos, onSelectPartido, canManage, onEditDat
         </div>}
       </div>
 
+      {mostrarLibres && equipos.length % 2 !== 0 && !calendarioCompatibleConLibres && <div className="fixture-integrity-warning">
+        <strong>El fixture no coincide con los {equipos.length} equipos actuales.</strong>
+        {equiposFueraDelFixture.length > 0
+          ? <span>{equiposFueraDelFixture.map((equipo) => equipo.nombre).join(", ")} no forma parte de ningún partido. No es una fecha libre: ese equipo fue inscripto después de crear el fixture. {fixtureConResultados ? "Como ya existen resultados, quitá esa inscripción para conservar el calendario." : "Rehacé el fixture para incorporarlo correctamente."}</span>
+          : <span>Se agregó o quitó un equipo después de generar el calendario. {fixtureConResultados ? "Revisá las inscripciones antes de continuar." : "Rehacé el fixture para rotar correctamente las fechas libres."}</span>}
+      </div>}
+
+      {equiposLibres.length > 0 && <div className="fixture-byes">
+        <span>Fecha libre <small>No suma puntos</small></span>
+        {equiposLibres.map((equipo) => <Link key={equipo.idEquipo} to={`/equipo/${equipo.idEquipo}`}><EntityImage type="team" value={equipo.escudo} alt="" /><strong>{equipo.nombre}</strong></Link>)}
+      </div>}
+
       {partidosDeFecha.length === 0 ? (
         <div className="fixture-empty">
           <p>No hay partidos cargados para esta fecha.</p>
         </div>
       ) : (
         <div className="fixture-grid">
-          {partidosDeFecha.map((partido) => (
+          {partidosDeFecha.map((partido) => {
+            const bajaAdministrativa = partido.observaciones?.startsWith("Baja de ");
+            const canceladoPorBaja = bajaAdministrativa && partido.estado?.toUpperCase() === "CANCELADO";
+            const estadoVisible = bajaAdministrativa
+              ? (canceladoPorBaja ? "CANCELADO POR BAJA" : "VICTORIA POR BAJA")
+              : partido.estado;
+            return (
             <div
               className="fixture-match-card"
               key={partido.idPartido}
               onClick={() => onSelectPartido(partido)}
             >
-              <div className="fixture-match-status">{partido.estado}</div>
+              <div className={`fixture-match-status ${bajaAdministrativa ? "administrative" : ""}`}>{estadoVisible}</div>
 
               <div className="fixture-score-line">
                 <Link className="fixture-team" to={`/equipo/${partido.idEquipoLocal}`} onClick={(event) => event.stopPropagation()}><EntityImage type="team" value={partido.escudoEquipoLocal} alt="" /><span>{partido.nombreEquipoLocal}</span></Link>
@@ -123,20 +172,21 @@ function FixtureByDate({ fechas, partidos, onSelectPartido, canManage, onEditDat
                 <strong>
                   {partido.estado?.toUpperCase() === "FINALIZADO"
                     ? `${partido.golesLocal} - ${partido.golesVisitante}`
-                    : "vs"}
+                    : canceladoPorBaja ? "Sin puntos" : "vs"}
                 </strong>
 
                 <Link className="fixture-team fixture-team-away" to={`/equipo/${partido.idEquipoVisitante}`} onClick={(event) => event.stopPropagation()}><EntityImage type="team" value={partido.escudoEquipoVisitante} alt="" /><span>{partido.nombreEquipoVisitante}</span></Link>
               </div>
 
-              <p>{partido.fechaHora || "Horario a confirmar"}{partido.cancha ? ` · ${partido.cancha}` : ""}</p>
+              <p>{formatMatchDate(partido.fechaHora)}{partido.cancha ? ` · ${partido.cancha}` : ""}</p>
+              {bajaAdministrativa && <p className="fixture-administrative-note">{partido.observaciones}</p>}
               {canManage && ["PROGRAMADO", "EN_JUEGO"].includes(partido.estado?.toUpperCase()) && <div className="fixture-inline-result" onClick={(event) => event.stopPropagation()}>
                 <div><span>{partido.nombreEquipoLocal}</span><div className="fixture-score-stepper"><button type="button" disabled={(quickScores[partido.idPartido]?.local ?? 0) === 0} onClick={() => changeScore(partido.idPartido, "local", -1)}>−</button><strong>{quickScores[partido.idPartido]?.local ?? 0}</strong><button type="button" onClick={() => changeScore(partido.idPartido, "local", 1)}>+</button></div></div>
                 <i>–</i>
                 <div><span>{partido.nombreEquipoVisitante}</span><div className="fixture-score-stepper"><button type="button" disabled={(quickScores[partido.idPartido]?.visitante ?? 0) === 0} onClick={() => changeScore(partido.idPartido, "visitante", -1)}>−</button><strong>{quickScores[partido.idPartido]?.visitante ?? 0}</strong><button type="button" onClick={() => changeScore(partido.idPartido, "visitante", 1)}>+</button></div></div>
                 <button type="button" className="fixture-quick-save" disabled={savingMatch === partido.idPartido} onClick={() => saveQuickScore(partido)}>{savingMatch === partido.idPartido ? "Guardando…" : "Confirmar resultado"}</button>
               </div>}
-              {partido.estado?.toUpperCase() === "SUSPENDIDO" && partido.observaciones && <p className="fixture-suspension-reason">Motivo: {partido.observaciones}</p>}
+              {partido.estado?.toUpperCase() === "SUSPENDIDO" && partido.motivoEstado && <p className="fixture-suspension-reason">Motivo: {partido.motivoEstado}</p>}
               {partido.idMvp && <Link className="fixture-mvp" to={`/jugador/${partido.idMvp}`} onClick={(event) => event.stopPropagation()}>⭐ MVP: {partido.nombreMvp}</Link>}
               {canManage && <div className="fixture-quick-actions" onClick={(event) => event.stopPropagation()}>
                 {["PROGRAMADO", "EN_JUEGO", "FINALIZADO"].includes(partido.estado?.toUpperCase()) && <button className="result" onClick={() => onLoadResult(partido)}>{partido.estado?.toUpperCase() === "FINALIZADO" ? "Editar resultado" : "Cargar resultado"}</button>}
@@ -146,7 +196,7 @@ function FixtureByDate({ fechas, partidos, onSelectPartido, canManage, onEditDat
                 <button className="danger" onClick={() => onDeleteMatch(partido)}>Eliminar</button>
               </div>}
             </div>
-          ))}
+          );})}
         </div>
       )}
     </section>

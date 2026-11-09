@@ -5,6 +5,8 @@ import com.futapp.dto.InscripcionJugadorResponseDTO;
 import com.futapp.dto.InscripcionEquipoRequestDTO;
 import com.futapp.dto.InscripcionJugadorRequestDTO;
 import com.futapp.dto.ActualizacionInscripcionJugadorDTO;
+import com.futapp.dto.BajaEquipoTorneoRequestDTO;
+import com.futapp.dto.NamesBatchRequestDTO;
 import com.futapp.service.InscripcionService;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -53,6 +55,14 @@ public class InscripcionController {
         inscripciones.quitarEquipoDelTorneo(idTorneo, idEquipo);
     }
 
+    @PutMapping("/equipos/torneo/{idTorneo}/equipo/{idEquipo}/baja")
+    public InscripcionEquipoResponseDTO darDeBajaEquipoDelTorneo(
+            @PathVariable Long idTorneo,
+            @PathVariable Long idEquipo,
+            @Valid @RequestBody BajaEquipoTorneoRequestDTO request) {
+        return inscripciones.darDeBajaEquipoDelTorneo(idTorneo, idEquipo, request);
+    }
+
     @PostMapping("/{idInscripcion}/jugadores")
     public InscripcionJugadorResponseDTO inscribirJugador(
             @PathVariable Long idInscripcion,
@@ -65,6 +75,12 @@ public class InscripcionController {
             @PathVariable Long idInscripcion,
             @RequestParam(defaultValue = "5") int cantidad) {
         return inscripciones.generarJugadoresDePrueba(idInscripcion, cantidad);
+    }
+
+    @PostMapping("/{idInscripcion}/jugadores/lote")
+    public List<InscripcionJugadorResponseDTO> cargarJugadoresPorNombre(
+            @PathVariable Long idInscripcion, @Valid @RequestBody NamesBatchRequestDTO request) {
+        return inscripciones.cargarJugadoresPorNombre(idInscripcion, request.nombres());
     }
 
     @PutMapping("/jugadores/{id}")

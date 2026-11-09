@@ -1,15 +1,10 @@
 package com.futapp.dto;
 
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 public class GolRequestDTO {
 
-    @NotNull(message = "El minuto es obligatorio")
-    @Min(value = 1, message = "El minuto debe ser mayor a cero")
-    @Max(value = 130, message = "El minuto no puede superar 130")
     private Integer minuto;
     @NotBlank(message = "El tipo de gol es obligatorio")
     private String tipoGol;

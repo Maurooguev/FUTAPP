@@ -4,6 +4,7 @@ import useAuth from "../../context/useAuth";
 import { API_URL, apiFetch, assetUrl } from "../../config/api";
 import { tieneRol } from "../../utils/roles";
 import "./Header.css";
+import { FEATURES } from "../../config/features";
 
 const searchGroups = [
   { key: "torneos", label: "Torneos", type: "torneo", icon: "🏆" },
@@ -112,7 +113,7 @@ function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [pendingRequests, setPendingRequests] = useState(0);
   const [unreadNotifications, setUnreadNotifications] = useState(0);
-  const canReview = tieneRol(usuario, "ADMIN") || tieneRol(usuario, "ORGANIZADOR") || tieneRol(usuario, "DIRECTOR_EQUIPO");
+  const canReview = FEATURES.claims && (tieneRol(usuario, "ADMIN") || tieneRol(usuario, "ORGANIZADOR") || tieneRol(usuario, "DIRECTOR_EQUIPO"));
   const loadPendingRequests = useCallback(() => {
     if (!canReview) return Promise.resolve();
     return apiFetch(`${API_URL}/reclamos/pendientes/count`).then((response) => response.ok ? response.json() : { cantidad: 0 }).then((data) => setPendingRequests(data.cantidad || 0)).catch(() => setPendingRequests(0));
@@ -144,11 +145,9 @@ function Header() {
   }, [loadPendingRequests]);
 
   const loadNotifications = useCallback(() => {
-    if (!usuario) return Promise.resolve();
+    if (!FEATURES.notifications || !usuario) return Promise.resolve();
     return apiFetch(`${API_URL}/notificaciones/no-leidas/count`).then((response) => response.ok ? response.json() : { cantidad: 0 }).then((data) => setUnreadNotifications(data.cantidad || 0)).catch(() => setUnreadNotifications(0));
   }, [usuario]);
-
-  const registrationLink = (next, intent) => `/register?next=${encodeURIComponent(next)}&intent=${encodeURIComponent(intent)}`;
 
   useEffect(() => {
     loadNotifications();
@@ -172,12 +171,12 @@ function Header() {
 
           {usuario && (tieneRol(usuario, "ORGANIZADOR") || tieneRol(usuario, "ADMIN"))
             ? <Link to="/mis-torneos">Mis torneos</Link>
-            : <Link className="guest-nav-link" to={usuario ? "/?crearTorneo=1" : registrationLink("/?crearTorneo=1", "crear-torneo")}>Crear torneo</Link>}
-          {(tieneRol(usuario, "ADMIN") || tieneRol(usuario, "DIRECTOR_EQUIPO")) && <Link to="/mis-equipos">Mis equipos</Link>}
-          {usuario && <Link className="requests-nav-link" to="/solicitudes">Solicitudes{pendingRequests > 0 && <span>{pendingRequests > 99 ? "99+" : pendingRequests}</span>}</Link>}
-          {usuario ? <Link to="/favoritos">Favoritos</Link> : <Link className="guest-nav-link" to={registrationLink("/favoritos", "guardar-favoritos")}>Favoritos</Link>}
-          {(tieneRol(usuario, "JUGADOR") || tieneRol(usuario, "ORGANIZADOR")) && <Link to={usuario?.rol === "ORGANIZADOR" || !tieneRol(usuario, "JUGADOR") ? "/mi-perfil-organizador" : "/mi-perfil-jugador"}>Mi perfil</Link>}
-          {!usuario && <Link className="guest-nav-link" to={registrationLink("/mi-perfil-jugador", "crear-perfil")}>Crear perfil</Link>}
+            : <Link className="guest-nav-link" to={usuario ? "/?crearTorneo=1" : "/login?intent=crear-torneo"}>Crear torneo</Link>}
+          {FEATURES.teamDirectorAccounts && (tieneRol(usuario, "ADMIN") || tieneRol(usuario, "DIRECTOR_EQUIPO")) && <Link to="/mis-equipos">Mis equipos</Link>}
+          {FEATURES.claims && usuario && <Link className="requests-nav-link" to="/solicitudes">Solicitudes{pendingRequests > 0 && <span>{pendingRequests > 99 ? "99+" : pendingRequests}</span>}</Link>}
+          {FEATURES.favorites && usuario && <Link to="/favoritos">Favoritos</Link>}
+          {usuario && (tieneRol(usuario, "ORGANIZADOR") || tieneRol(usuario, "ADMIN")) && <Link to="/mi-perfil-organizador">Perfil organizador</Link>}
+          {usuario && tieneRol(usuario, "ADMIN") && <Link to="/admin/organizadores">Invitar organizador</Link>}
         </nav>
 
         <div className="header-actions">
@@ -191,9 +190,9 @@ function Header() {
             <span aria-hidden="true">{theme === "dark" ? "☀" : "☾"}</span>
           </button>
           {usuario ? (
-            <><Link to="/notificaciones" className="notification-bell" aria-label="Notificaciones" title="Notificaciones">🔔{unreadNotifications > 0 && <span>{unreadNotifications > 99 ? "99+" : unreadNotifications}</span>}</Link><Link to="/cuenta" className="user-pill">{usuario.nombre} · {usuario.rol}</Link><button className="header-btn-outline" onClick={logout}>Salir</button></>
+            <>{FEATURES.notifications && <Link to="/notificaciones" className="notification-bell" aria-label="Notificaciones" title="Notificaciones">🔔{unreadNotifications > 0 && <span>{unreadNotifications > 99 ? "99+" : unreadNotifications}</span>}</Link>}<Link to="/cuenta" className="user-pill">{usuario.nombre} · Organizador</Link><button className="header-btn-outline" onClick={logout}>Salir</button></>
           ) : (
-            <><Link to="/login" className="header-link-button outline">Ingresar</Link><Link to="/register" className="header-link-button primary">Registrarse</Link></>
+            <Link to="/login" className="header-link-button outline">Acceso organizadores</Link>
           )}
           <button
             type="button"
@@ -223,19 +222,19 @@ function Header() {
               <Link to="/"><span>⌂</span>Explorar</Link>
               {usuario && (tieneRol(usuario, "ORGANIZADOR") || tieneRol(usuario, "ADMIN"))
                 ? <Link to="/mis-torneos"><span>🏆</span>Mis torneos</Link>
-                : <Link to={usuario ? "/?crearTorneo=1" : registrationLink("/?crearTorneo=1", "crear-torneo")}><span>＋</span>Crear torneo</Link>}
-              {(tieneRol(usuario, "ADMIN") || tieneRol(usuario, "DIRECTOR_EQUIPO")) && <Link to="/mis-equipos"><span>🛡</span>Mis equipos</Link>}
-              {usuario && <Link to="/solicitudes"><span>↔</span>Solicitudes{pendingRequests > 0 && <b>{pendingRequests > 99 ? "99+" : pendingRequests}</b>}</Link>}
-              <Link to={usuario ? "/favoritos" : registrationLink("/favoritos", "guardar-favoritos")}><span>☆</span>Favoritos</Link>
-              {(tieneRol(usuario, "JUGADOR") || tieneRol(usuario, "ORGANIZADOR")) && <Link to={usuario?.rol === "ORGANIZADOR" || !tieneRol(usuario, "JUGADOR") ? "/mi-perfil-organizador" : "/mi-perfil-jugador"}><span>●</span>Mi perfil</Link>}
-              {!usuario && <Link to={registrationLink("/mi-perfil-jugador", "crear-perfil")}><span>●</span>Crear perfil</Link>}
-              {usuario && <Link to="/notificaciones"><span>🔔</span>Notificaciones{unreadNotifications > 0 && <b>{unreadNotifications > 99 ? "99+" : unreadNotifications}</b>}</Link>}
+                : <Link to={usuario ? "/?crearTorneo=1" : "/login?intent=crear-torneo"}><span>＋</span>Crear torneo</Link>}
+              {FEATURES.teamDirectorAccounts && (tieneRol(usuario, "ADMIN") || tieneRol(usuario, "DIRECTOR_EQUIPO")) && <Link to="/mis-equipos"><span>🛡</span>Mis equipos</Link>}
+              {FEATURES.claims && usuario && <Link to="/solicitudes"><span>↔</span>Solicitudes{pendingRequests > 0 && <b>{pendingRequests > 99 ? "99+" : pendingRequests}</b>}</Link>}
+              {FEATURES.favorites && usuario && <Link to="/favoritos"><span>☆</span>Favoritos</Link>}
+              {usuario && (tieneRol(usuario, "ORGANIZADOR") || tieneRol(usuario, "ADMIN")) && <Link to="/mi-perfil-organizador"><span>●</span>Perfil organizador</Link>}
+              {usuario && tieneRol(usuario, "ADMIN") && <Link to="/admin/organizadores"><span>＋</span>Invitar organizador</Link>}
+              {FEATURES.notifications && usuario && <Link to="/notificaciones"><span>🔔</span>Notificaciones{unreadNotifications > 0 && <b>{unreadNotifications > 99 ? "99+" : unreadNotifications}</b>}</Link>}
               {usuario && <Link to="/cuenta"><span>⚙</span>Mi cuenta</Link>}
             </nav>
             <div className="mobile-menu-session">
               {usuario
                 ? <button type="button" onClick={() => { setMobileMenuOpen(false); logout(); }}>Cerrar sesión</button>
-                : <><Link to="/login">Ingresar</Link><Link className="primary" to="/register">Crear cuenta</Link></>}
+                : <Link className="primary" to="/login">Acceso organizadores</Link>}
             </div>
           </aside>
         </>

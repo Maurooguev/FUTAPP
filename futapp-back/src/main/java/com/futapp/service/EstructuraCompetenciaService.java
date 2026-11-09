@@ -49,7 +49,8 @@ public class EstructuraCompetenciaService {
             crearFase(division, "Eliminación directa", "ELIMINACION_DIRECTA", 1, request.getCantidadEquipos());
         } else if ("LIGA_PLAYOFF".equals(formato)) {
             crearFase(division, "Liga", "LIGA", 1, null);
-            crearFase(division, "Playoffs", "ELIMINACION_DIRECTA", 2, clasificadosPlayoff(request.getCantidadEquipos()));
+            crearFase(division, "Playoffs", "ELIMINACION_DIRECTA", 2,
+                    request.getClasificadosPlayoff() == null ? 4 : request.getClasificadosPlayoff());
         } else {
             CompeticionFase faseZonas = crearFase(division, "Fase de zonas", "ZONAS", 1, null);
             int cantidadZonas = request.getCantidadZonas() == null ? 2 : request.getCantidadZonas();
@@ -73,6 +74,19 @@ public class EstructuraCompetenciaService {
             }
             cupos.save(cupo);
         }
+    }
+
+    @Transactional
+    public void recrear(Torneo torneo, TorneoRequestDTO request) {
+        var divisionesActuales = divisiones.findByTorneoIdTorneoOrderByOrden(torneo.getIdTorneo());
+        for (var division : divisionesActuales) {
+            cupos.deleteAll(cupos.findByDivisionIdDivisionOrderByNumero(division.getIdDivision()));
+            var fasesActuales = fases.findByDivisionIdDivisionOrderByOrden(division.getIdDivision());
+            for (var fase : fasesActuales) zonas.deleteAll(zonas.findByFaseIdFaseOrderByOrden(fase.getIdFase()));
+            fases.deleteAll(fasesActuales);
+        }
+        divisiones.deleteAll(divisionesActuales);
+        crear(torneo, request);
     }
 
     @Transactional(readOnly = true)
@@ -108,12 +122,6 @@ public class EstructuraCompetenciaService {
             case "ZONAS + PLAYOFFS", "ZONAS_PLAYOFF", "GRUPOS Y ELIMINACION" -> "ZONAS_PLAYOFF";
             default -> throw new IllegalArgumentException("El formato seleccionado no es válido");
         };
-    }
-
-    private int clasificadosPlayoff(int equipos) {
-        if (equipos >= 8) return 8;
-        if (equipos >= 4) return 4;
-        return 2;
     }
 
     private String letraZona(int indice) { return String.valueOf((char) ('A' + indice)); }

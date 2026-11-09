@@ -1,0 +1,1 @@
+ALTER TABLE usuario ADD COLUMN password_change_required BOOLEAN NOT NULL DEFAULT FALSE;

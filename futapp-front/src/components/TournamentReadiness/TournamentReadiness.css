@@ -4,13 +4,22 @@
 .readiness-heading span { color: #64748b; font-size: 9px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
 .readiness-heading h2 { margin: 2px 0 0; color: #0f172a; font-size: 17px; }
 .readiness-heading > strong { color: #475569; font-size: 10px; }
-.readiness-steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; }
+.readiness-steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 7px; }
 .readiness-steps button { display: flex; align-items: center; gap: 8px; padding: 9px; border: 1px solid #e2e8f0; border-radius: 4px; background: #f8fafc; color: #334155; text-align: left; }
 .readiness-steps button.pending { border-color: #fcd34d; background: #fffbeb; }
+.readiness-steps button:disabled { cursor: not-allowed; opacity: .68; }
 .readiness-steps button.done i { background: #dcfce7; color: #15803d; }
 .readiness-steps i { display: grid; width: 25px; height: 25px; flex: 0 0 auto; place-items: center; border-radius: 50%; background: #fef3c7; color: #92400e; font-size: 10px; font-style: normal; font-weight: 900; }
 .readiness-steps b, .readiness-steps small { display: block; }.readiness-steps b { color: #0f172a; font-size: 11px; }.readiness-steps small { margin-top: 2px; color: #64748b; font-size: 9px; }
 .readiness-warning, .readiness-note { margin: 9px 0 0; padding: 7px 9px; border-radius: 3px; font-size: 10px; }
 .readiness-warning { background: #fff1f2; color: #be123c; }.readiness-note { background: #eff6ff; color: #1d4ed8; }
 .readiness-primary { width: 100%; margin-top: 10px; background: #0877a7; color: #fff; font-size: 11px; }
+.readiness-primary.lifecycle { background: #16a34a; }
+.readiness-share { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 10px; padding: 9px 10px; border: 1px solid #bbf7d0; background: #f0fdf4; }
+.readiness-share div { display: grid; gap: 2px; }.readiness-share strong { color: #166534; font-size: 10px; }.readiness-share small { color: #64748b; font-size: 9px; }
+.readiness-share button { padding: 7px 10px; border: 1px solid #86efac; background: #fff; color: #166534; font-size: 9px; font-weight: 800; }
 @media (max-width: 700px) { .readiness-steps { grid-template-columns: 1fr; } }
+:root[data-theme="dark"] .readiness-share { border-color: #356552; background: #213f38; }
+:root[data-theme="dark"] .readiness-share strong { color: #86efac; }
+:root[data-theme="dark"] .readiness-share small { color: #b9c8d2; }
+:root[data-theme="dark"] .readiness-share button { border-color: #4f7b68; background: #29414f; color: #a7f3d0; }

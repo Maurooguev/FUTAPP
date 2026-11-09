@@ -13,6 +13,7 @@ import EntityImage from "../components/EntityImage/EntityImage";
 import { equipoGenerico } from "../utils/defaultEntityImages";
 import CopyableCode from "../components/CopyableCode/CopyableCode";
 import TournamentIcon from "../components/TournamentIcon/TournamentIcon";
+import { FEATURES } from "../config/features";
 
 async function fetchJson(url, message) {
   const response = await apiFetch(url);
@@ -140,12 +141,12 @@ function EquipoPerfil() {
       <button type="button" className="profile-avatar club-avatar image-preview-trigger" onClick={() => setPreviewImage({ src: equipo.escudo ? assetUrl(equipo.escudo) : equipoGenerico, alt: `Escudo de ${equipo.nombre}` })} aria-label={`Ampliar escudo de ${equipo.nombre}`}><EntityImage type="team" value={equipo.escudo} alt={`Escudo de ${equipo.nombre}`} /></button>
       <div><CopyableCode className="profile-code" value={equipo.codigoPublico} /><h1>{equipo.nombre} {equipo.verificado && <span className="verified-badge" title="Equipo administrado por un director aprobado">✓ Verificado</span>} {titulos.length > 0 && <span className="club-stars" title={`${titulos.length} título${titulos.length === 1 ? "" : "s"}`}>{"★".repeat(titulos.length)}</span>}</h1><p>{equipo.barrio || "Barrio sin informar"}</p></div>
       <div className="profile-owner-actions">
-        <FavoriteButton type="equipos" id={equipo.idEquipo} />
+        {FEATURES.favorites && <FavoriteButton type="equipos" id={equipo.idEquipo} />}
         {hasManageAccess && <><span className="profile-owner-badge">Administrás este club</span><button onClick={() => setShowEdit(true)}>Editar perfil</button><button onClick={() => setShowRoster(true)}>Gestionar plantel</button></>}
-        {!hasManageAccess && !equipo.verificado && tieneRol(usuario, "DIRECTOR_EQUIPO") && <button className="profile-claim-button" onClick={claimTeam}>Reclamar equipo</button>}
+        {FEATURES.claims && !hasManageAccess && !equipo.verificado && tieneRol(usuario, "DIRECTOR_EQUIPO") && <button className="profile-claim-button" onClick={claimTeam}>Reclamar equipo</button>}
       </div>
     </section>
-    {claimMessage && <p className="profile-action-message">{claimMessage}</p>}
+    {FEATURES.claims && claimMessage && <p className="profile-action-message">{claimMessage}</p>}
     <div className="profile-layout">
       <section className="profile-panel"><h2>Sobre el club</h2><p>{equipo.descripcion || "El club todavía no agregó una descripción."}</p><dl><div><dt>Responsable</dt><dd>{equipo.responsable}</dd></div><div><dt>Contacto</dt><dd>{equipo.telefonoContacto}</dd></div>{equipo.emailContacto && <div><dt>Email</dt><dd>{equipo.emailContacto}</dd></div>}</dl></section>
       <section className="profile-panel club-tournaments-panel"><h2>Historial de torneos</h2><div className="player-tournament-grid club-tournament-grid">{inscripciones.map((item) => { const activa = item.estado === "ACTIVA"; return <article className={`player-tournament-card ${activa ? "active" : "historical"}`} key={item.idInscripcion}><Link className="player-tournament-main" to={`/torneo/${item.idTorneo}`}><TournamentIcon /><span><small>Torneo</small><strong>{item.nombreTorneo}</strong></span><b className={`career-status ${activa ? "active" : "historical"}`}>{activa ? "Activo" : item.estado}</b></Link><div className="player-tournament-meta"><span>{item.cantidadJugadores} jugadores</span><Link to={`/torneo/${item.idTorneo}`}>Ver torneo →</Link></div></article>; })}</div></section>

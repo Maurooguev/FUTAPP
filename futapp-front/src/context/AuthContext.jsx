@@ -9,9 +9,10 @@ function AuthProvider({ children }) {
   });
 
   const saveSession = (session) => {
-    const nuevoUsuario = { idUsuario: session.idUsuario, nombre: session.nombre, email: session.email, rol: session.rol, roles: session.roles || [session.rol] };
+    const nuevoUsuario = { idUsuario: session.idUsuario, nombre: session.nombre, email: session.email, rol: session.rol, roles: session.roles || [session.rol], passwordChangeRequired: Boolean(session.passwordChangeRequired) };
     setUsuario(nuevoUsuario);
     localStorage.setItem("usuario", JSON.stringify(nuevoUsuario));
+    return nuevoUsuario;
   };
 
   const refreshSession = useCallback(async () => {
@@ -24,6 +25,7 @@ function AuthProvider({ children }) {
       email: session.email,
       rol: session.rol,
       roles: session.roles || [session.rol],
+      passwordChangeRequired: Boolean(session.passwordChangeRequired),
     };
     setUsuario(usuarioActual);
     localStorage.setItem("usuario", JSON.stringify(usuarioActual));
@@ -41,6 +43,7 @@ function AuthProvider({ children }) {
           email: session.email,
           rol: session.rol,
           roles: session.roles || [session.rol],
+          passwordChangeRequired: Boolean(session.passwordChangeRequired),
         };
         setUsuario(usuarioActual);
         localStorage.setItem("usuario", JSON.stringify(usuarioActual));
@@ -55,11 +58,11 @@ function AuthProvider({ children }) {
     const response = await fetch(`${API_URL}/auth/login`, { method: "POST", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, password }) });
     const payload = await response.json().catch(() => null);
     if (!response.ok) throw new Error(payload?.message || "No se pudo iniciar sesión");
-    saveSession(payload);
+    return saveSession(payload);
   };
 
-  const register = async (nombre, email, password, rol, codigoInvitacion) => {
-    const response = await fetch(`${API_URL}/auth/register`, { method: "POST", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ nombre, email, password, rol, codigoInvitacion }) });
+  const register = async (nombre, email, password, codigoInvitacion) => {
+    const response = await fetch(`${API_URL}/auth/register`, { method: "POST", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ nombre, email, password, rol: "ORGANIZADOR", codigoInvitacion }) });
     const payload = await response.json().catch(() => null);
     if (!response.ok) throw new Error(payload?.message || "No se pudo crear la cuenta");
     saveSession(payload);

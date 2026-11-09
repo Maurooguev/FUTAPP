@@ -27,6 +27,9 @@ public class Partido {
 
     private String observaciones;
 
+    @Column(name = "motivo_estado", length = 300)
+    private String motivoEstado;
+
     @Column(length = 150)
     private String cancha;
 
@@ -100,6 +103,8 @@ public class Partido {
     public void setObservaciones(String observaciones) {
         this.observaciones = observaciones;
     }
+    public String getMotivoEstado() { return motivoEstado; }
+    public void setMotivoEstado(String motivoEstado) { this.motivoEstado = motivoEstado; }
     public Integer getPenalesLocal() { return penalesLocal; }
     public void setPenalesLocal(Integer value) { this.penalesLocal = value; }
     public Integer getPenalesVisitante() { return penalesVisitante; }

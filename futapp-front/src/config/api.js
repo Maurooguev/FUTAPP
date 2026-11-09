@@ -1,6 +1,6 @@
 const configuredApiUrl = import.meta.env.VITE_API_URL?.trim();
 
-export const API_URL = (configuredApiUrl || "http://localhost:8080/api/v1").replace(
+export const API_URL = (configuredApiUrl || "/api/v1").replace(
   /\/$/,
   ""
 );

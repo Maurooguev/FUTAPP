@@ -81,7 +81,7 @@ function PartidoDetalle() {
             ) : (
               goles.map((gol) => (
                 <div className="incidencia-card" key={gol.idGol}>
-                  <strong>{gol.minuto}'</strong>
+                  <strong>{gol.minuto ? `${gol.minuto}'` : "Gol"}</strong>
                   <div>
                     <h3><Link className="profile-entity-link" to={`/jugador/${gol.idJugador}`}>{gol.nombreJugador}</Link></h3>
                     <p><Link className="profile-entity-link" to={`/equipo/${gol.idEquipo}`}>{gol.nombreEquipo}</Link> · {gol.tipoGol}</p>

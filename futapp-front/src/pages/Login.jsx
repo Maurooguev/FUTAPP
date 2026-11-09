@@ -17,14 +17,15 @@ function Login() {
   const manejarLogin = async (e) => {
     e.preventDefault();
     setError("");
-    try { await login(email, password); navigate(safeNext, { replace: true }); } catch (loginError) { setError(loginError.message); }
+    try { const session = await login(email, password); navigate(session.passwordChangeRequired ? "/cuenta" : safeNext, { replace: true }); } catch (loginError) { setError(loginError.message); }
   };
 
   return (
     <div className="auth-page">
       <div className="auth-card">
-        <h1>Ingresar</h1>
-        <p>{intent ? "Ingresá para continuar con lo que elegiste." : "Ingresá con tu cuenta de FUTAPP."}</p>
+        <span className="auth-eyebrow">Acceso privado</span>
+        <h1>Acceso organizadores</h1>
+        <p>{intent ? "Ingresá con la cuenta que te entregó FUTAPP para continuar." : "Este espacio es exclusivo para organizadores de torneos invitados por FUTAPP."}</p>
 
         <form onSubmit={manejarLogin}>
           <label>Email</label>
@@ -36,13 +37,11 @@ function Login() {
           {error && <p className="tournament-form-error">{error}</p>}
 
           <button type="submit" className="auth-btn">
-            Ingresar
+            Acceder al panel
           </button>
         </form>
 
-        <p className="auth-link">
-          ¿No tenés cuenta? <Link to={`/register?next=${encodeURIComponent(safeNext)}${intent ? `&intent=${encodeURIComponent(intent)}` : ""}`}>Registrarse</Link>
-        </p>
+        <p className="auth-link">Las cuentas no se crean públicamente. Si querés usar FUTAPP para tu torneo, contactate con nosotros.</p>
       </div>
     </div>
   );

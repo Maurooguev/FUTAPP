@@ -3,6 +3,32 @@
 Aplicacion para administrar torneos de futbol amateur, equipos, jugadores,
 partidos, resultados y estadisticas.
 
+FUTAPP está enfocada en simplificar el trabajo del organizador: permite crear
+una competencia, cargar equipos y planteles en bloque, generar el fixture,
+registrar resultados e incidencias y publicar tablas, estadísticas y perfiles.
+
+## Capturas
+
+### Exploración de torneos
+
+![Página principal de FUTAPP](capturas/inicio.png)
+
+### Resumen del torneo
+
+![Resumen de un torneo](capturas/torneo-resumen.png)
+
+### Tabla y fixture
+
+![Tabla de posiciones](capturas/tabla-posiciones.png)
+
+![Fixture del torneo](capturas/fixture.png)
+
+### Perfiles y versión móvil
+
+![Perfil de un equipo](capturas/perfil-equipo.png)
+
+![Vista móvil del torneo](capturas/mobile-torneo.png)
+
 ## Estructura
 
 - `futapp-back`: API REST con Java 21, Spring Boot, JPA, PostgreSQL y Flyway.
@@ -120,20 +146,15 @@ Restaurarlo (reemplaza los datos actuales y solicita confirmacion):
 
 ## Usuarios y permisos
 
-El registro crea una cuenta del tipo seleccionado con contraseña cifrada mediante
-BCrypt. Al iniciar sesión, el backend entrega un token Bearer revocable con una
-vigencia de siete días. Las consultas son públicas; crear, editar o eliminar
-datos requiere una sesión con rol `ORGANIZADOR` o `ADMIN`.
+FUTAPP funciona actualmente como una beta privada para organizadores. No existe
+registro público: las cuentas se entregan por invitación con una contraseña
+temporal y deben cambiarla al ingresar por primera vez. Las contraseñas se
+guardan cifradas mediante BCrypt y las sesiones son revocables.
 
-El registro también admite cuentas `DIRECTOR_EQUIPO` y `JUGADOR`. Un director
-debe reclamar un club y recibir la aprobación del organizador del torneo. Un
-jugador debe reclamar su ficha; puede aprobarlo un director activo del equipo o
-el organizador cuando el club todavía no tiene director.
-
-Después de vincularse, el jugador solamente puede editar sus datos personales:
-foto, apodo, nacimiento, pierna hábil, equipo favorito, barrio, altura,
-nacionalidad, biografía e Instagram. No puede modificar equipos, dorsales,
-partidos, goles, tarjetas ni estadísticas oficiales.
+Las consultas deportivas son públicas. Crear torneos, administrar equipos y
+planteles, generar fixtures o cargar resultados requiere una cuenta con rol
+`ORGANIZADOR` o `ADMIN`. Los perfiles de equipos y jugadores son administrados
+por el organizador mientras se valida el flujo principal del producto.
 
 Los clientes pueden validar y recuperar la sesion guardada mediante
 `GET /api/v1/auth/me` enviando `Authorization: Bearer <token>`. Esto permite compartir
@@ -202,9 +223,9 @@ debe configurar una cuenta SMTP mediante `MAIL_HOST`, `MAIL_PORT`,
 aplicación o una clave específica del proveedor; nunca la contraseña personal
 del correo ni un secreto escrito dentro del repositorio.
 
-Mientras FUTAPP esté en beta privada, `BETA_INVITE_CODE` limita la creación de
-cuentas a las personas invitadas. La guía de salida y los recorridos de prueba
-están en `BETA_CHECKLIST.md`.
+Mientras FUTAPP esté en beta privada, el registro permanece deshabilitado y las
+cuentas de organizadores se crean desde la administración segura. La guía de
+salida y los recorridos de prueba están en `BETA_CHECKLIST.md`.
 
 ### Ejecutar la beta en un servidor
 

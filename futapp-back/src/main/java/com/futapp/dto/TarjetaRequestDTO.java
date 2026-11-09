@@ -13,6 +13,9 @@ public class TarjetaRequestDTO {
     @Max(value = 130, message = "El minuto no puede superar 130")
     private Integer minuto;
     private String motivo;
+    @Min(value = 1, message = "La suspensión debe ser de al menos una fecha")
+    @Max(value = 99, message = "La suspensión no puede superar 99 fechas")
+    private Integer fechasSuspension;
     @NotNull(message = "El partido es obligatorio")
     private Long idPartido;
     @NotNull(message = "El jugador es obligatorio")
@@ -46,6 +49,9 @@ public class TarjetaRequestDTO {
     public void setMotivo(String motivo) {
         this.motivo = motivo;
     }
+
+    public Integer getFechasSuspension() { return fechasSuspension; }
+    public void setFechasSuspension(Integer fechasSuspension) { this.fechasSuspension = fechasSuspension; }
 
     public Long getIdPartido() {
         return idPartido;

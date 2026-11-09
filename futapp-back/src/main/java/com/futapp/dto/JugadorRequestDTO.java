@@ -4,6 +4,7 @@ import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import com.futapp.validation.ValidBirthDate;
 
 public class JugadorRequestDTO {
 
@@ -13,6 +14,7 @@ public class JugadorRequestDTO {
     private String apellido;
     private String dni;
     @NotBlank(message = "La fecha de nacimiento es obligatoria")
+    @ValidBirthDate
     private String fechaNacimiento;
     @NotNull(message = "El número de camiseta es obligatorio")
     @Min(value = 1, message = "El número de camiseta debe ser mayor a cero")

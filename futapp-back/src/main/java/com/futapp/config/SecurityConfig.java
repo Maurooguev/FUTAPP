@@ -20,11 +20,20 @@ public class SecurityConfig {
     @Bean PasswordEncoder passwordEncoder() { return new BCryptPasswordEncoder(); }
     @Bean UserDetailsService userDetailsService() { return username -> { throw new UsernameNotFoundException(username); }; }
     @Bean SecurityFilterChain filterChain(HttpSecurity http, AuthTokenRepository tokens,
-                                          JsonMapper jsonMapper) throws Exception {
+                                          JsonMapper jsonMapper, FeatureProperties features) throws Exception {
         return http.csrf(csrf -> csrf.disable()).cors(cors -> {}).sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .authorizeHttpRequests(auth -> auth
+            .authorizeHttpRequests(auth -> {
+                if (!features.claims()) {
+                    auth.requestMatchers("/reclamos/**").denyAll();
+                }
+                if (!features.notifications()) auth.requestMatchers("/notificaciones/**").denyAll();
+                if (!features.playerAccounts()) auth.requestMatchers("/perfil-jugador/**").denyAll();
+                if (!features.teamDirectorAccounts()) auth.requestMatchers(HttpMethod.GET, "/equipos/mios").denyAll();
+                if (!features.favorites()) auth.requestMatchers("/favoritos/**").denyAll();
+                auth
                 .requestMatchers("/auth/login", "/auth/register", "/auth/password/forgot", "/auth/password/reset", "/status", "/hola").permitAll()
                 .requestMatchers("/auth/me", "/auth/logout", "/auth/logout-all", "/auth/password").authenticated()
+                .requestMatchers("/admin/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.GET, "/torneos/mios", "/torneos/mios/**").hasAnyRole("ORGANIZADOR", "ADMIN")
                 .requestMatchers(HttpMethod.GET, "/equipos/mios").hasAnyRole("DIRECTOR_EQUIPO", "ADMIN")
                 .requestMatchers("/perfiles-organizador/mio").hasAnyRole("ORGANIZADOR", "ADMIN")
@@ -42,7 +51,6 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/partidos/*/historial-resultado").hasAnyRole("ORGANIZADOR", "ADMIN")
                 .requestMatchers(HttpMethod.PUT, "/equipos/*", "/jugadores/*").authenticated()
                 .requestMatchers(HttpMethod.DELETE, "/equipos/*").authenticated()
-                .requestMatchers(HttpMethod.POST, "/equipos/*/fusionar/*").authenticated()
                 .requestMatchers(HttpMethod.POST, "/jugadores", "/inscripciones/*/jugadores",
                         "/inscripciones/*/jugadores/prueba").authenticated()
                 .requestMatchers(HttpMethod.POST, "/equipos", "/inscripciones/equipos").authenticated()
@@ -56,7 +64,8 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/equipos/**", "/jugadores/**", "/fechas/**",
                         "/partidos/**", "/goles/**", "/tarjetas/**", "/inscripciones/**",
                         "/sanciones/torneo/**", "/perfiles-organizador/*").permitAll()
-                .anyRequest().hasAnyRole("ORGANIZADOR", "ADMIN"))
+                .anyRequest().hasAnyRole("ORGANIZADOR", "ADMIN");
+            })
             .exceptionHandling(errors -> errors
                 .authenticationEntryPoint((request, response, exception) -> {
                     response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);

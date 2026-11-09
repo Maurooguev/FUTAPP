@@ -3,6 +3,8 @@ package com.futapp.service;
 import com.futapp.dto.EquipoRequestDTO;
 import com.futapp.dto.EquipoResponseDTO;
 import com.futapp.dto.PaginaDTO;
+import com.futapp.dto.CargaRapidaTorneoRequestDTO;
+import com.futapp.dto.CargaRapidaTorneoResponseDTO;
 import com.futapp.exception.ResourceNotFoundException;
 import com.futapp.model.Equipo;
 import com.futapp.model.Torneo;
@@ -42,6 +44,7 @@ public class EquipoService {
     private final EquipoAliasRepository aliases;
     private final TorneoVisibilityService visibility;
     private final ReclamoService reclamos;
+    private final InscripcionService inscripcionService;
 
     public EquipoService(EquipoRepository equipoRepository, TorneoRepository torneoRepository,
                          JugadorRepository jugadorRepository, PartidoRepository partidoRepository,
@@ -51,7 +54,7 @@ public class EquipoService {
                          EquipoAuthorizationService equipoAuthorization,
                          EquipoAdministradorRepository administradores,
                          EquipoAliasRepository aliases, TorneoVisibilityService visibility,
-                         ReclamoService reclamos) {
+                         ReclamoService reclamos, InscripcionService inscripcionService) {
         this.equipoRepository = equipoRepository;
         this.torneoRepository = torneoRepository;
         this.jugadorRepository = jugadorRepository;
@@ -64,6 +67,7 @@ public class EquipoService {
         this.aliases = aliases;
         this.visibility = visibility;
         this.reclamos = reclamos;
+        this.inscripcionService = inscripcionService;
     }
 
     public List<EquipoResponseDTO> listarEquipos() {
@@ -128,7 +132,7 @@ public class EquipoService {
     public List<EquipoResponseDTO> listarEquiposPorTorneo(Long idTorneo) {
         visibility.verificar(torneoRepository.findById(idTorneo)
                 .orElseThrow(() -> new ResourceNotFoundException("Torneo no encontrado")));
-        return inscripcionesEquipo.findByTorneoIdTorneo(idTorneo)
+        return inscripcionesEquipo.findByTorneoIdTorneoAndEstado(idTorneo, "ACTIVA")
                 .stream()
                 .map(inscripcion -> convertirAResponseDTO(inscripcion.getEquipo(), inscripcion.getTorneo()))
                 .collect(Collectors.toList());
@@ -138,6 +142,9 @@ public class EquipoService {
         authorization.verificarGestion(requestDTO.getIdTorneo());
         Torneo torneo = torneoRepository.findById(requestDTO.getIdTorneo())
                 .orElseThrow(() -> new ResourceNotFoundException("Torneo no encontrado con id: " + requestDTO.getIdTorneo()));
+        if (!partidoRepository.findByTorneoIdTorneo(requestDTO.getIdTorneo()).isEmpty()) {
+            throw new IllegalArgumentException("No podés crear e inscribir otro equipo después de generar el fixture. Rehacé el fixture antes de agregarlo");
+        }
 
         Equipo equipo = new Equipo();
         equipo.setNombre(requestDTO.getNombre());
@@ -157,6 +164,65 @@ public class EquipoService {
         crearInscripcionSiFalta(equipoGuardado, torneo);
         reclamos.invitarGestionPorEmail(equipoGuardado, torneo, usuarioActual(), equipoGuardado.getEmailContacto());
         return convertirAResponseDTO(equipoGuardado);
+    }
+
+    public List<EquipoResponseDTO> cargarEquiposPorNombre(Long idTorneo, List<String> nombresCrudos) {
+        authorization.verificarGestion(idTorneo);
+        Torneo torneo = torneoRepository.findById(idTorneo)
+                .orElseThrow(() -> new ResourceNotFoundException("Torneo no encontrado con id: " + idTorneo));
+        if (!partidoRepository.findByTorneoIdTorneo(idTorneo).isEmpty()) {
+            throw new IllegalArgumentException("No podés modificar los participantes después de generar el fixture");
+        }
+        var nombres = nombresCrudos.stream().map(value -> value == null ? "" : value.trim())
+                .filter(value -> !value.isBlank()).toList();
+        if (nombres.isEmpty()) throw new IllegalArgumentException("Ingresá al menos un nombre de equipo");
+        if (nombres.stream().map(String::toLowerCase).distinct().count() != nombres.size()) {
+            throw new IllegalArgumentException("La lista contiene nombres repetidos");
+        }
+        var activas = inscripcionesEquipo.findByTorneoIdTorneoAndEstado(idTorneo, "ACTIVA");
+        var placeholders = activas.stream().map(InscripcionEquipo::getEquipo)
+                .filter(this::esEquipoProvisorio)
+                .iterator();
+        long reales = activas.stream().map(InscripcionEquipo::getEquipo)
+                .filter(team -> !esEquipoProvisorio(team)).count();
+        int capacidad = torneo.getCantidadEquipos() == null ? 2 : torneo.getCantidadEquipos();
+        if (reales + nombres.size() > capacidad) {
+            throw new IllegalArgumentException("Solo quedan " + Math.max(0, capacidad - reales) + " lugares disponibles en el torneo");
+        }
+        var resultado = new java.util.ArrayList<EquipoResponseDTO>();
+        for (String nombre : nombres) {
+            Equipo equipo;
+            if (placeholders.hasNext()) {
+                equipo = placeholders.next();
+                equipo.setNombre(nombre);
+                equipo.setDescripcion("Equipo cargado rápidamente. Podés completar todos sus datos desde Editar equipo.");
+                equipo = equipoRepository.save(equipo);
+                resultado.add(convertirAResponseDTO(equipo));
+            } else {
+                EquipoRequestDTO request = new EquipoRequestDTO();
+                request.setNombre(nombre); request.setColorCamiseta("A definir"); request.setBarrio(torneo.getUbicacion());
+                request.setResponsable(usuarioActual().getNombre()); request.setTelefonoContacto("A definir");
+                request.setEstado("ACTIVO"); request.setIdTorneo(idTorneo);
+                resultado.add(crearEquipo(request));
+            }
+        }
+        return resultado;
+    }
+
+    public CargaRapidaTorneoResponseDTO cargaRapida(Long idTorneo, CargaRapidaTorneoRequestDTO request) {
+        var equiposCargados = cargarEquiposPorNombre(idTorneo, request.nombresEquipos());
+        for (EquipoResponseDTO equipo : equiposCargados) {
+            var inscripcion = inscripcionesEquipo.findByEquipoIdEquipoAndTorneoIdTorneo(
+                    equipo.getIdEquipo(), idTorneo)
+                    .orElseThrow(() -> new IllegalStateException("No se pudo preparar el plantel de " + equipo.getNombre()));
+            var nombresProvisorios = java.util.stream.IntStream.rangeClosed(1, request.jugadoresPorEquipo())
+                    .mapToObj(numero -> "Jugador " + numero)
+                    .toList();
+            inscripcionService.cargarJugadoresPorNombre(inscripcion.getIdInscripcion(), nombresProvisorios);
+        }
+        return new CargaRapidaTorneoResponseDTO(
+                equiposCargados,
+                equiposCargados.size() * request.jugadoresPorEquipo());
     }
 
     public EquipoResponseDTO actualizarEquipo(Long id, EquipoRequestDTO requestDTO) {
@@ -235,6 +301,11 @@ public class EquipoService {
 
     private String normalizarOpcional(String valor) {
         return valor == null || valor.isBlank() ? null : valor.trim();
+    }
+
+    private boolean esEquipoProvisorio(Equipo equipo) {
+        return equipo.getDescripcion() != null
+                && equipo.getDescripcion().toLowerCase(java.util.Locale.ROOT).startsWith("equipo de prueba generado");
     }
 
     private void crearInscripcionSiFalta(Equipo equipo, Torneo torneo) {

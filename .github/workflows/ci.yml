@@ -44,6 +44,9 @@ jobs:
       - name: Lint
         working-directory: futapp-front
         run: npm run lint
+      - name: Tests
+        working-directory: futapp-front
+        run: npm test
       - name: Production build
         working-directory: futapp-front
         run: npm run build

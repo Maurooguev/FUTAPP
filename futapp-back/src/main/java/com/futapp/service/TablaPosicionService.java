@@ -33,7 +33,8 @@ public class TablaPosicionService {
     public List<TablaPosicionDTO> obtenerTablaPorTorneo(Long idTorneo) {
         var torneo = torneoRepository.findById(idTorneo).orElseThrow();
         visibility.verificar(torneo);
-        List<Equipo> equipos = inscripcionesEquipo.findByTorneoIdTorneoAndEstado(idTorneo, "ACTIVA")
+        // Las bajas deben conservar su fila y todos los resultados ya disputados.
+        List<Equipo> equipos = inscripcionesEquipo.findByTorneoIdTorneo(idTorneo)
                 .stream().map(inscripcion -> inscripcion.getEquipo()).toList();
         List<Partido> partidos = partidoRepository.findByTorneoIdTorneo(idTorneo);
 

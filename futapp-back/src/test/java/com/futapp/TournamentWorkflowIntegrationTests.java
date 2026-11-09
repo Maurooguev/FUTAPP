@@ -31,6 +31,95 @@ class TournamentWorkflowIntegrationTests {
     @Autowired private TorneoRepository torneoRepository;
 
     @Test
+    void cargaEquiposPorListaEnUnTorneoVacio() throws Exception {
+        String token = registrarOrganizador();
+        Map<String, Object> request = torneo();
+        request.put("cantidadEquipos", 8);
+        long torneoId = postJson("/torneos", token, request).get("idTorneo").asLong();
+
+        postJson("/equipos/torneo/" + torneoId + "/lote", token, Map.of("nombres", java.util.List.of(
+                "Boca Juniors", "Newells", "Racing", "Lobos", "Velez", "Suiza", "Cero Quimica", "Turcos"
+        )));
+
+        mockMvc.perform(get("/equipos/torneo/{id}", torneoId)
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", org.hamcrest.Matchers.hasSize(8)))
+                .andExpect(jsonPath("$[0].nombre").value("Boca Juniors"));
+    }
+
+    @Test
+    void cargaRapidaCreaEquiposYPlantelesEnUnaSolaOperacion() throws Exception {
+        String token = registrarOrganizador();
+        Map<String, Object> request = torneo();
+        request.put("cantidadEquipos", 4);
+        long torneoId = postJson("/torneos", token, request).get("idTorneo").asLong();
+
+        JsonNode carga = postJson("/equipos/torneo/" + torneoId + "/carga-rapida", token, Map.of(
+                "nombresEquipos", java.util.List.of("Los Pibes", "Racing"),
+                "jugadoresPorEquipo", 3));
+
+        org.junit.jupiter.api.Assertions.assertEquals(2, carga.get("equipos").size());
+        org.junit.jupiter.api.Assertions.assertEquals(6, carga.get("jugadoresCreados").asInt());
+        for (JsonNode equipo : carga.get("equipos")) {
+            String historial = mockMvc.perform(get("/inscripciones/equipos/{id}", equipo.get("idEquipo").asLong())
+                            .header("Authorization", "Bearer " + token))
+                    .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+            long inscripcionId = jsonMapper.readTree(historial).get(0).get("idInscripcion").asLong();
+            mockMvc.perform(get("/inscripciones/{id}/jugadores", inscripcionId)
+                            .header("Authorization", "Bearer " + token))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$", org.hamcrest.Matchers.hasSize(3)))
+                    .andExpect(jsonPath("$[0].posicion").value(org.hamcrest.Matchers.nullValue()));
+        }
+    }
+
+    @Test
+    void cargaRapidaInvalidaNoCreaEquiposParciales() throws Exception {
+        String token = registrarOrganizador();
+        long torneoId = postJson("/torneos", token, torneo()).get("idTorneo").asLong();
+
+        mockMvc.perform(post("/equipos/torneo/{id}/carga-rapida", torneoId)
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonMapper.writeValueAsString(Map.of(
+                                "nombresEquipos", java.util.List.of("Racing", "racing"),
+                                "jugadoresPorEquipo", 5))))
+                .andExpect(status().isBadRequest());
+
+        mockMvc.perform(get("/equipos/torneo/{id}", torneoId)
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", org.hamcrest.Matchers.hasSize(0)));
+    }
+
+    @Test
+    void cargaRapidaReemplazaCuposProvisoriosYRespetaLaCantidadElegida() throws Exception {
+        String token = registrarOrganizador();
+        Map<String, Object> request = torneo();
+        request.put("generarEquiposPrueba", true);
+        request.put("jugadoresPorEquipoPrueba", 5);
+        long torneoId = postJson("/torneos", token, request).get("idTorneo").asLong();
+
+        JsonNode carga = postJson("/equipos/torneo/" + torneoId + "/carga-rapida", token, Map.of(
+                "nombresEquipos", java.util.List.of("Barrio Uno", "Barrio Dos"),
+                "jugadoresPorEquipo", 3));
+
+        for (JsonNode equipo : carga.get("equipos")) {
+            String historial = mockMvc.perform(get("/inscripciones/equipos/{id}", equipo.get("idEquipo").asLong())
+                            .header("Authorization", "Bearer " + token))
+                    .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+            long inscripcionId = jsonMapper.readTree(historial).get(0).get("idInscripcion").asLong();
+            mockMvc.perform(get("/inscripciones/{id}/jugadores", inscripcionId)
+                            .header("Authorization", "Bearer " + token))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$", org.hamcrest.Matchers.hasSize(3)))
+                    .andExpect(jsonPath("$[*].nombreJugador", org.hamcrest.Matchers.contains(
+                            "Jugador 1", "Jugador 2", "Jugador 3")));
+        }
+    }
+
+    @Test
     void completaElCircuitoPrincipalDeUnTorneo() throws Exception {
         String token = registrarOrganizador();
 
@@ -139,7 +228,7 @@ class TournamentWorkflowIntegrationTests {
 
         postJson("/goles", token, Map.of("minuto", 12, "tipoGol", "Jugada", "idPartido", partidoId,
                 "idJugador", jugadorLocal.get("idJugador").asLong(), "idEquipo", local.get("idEquipo").asLong()));
-        postJson("/goles", token, Map.of("minuto", 22, "tipoGol", "Jugada", "idPartido", partidoId,
+        postJson("/goles", token, Map.of("tipoGol", "Jugada", "idPartido", partidoId,
                 "idJugador", jugadorLocal.get("idJugador").asLong(), "idEquipo", local.get("idEquipo").asLong()));
         postJson("/goles", token, Map.of("minuto", 52, "tipoGol", "Jugada", "idPartido", partidoId,
                 "idJugador", jugadorLocal.get("idJugador").asLong(), "idEquipo", local.get("idEquipo").asLong()));
@@ -183,7 +272,7 @@ class TournamentWorkflowIntegrationTests {
         mockMvc.perform(put("/tarjetas/{id}", tarjeta.get("idTarjeta").asLong())
                         .header("Authorization", "Bearer " + token)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(jsonMapper.writeValueAsString(Map.of("minuto", 72, "tipoTarjeta", "ROJA",
+                        .content(jsonMapper.writeValueAsString(Map.of("minuto", 72, "tipoTarjeta", "ROJA", "fechasSuspension", 2,
                                 "motivo", "Doble amarilla", "idPartido", partidoId,
                                 "idJugador", jugadorVisitante.get("idJugador").asLong(),
                                 "idEquipo", visitante.get("idEquipo").asLong()))))
@@ -194,9 +283,9 @@ class TournamentWorkflowIntegrationTests {
         String sancionesJson = mockMvc.perform(get("/sanciones/torneo/{id}", torneoId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", org.hamcrest.Matchers.hasSize(1)))
-                .andExpect(jsonPath("$[0].fechasTotal").value(1))
+                .andExpect(jsonPath("$[0].fechasTotal").value(2))
                 .andExpect(jsonPath("$[0].fechasCumplidas").value(0))
-                .andExpect(jsonPath("$[0].fechasRestantes").value(1))
+                .andExpect(jsonPath("$[0].fechasRestantes").value(2))
                 .andExpect(jsonPath("$[0].activa").value(true))
                 .andReturn().getResponse().getContentAsString();
         long sancionId = jsonMapper.readTree(sancionesJson).get(0).get("idSancion").asLong();
@@ -245,6 +334,41 @@ class TournamentWorkflowIntegrationTests {
                 Map.of("golesLocal", 0, "golesVisitante", 0))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("El torneo está finalizado y su historial ya no se puede modificar"));
+    }
+
+    @Test
+    void unaRojaBloqueaAlJugadorEnLasFechasSiguientes() throws Exception {
+        String token = registrarOrganizador();
+        long torneoId = postJson("/torneos", token, torneo()).get("idTorneo").asLong();
+        long local = postJson("/equipos", token, equipo("Local disciplinario", "Azul", torneoId)).get("idEquipo").asLong();
+        long visitante = postJson("/equipos", token, equipo("Visitante disciplinario", "Rojo", torneoId)).get("idEquipo").asLong();
+        long expulsado = postJson("/jugadores", token, jugador("Jugador", "Expulsado", 9, local)).get("idJugador").asLong();
+
+        long fechaUno = postJson("/fechas", token, Map.of("numeroFecha", 1, "descripcion", "Fecha 1", "estado", "PROGRAMADA", "idTorneo", torneoId)).get("idFecha").asLong();
+        long partidoUno = postJson("/partidos", token, Map.of("fechaHora", "2026-09-05T14:00:00", "estado", "PROGRAMADO",
+                "idTorneo", torneoId, "idFecha", fechaUno, "idEquipoLocal", local, "idEquipoVisitante", visitante)).get("idPartido").asLong();
+        putJson("/partidos/" + partidoUno + "/resultado", token, Map.of("golesLocal", 0, "golesVisitante", 0)).andExpect(status().isOk());
+        postJson("/tarjetas", token, Map.of("tipoTarjeta", "ROJA", "fechasSuspension", 2, "idPartido", partidoUno,
+                "idJugador", expulsado, "idEquipo", local));
+
+        long fechaDos = postJson("/fechas", token, Map.of("numeroFecha", 2, "descripcion", "Fecha 2", "estado", "PROGRAMADA", "idTorneo", torneoId)).get("idFecha").asLong();
+        long partidoDos = postJson("/partidos", token, Map.of("fechaHora", "2026-09-12T14:00:00", "estado", "PROGRAMADO",
+                "idTorneo", torneoId, "idFecha", fechaDos, "idEquipoLocal", local, "idEquipoVisitante", visitante)).get("idPartido").asLong();
+        putJson("/partidos/" + partidoDos + "/resultado", token, Map.of("golesLocal", 1, "golesVisitante", 0)).andExpect(status().isOk());
+
+        mockMvc.perform(get("/partidos/{id}/jugadores", partidoDos).header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[?(@.idJugador == " + expulsado + ")].suspendido")
+                        .value(org.hamcrest.Matchers.contains(true)));
+        mockMvc.perform(post("/goles").header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonMapper.writeValueAsString(Map.of("tipoGol", "Jugada", "idPartido", partidoDos,
+                                "idJugador", expulsado, "idEquipo", local))))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("El jugador está suspendido para esta fecha y no puede participar"));
+        putJson("/partidos/" + partidoDos + "/mvp", token, Map.of("idJugador", expulsado))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("El jugador está suspendido para esta fecha y no puede ser elegido MVP"));
     }
 
     @Test
@@ -630,11 +754,72 @@ class TournamentWorkflowIntegrationTests {
         long torneoDos = postJson("/torneos", organizador, torneo()).get("idTorneo").asLong();
         Map<String, Object> clubDuplicado = equipo("Club duplicado", "Rojo", torneoDos);
         clubDuplicado.put("emailContacto", emailDirector);
-        postJson("/equipos", organizador, clubDuplicado);
-        mockMvc.perform(get("/reclamos/pendientes").header("Authorization", "Bearer " + director))
+        JsonNode duplicado = postJson("/equipos", organizador, clubDuplicado);
+        long clubDuplicadoId = duplicado.get("idEquipo").asLong();
+        String codigoDuplicado = duplicado.get("codigoPublico").asString();
+        long jugadorDuplicadoId = postJson("/jugadores", organizador,
+                jugador("Jugador", "Del duplicado", 10, clubDuplicadoId)).get("idJugador").asLong();
+        String solicitudFusion = mockMvc.perform(get("/reclamos/pendientes")
+                        .header("Authorization", "Bearer " + director))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].tipo").value("FUSION_EQUIPO"))
-                .andExpect(jsonPath("$[0].idEquipoDestino").value((int) clubUnoId));
+                .andExpect(jsonPath("$[0].idEquipo").value((int) clubDuplicadoId))
+                .andExpect(jsonPath("$[0].idEquipoDestino").value((int) clubUnoId))
+                .andReturn().getResponse().getContentAsString();
+        long solicitudFusionId = jsonMapper.readTree(solicitudFusion).get(0).get("idSolicitud").asLong();
+
+        putJson("/reclamos/" + solicitudFusionId + "/aprobar", director, null)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.estado").value("APROBADA"));
+        mockMvc.perform(get("/equipos/{id}", clubDuplicadoId)
+                        .header("Authorization", "Bearer " + director))
+                .andExpect(status().isNotFound());
+        mockMvc.perform(get("/equipos/codigo/{codigo}", codigoDuplicado)
+                        .header("Authorization", "Bearer " + director))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.idEquipo").value((int) clubUnoId));
+        mockMvc.perform(get("/inscripciones/equipos/{id}", clubUnoId)
+                        .header("Authorization", "Bearer " + director))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", org.hamcrest.Matchers.hasSize(2)))
+                .andExpect(jsonPath("$[*].idTorneo", org.hamcrest.Matchers.containsInAnyOrder(
+                        (int) torneoUno, (int) torneoDos)));
+        mockMvc.perform(get("/jugadores/{id}", jugadorDuplicadoId)
+                        .header("Authorization", "Bearer " + director))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.idEquipo").value((int) clubUnoId));
+    }
+
+    @Test
+    void impideMoverUnJugadorDesdeLaEdicionYConservaSuHistorial() throws Exception {
+        String organizador = registrarOrganizador();
+        long torneoId = postJson("/torneos", organizador, torneo()).get("idTorneo").asLong();
+        long equipoOrigen = postJson("/equipos", organizador,
+                equipo("Equipo origen", "Azul", torneoId)).get("idEquipo").asLong();
+        long equipoDestino = postJson("/equipos", organizador,
+                equipo("Equipo destino", "Rojo", torneoId)).get("idEquipo").asLong();
+        long jugadorId = postJson("/jugadores", organizador,
+                jugador("Jugador", "Sin transferencia", 8, equipoOrigen)).get("idJugador").asLong();
+
+        mockMvc.perform(put("/jugadores/{id}", jugadorId)
+                        .header("Authorization", "Bearer " + organizador)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonMapper.writeValueAsString(
+                                jugador("Jugador", "Sin transferencia", 8, equipoDestino))))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value(
+                        "Un jugador no se puede mover a otro equipo desde la edición"));
+
+        mockMvc.perform(get("/jugadores/{id}", jugadorId)
+                        .header("Authorization", "Bearer " + organizador))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.idEquipo").value((int) equipoOrigen));
+        mockMvc.perform(get("/inscripciones/jugadores/{id}", jugadorId)
+                        .header("Authorization", "Bearer " + organizador))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", org.hamcrest.Matchers.hasSize(1)))
+                .andExpect(jsonPath("$[0].idEquipo").value((int) equipoOrigen))
+                .andExpect(jsonPath("$[0].estado").value("ACTIVA"));
     }
 
     @Test
@@ -811,6 +996,65 @@ class TournamentWorkflowIntegrationTests {
     }
 
     @Test
+    void respetaLaCantidadElegidaDeClasificadosEnLigaConPlayoffs() throws Exception {
+        String token = registrarOrganizador();
+        Map<String, Object> request = new LinkedHashMap<>(torneo());
+        request.put("formato", "Liga + Playoffs");
+        request.put("cantidadEquipos", 8);
+        request.put("clasificadosPlayoff", 4);
+        request.put("generarEquiposPrueba", false);
+
+        JsonNode creado = postJson("/torneos", token, request);
+        long torneoId = creado.get("idTorneo").asLong();
+        org.junit.jupiter.api.Assertions.assertEquals(4, creado.get("clasificadosPlayoff").asInt());
+
+        mockMvc.perform(get("/torneos/{id}/estructura", torneoId)
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.divisiones[0].fases[1].clasificados").value(4))
+                .andExpect(jsonPath("$.divisiones[0].cupos", org.hamcrest.Matchers.hasSize(8)))
+                .andExpect(jsonPath("$.divisiones[0].cupos[0].idEquipo").value(org.hamcrest.Matchers.nullValue()));
+    }
+
+    @Test
+    void rechazaUnaClasificacionQueNoFormaUnaLlaveValida() throws Exception {
+        String token = registrarOrganizador();
+        Map<String, Object> request = new LinkedHashMap<>(torneo());
+        request.put("formato", "Zonas + Playoffs");
+        request.put("cantidadEquipos", 12);
+        request.put("cantidadZonas", 3);
+        request.put("clasificadosPorZona", 2);
+
+        mockMvc.perform(post("/torneos")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("La clasificación debe formar una llave de 2, 4, 8 o 16 equipos"));
+    }
+
+    @Test
+    void reconstruyeUnaEstructuraVaciaPeroProtegeLaQueYaTieneEquipos() throws Exception {
+        String token = registrarOrganizador();
+        Map<String, Object> request = new LinkedHashMap<>(torneo());
+        long torneoId = postJson("/torneos", token, request).get("idTorneo").asLong();
+
+        request.put("cantidadEquipos", 6);
+        putJson("/torneos/" + torneoId, token, request)
+                .andExpect(status().isOk()).andExpect(jsonPath("$.cantidadEquipos").value(6));
+        mockMvc.perform(get("/torneos/{id}/estructura", torneoId)
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.divisiones[0].cupos", org.hamcrest.Matchers.hasSize(6)));
+
+        postJson("/equipos", token, equipo("Club real", "Azul", torneoId));
+        request.put("cantidadEquipos", 8);
+        putJson("/torneos/" + torneoId, token, request)
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Quitá los equipos inscriptos antes de reconstruir la estructura del torneo"));
+    }
+
+    @Test
     void generaLaPrimeraLlaveDeEliminacionDirecta() throws Exception {
         String token = registrarOrganizador();
         Map<String, Object> request = new LinkedHashMap<>(torneo());
@@ -858,6 +1102,46 @@ class TournamentWorkflowIntegrationTests {
         putJson("/torneos/" + torneoId + "/finalizar", token, null)
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.nombreCampeon").value(finalPartido.get("nombreEquipoLocal").asString()));
+    }
+
+    @Test
+    void unaLlaveNoAvanzaConPartidosSuspendidosNiEmpatesSinPenales() throws Exception {
+        String token = registrarOrganizador();
+        Map<String, Object> request = new LinkedHashMap<>(torneo());
+        request.put("formato", "Eliminación directa");
+        request.put("cantidadEquipos", 4);
+        request.put("generarEquiposPrueba", true);
+        long torneoId = postJson("/torneos", token, request).get("idTorneo").asLong();
+        JsonNode semifinales = postJson("/partidos/torneo/" + torneoId + "/generar-fixture", token, Map.of(
+                "fechaInicio", "2026-09-05", "horaInicio", "14:00", "diasEntreJornadas", 7,
+                "minutosEntrePartidos", 60, "cancha", "Cancha principal"));
+
+        putJson("/partidos/" + semifinales.get(0).get("idPartido").asLong() + "/resultado", token,
+                Map.of("golesLocal", 1, "golesVisitante", 1))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message", org.hamcrest.Matchers.containsString("penales")));
+        putJson("/partidos/" + semifinales.get(0).get("idPartido").asLong() + "/resultado", token,
+                Map.of("golesLocal", 1, "golesVisitante", 1, "penalesLocal", 4, "penalesVisitante", 3))
+                .andExpect(status().isOk());
+        putJson("/partidos/" + semifinales.get(1).get("idPartido").asLong() + "/estado", token,
+                Map.of("estado", "SUSPENDIDO", "motivo", "Lluvia"))
+                .andExpect(status().isOk());
+        mockMvc.perform(post("/partidos/torneo/{id}/generar-siguiente-llave", torneoId)
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Cargá todos los resultados de la ronda antes de generar la siguiente"));
+
+        putJson("/partidos/" + semifinales.get(1).get("idPartido").asLong() + "/estado", token,
+                Map.of("estado", "PROGRAMADO", "motivo", "Reprogramado"))
+                .andExpect(status().isOk());
+        putJson("/partidos/" + semifinales.get(1).get("idPartido").asLong() + "/resultado", token,
+                Map.of("golesLocal", 2, "golesVisitante", 0)).andExpect(status().isOk());
+        JsonNode finalPartidos = postJson("/partidos/torneo/" + torneoId + "/generar-siguiente-llave", token, null);
+        org.junit.jupiter.api.Assertions.assertEquals(1, finalPartidos.size());
+        putJson("/partidos/" + finalPartidos.get(0).get("idPartido").asLong() + "/resultado", token,
+                Map.of("golesLocal", 0, "golesVisitante", 0))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message", org.hamcrest.Matchers.containsString("penales")));
     }
 
     @Test
@@ -923,6 +1207,46 @@ class TournamentWorkflowIntegrationTests {
     }
 
     @Test
+    void unaJornadaSuspendidaExplicaElPartidoPendienteYNoActivaLaSiguiente() throws Exception {
+        String token = registrarOrganizador();
+        Map<String, Object> request = new LinkedHashMap<>(torneo());
+        request.put("cantidadEquipos", 2);
+        request.put("generarEquiposPrueba", true);
+        request.put("jugadoresPorEquipoPrueba", 1);
+        request.put("idaVuelta", true);
+        long torneoId = postJson("/torneos", token, request).get("idTorneo").asLong();
+        JsonNode fixture = postJson("/partidos/torneo/" + torneoId + "/generar-fixture", token, Map.of(
+                "fechaInicio", "2026-09-05", "horaInicio", "14:00", "diasEntreJornadas", 7,
+                "minutosEntrePartidos", 60, "cancha", "Cancha principal"));
+        JsonNode primerPartido = fixture.get(0);
+        JsonNode segundoPartido = fixture.get(1);
+
+        putJson("/partidos/" + primerPartido.get("idPartido").asLong() + "/estado", token,
+                Map.of("estado", "SUSPENDIDO", "motivo", "Lluvia"))
+                .andExpect(status().isOk());
+        putJson("/fechas/" + primerPartido.get("idFecha").asLong() + "/cerrar", token, null)
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message", org.hamcrest.Matchers.containsString("Equipo 1 vs Equipo 2")))
+                .andExpect(jsonPath("$.message", org.hamcrest.Matchers.containsString("suspendido")));
+        mockMvc.perform(get("/fechas/{id}", segundoPartido.get("idFecha").asLong())
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.estado").value("PENDIENTE"));
+
+        putJson("/partidos/" + primerPartido.get("idPartido").asLong() + "/estado", token,
+                Map.of("estado", "PROGRAMADO", "motivo", "Reprogramado"))
+                .andExpect(status().isOk());
+        putJson("/partidos/" + primerPartido.get("idPartido").asLong() + "/resultado", token,
+                Map.of("golesLocal", 1, "golesVisitante", 0)).andExpect(status().isOk());
+        putJson("/fechas/" + primerPartido.get("idFecha").asLong() + "/cerrar", token, null)
+                .andExpect(status().isOk()).andExpect(jsonPath("$.estado").value("FINALIZADA"));
+        mockMvc.perform(get("/fechas/{id}", segundoPartido.get("idFecha").asLong())
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.estado").value("ACTIVA"));
+    }
+
+    @Test
     void conservaPasesLibresConSeisEquipos() throws Exception {
         String token = registrarOrganizador();
         Map<String, Object> request = new LinkedHashMap<>(torneo());
@@ -961,6 +1285,159 @@ class TournamentWorkflowIntegrationTests {
                         .header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk()).andExpect(jsonPath("$", org.hamcrest.Matchers.hasSize(1)))
                 .andExpect(jsonPath("$[0].golesLocalNuevo").value(2));
+    }
+
+    @Test
+    void alInscribirUnClubEnOtroTorneoElDirectorEligeElPlantel() throws Exception {
+        String organizador = registrarOrganizador();
+        long torneoOrigen = postJson("/torneos", organizador, torneo()).get("idTorneo").asLong();
+        long club = postJson("/equipos", organizador, equipo("Club convocable", "Azul", torneoOrigen))
+                .get("idEquipo").asLong();
+        long otroClub = postJson("/equipos", organizador, equipo("Club rival", "Rojo", torneoOrigen))
+                .get("idEquipo").asLong();
+        long jugadorClub = postJson("/jugadores", organizador, jugador("Jugador", "Del club", 7, club))
+                .get("idJugador").asLong();
+        long jugadorAjeno = postJson("/jugadores", organizador, jugador("Jugador", "Ajeno", 9, otroClub))
+                .get("idJugador").asLong();
+
+        long torneoDestino = postJson("/torneos", organizador, torneo()).get("idTorneo").asLong();
+        JsonNode inscripcion = postJson("/inscripciones/equipos", organizador,
+                Map.of("idEquipo", club, "idTorneo", torneoDestino, "categoria", "Primera"));
+        long idInscripcion = inscripcion.get("idInscripcion").asLong();
+
+        mockMvc.perform(get("/inscripciones/{id}/jugadores", idInscripcion)
+                        .header("Authorization", "Bearer " + organizador))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", org.hamcrest.Matchers.hasSize(0)));
+
+        postJson("/inscripciones/" + idInscripcion + "/jugadores", organizador,
+                Map.of("idJugador", jugadorClub, "numeroCamiseta", 7, "posicion", "Delantero"));
+        mockMvc.perform(get("/inscripciones/{id}/jugadores", idInscripcion)
+                        .header("Authorization", "Bearer " + organizador))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", org.hamcrest.Matchers.hasSize(1)))
+                .andExpect(jsonPath("$[0].idJugador").value((int) jugadorClub));
+
+        mockMvc.perform(post("/inscripciones/{id}/jugadores", idInscripcion)
+                        .header("Authorization", "Bearer " + organizador)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonMapper.writeValueAsString(Map.of(
+                                "idJugador", jugadorAjeno, "numeroCamiseta", 9, "posicion", "Delantero"))))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Solo podés convocar jugadores que pertenezcan a este club"));
+    }
+
+    @Test
+    void bajaConWalkoverConservaResultadosJugadosYResuelveLosPendientes() throws Exception {
+        String organizador = registrarOrganizador();
+        String ajeno = registrarOrganizador();
+        Map<String, Object> request = new LinkedHashMap<>(torneo());
+        request.put("cantidadEquipos", 4);
+        long torneoId = postJson("/torneos", organizador, request).get("idTorneo").asLong();
+        long equipoBaja = postJson("/equipos", organizador, equipo("Equipo saliente", "Azul", torneoId))
+                .get("idEquipo").asLong();
+        for (int indice = 1; indice <= 3; indice++) {
+            postJson("/equipos", organizador, equipo("Rival " + indice, "Rojo", torneoId));
+        }
+        for (int indice = 1; indice <= 2; indice++) {
+            postJson("/jugadores", organizador,
+                    jugador("Jugador" + indice, "Saliente", indice, equipoBaja));
+        }
+
+        JsonNode fixture = postJson("/partidos/torneo/" + torneoId + "/generar-fixture", organizador, Map.of(
+                "fechaInicio", "2026-09-05", "horaInicio", "14:00", "diasEntreJornadas", 7,
+                "minutosEntrePartidos", 60, "cancha", "Cancha principal"));
+        java.util.List<JsonNode> partidosDelEquipo = new java.util.ArrayList<>();
+        fixture.forEach(partido -> {
+            if (partido.get("idEquipoLocal").asLong() == equipoBaja
+                    || partido.get("idEquipoVisitante").asLong() == equipoBaja) {
+                partidosDelEquipo.add(partido);
+            }
+        });
+        org.junit.jupiter.api.Assertions.assertEquals(3, partidosDelEquipo.size());
+        JsonNode jugado = partidosDelEquipo.get(0);
+        putJson("/partidos/" + jugado.get("idPartido").asLong() + "/resultado", organizador,
+                Map.of("golesLocal", 2, "golesVisitante", 1)).andExpect(status().isOk());
+
+        mockMvc.perform(put("/inscripciones/equipos/torneo/{torneo}/equipo/{equipo}/baja",
+                        torneoId, equipoBaja)
+                        .header("Authorization", "Bearer " + ajeno)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonMapper.writeValueAsString(Map.of(
+                                "resolucionPartidos", "WALKOVER", "motivo", "Baja administrativa"))))
+                .andExpect(status().isForbidden());
+
+        putJson("/inscripciones/equipos/torneo/" + torneoId + "/equipo/" + equipoBaja + "/baja",
+                organizador, Map.of("resolucionPartidos", "WALKOVER", "motivo", "Baja administrativa"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.estado").value("BAJA"))
+                .andExpect(jsonPath("$.cantidadJugadores").value(0));
+
+        mockMvc.perform(get("/partidos/{id}", jugado.get("idPartido").asLong())
+                        .header("Authorization", "Bearer " + organizador))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.estado").value("FINALIZADO"))
+                .andExpect(jsonPath("$.golesLocal").value(2))
+                .andExpect(jsonPath("$.golesVisitante").value(1));
+
+        for (JsonNode pendiente : partidosDelEquipo.subList(1, partidosDelEquipo.size())) {
+            boolean salienteEsLocal = pendiente.get("idEquipoLocal").asLong() == equipoBaja;
+            mockMvc.perform(get("/partidos/{id}", pendiente.get("idPartido").asLong())
+                            .header("Authorization", "Bearer " + organizador))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.estado").value("FINALIZADO"))
+                    .andExpect(jsonPath("$.golesLocal").value(salienteEsLocal ? 0 : 3))
+                    .andExpect(jsonPath("$.golesVisitante").value(salienteEsLocal ? 3 : 0))
+                    .andExpect(jsonPath("$.observaciones").value(
+                            org.hamcrest.Matchers.containsString("Baja de Equipo Saliente")));
+        }
+
+        String historial = mockMvc.perform(get("/inscripciones/equipos/{id}", equipoBaja)
+                        .header("Authorization", "Bearer " + organizador))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].estado").value("BAJA"))
+                .andReturn().getResponse().getContentAsString();
+        long inscripcionId = jsonMapper.readTree(historial).get(0).get("idInscripcion").asLong();
+        mockMvc.perform(get("/inscripciones/{id}/jugadores", inscripcionId)
+                        .header("Authorization", "Bearer " + organizador))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", org.hamcrest.Matchers.hasSize(2)))
+                .andExpect(jsonPath("$[*].estado", org.hamcrest.Matchers.everyItem(
+                        org.hamcrest.Matchers.is("INACTIVA"))));
+
+        mockMvc.perform(get("/torneos/{id}/tabla", torneoId)
+                        .header("Authorization", "Bearer " + organizador))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[?(@.idEquipo == " + equipoBaja + ")]").exists());
+    }
+
+    @Test
+    void bajaConCancelacionNoOtorgaPuntosNiInventaUnResultado() throws Exception {
+        String organizador = registrarOrganizador();
+        long torneoId = postJson("/torneos", organizador, torneo()).get("idTorneo").asLong();
+        long equipoBaja = postJson("/equipos", organizador, equipo("Equipo cancelado", "Azul", torneoId))
+                .get("idEquipo").asLong();
+        postJson("/equipos", organizador, equipo("Equipo restante", "Rojo", torneoId));
+        JsonNode fixture = postJson("/partidos/torneo/" + torneoId + "/generar-fixture", organizador, Map.of(
+                "fechaInicio", "2026-09-05", "horaInicio", "14:00", "diasEntreJornadas", 7,
+                "minutosEntrePartidos", 60, "cancha", "Cancha principal"));
+        long partidoId = fixture.get(0).get("idPartido").asLong();
+
+        putJson("/inscripciones/equipos/torneo/" + torneoId + "/equipo/" + equipoBaja + "/baja",
+                organizador, Map.of("resolucionPartidos", "CANCELAR", "motivo", "No continúa"))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(get("/partidos/{id}", partidoId)
+                        .header("Authorization", "Bearer " + organizador))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.estado").value("CANCELADO"))
+                .andExpect(jsonPath("$.golesLocal").value(org.hamcrest.Matchers.nullValue()))
+                .andExpect(jsonPath("$.golesVisitante").value(org.hamcrest.Matchers.nullValue()));
+        mockMvc.perform(get("/torneos/{id}/tabla", torneoId)
+                        .header("Authorization", "Bearer " + organizador))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[*].puntos", org.hamcrest.Matchers.everyItem(
+                        org.hamcrest.Matchers.is(0))));
     }
 
     private String registrarOrganizador() throws Exception {

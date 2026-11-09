@@ -6,7 +6,6 @@ public class ReclamoController {
  @PostMapping("/equipos/{id}") public ReclamoResponseDTO equipo(@PathVariable Long id,@RequestBody ReclamoRequestDTO r){return service.reclamarEquipo(id,r);}
  @PostMapping("/jugadores/{id}") public ReclamoResponseDTO jugador(@PathVariable Long id,@RequestBody ReclamoRequestDTO r){return service.reclamarJugador(id,r);}
  @PostMapping("/jugadores/{id}/cambios") public ReclamoResponseDTO cambiosJugador(@PathVariable Long id,@jakarta.validation.Valid @RequestBody CambioJugadorRequestDTO r){return service.solicitarCambioJugador(id,r);}
- @PostMapping("/equipos/{id}/fusionar/{codigo}") public ReclamoResponseDTO fusion(@PathVariable Long id,@PathVariable String codigo,@RequestBody ReclamoRequestDTO r){return service.solicitarFusion(id,codigo,r);}
  @PostMapping("/equipos/{id}/invitar") public ReclamoResponseDTO invitar(@PathVariable Long id,@RequestBody ReclamoRequestDTO r){return service.invitarEquipoATorneo(id,r);}
  @GetMapping("/pendientes") public List<ReclamoResponseDTO> pendientes(){return service.pendientes();}
  @GetMapping("/revisables") public List<ReclamoResponseDTO> revisables(){return service.revisables();}

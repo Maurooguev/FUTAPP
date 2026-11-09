@@ -142,15 +142,15 @@
 
 @media (max-width: 768px) {
   .main-header {
-    padding: calc(8px + env(safe-area-inset-top)) 12px 9px;
+    padding: calc(6px + env(safe-area-inset-top)) 10px 7px;
     flex-wrap: wrap;
     gap: 8px;
     backdrop-filter: none;
   }
 
-  .header-inner { width: 100%; flex-wrap: wrap; gap: 8px; }
+  .header-inner { width: 100%; flex-wrap: wrap; gap: 6px 8px; }
 
-  .header-search { order: 3; flex-basis: 100%; max-width: none; min-height: 44px; padding-inline: 12px; }
+  .header-search { order: 3; flex-basis: 100%; max-width: none; min-height: 40px; padding-inline: 11px; }
   .header-search input { font-size: 16px; }
   .header-search-results { position: fixed; top: calc(102px + env(safe-area-inset-top)); right: 10px; left: 10px; width: auto; max-height: calc(100dvh - 120px - env(safe-area-inset-top)); }
   .header-search-results section > button { min-height: 54px; }
@@ -181,10 +181,10 @@
   .header-actions .header-link-button,
   .header-actions .notification-bell { display: none; }
   .header-actions button { padding: 0; font-size: 18px; }
-  .theme-toggle { width: 42px; height: 42px; font-size: 18px !important; }
-  .mobile-menu-toggle { display: grid; width: 42px; height: 42px; place-items: center; border: 1px solid rgba(255,255,255,.28) !important; border-radius: 8px !important; background: rgba(255,255,255,.09); color: #fff; font-size: 21px !important; line-height: 1; }
+  .theme-toggle { width: 40px; height: 40px; font-size: 17px !important; }
+  .mobile-menu-toggle { display: grid; width: 40px; height: 40px; place-items: center; border: 1px solid rgba(255,255,255,.28) !important; border-radius: 8px !important; background: rgba(255,255,255,.09); color: #fff; font-size: 20px !important; line-height: 1; }
   .header-logo { font-size: 16px; }
-  .header-logo-badge { width: 38px; height: 38px; }
+  .header-logo-badge { width: 36px; height: 36px; }
 
   .mobile-menu-scrim { position: fixed; inset: 0; z-index: 198; display: block; width: 100%; height: 100%; padding: 0; border: 0; border-radius: 0; background: rgba(4,18,27,.68); backdrop-filter: blur(3px); }
   .mobile-menu { position: fixed; top: 0; right: 0; bottom: 0; z-index: 199; display: flex; width: min(88vw, 360px); padding: calc(14px + env(safe-area-inset-top)) 14px calc(14px + env(safe-area-inset-bottom)); flex-direction: column; overflow-y: auto; border-left: 1px solid #38505d; background: #f7fafb; color: #17212b; box-shadow: -18px 0 45px rgba(3,15,24,.32); animation: mobile-menu-in .18s ease-out; }

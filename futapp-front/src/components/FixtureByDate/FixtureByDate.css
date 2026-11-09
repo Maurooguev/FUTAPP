@@ -127,6 +127,22 @@
   padding: 28px;
   color: #64748b;
 }
+.fixture-byes { display: flex; align-items: center; flex-wrap: wrap; gap: 9px; margin: -2px 0 12px; padding: 10px 12px; border: 1px solid #bae6fd; border-radius: 7px; background: #f0f9ff; }
+.fixture-integrity-warning { display: grid; gap: 3px; margin: -2px 0 12px; padding: 11px 13px; border: 1px solid #fdba74; border-radius: 7px; background: #fff7ed; color: #9a3412; font-size: 11px; }
+.fixture-integrity-warning span { line-height: 1.4; }
+:root[data-theme="dark"] .fixture-integrity-warning { border-color: #854d0e; background: #422006; color: #fed7aa; }
+.fixture-byes > span { display: grid; gap: 2px; margin-right: 3px; color: #0369a1; font-size: 10px; font-weight: 900; letter-spacing: .05em; text-transform: uppercase; }
+.fixture-byes > span small { color: #64748b; font-size: 9px; font-weight: 700; letter-spacing: 0; text-transform: none; }
+.fixture-byes a { display: flex; align-items: center; gap: 6px; padding: 5px 9px; border-radius: 5px; background: #fff; color: #0f172a; font-size: 11px; text-decoration: none; }
+.fixture-byes img { width: 25px; height: 25px; object-fit: contain; }
+:root[data-theme="dark"] .fixture-byes { border-color: #31586b; background: #1c3643; }
+:root[data-theme="dark"] .fixture-byes > span { color: #67d7ee; }
+:root[data-theme="dark"] .fixture-byes > span small { color: #b9c8d2; }
+:root[data-theme="dark"] .fixture-byes a { background: #29414f; color: #f3f7f9; }
+.fixture-match-status.administrative { background: #fef3c7; color: #92400e; }
+.fixture-administrative-note { margin-top: 6px; color: #92400e !important; font-size: 9px !important; font-weight: 800; }
+:root[data-theme="dark"] .fixture-match-status.administrative { background: #584518; color: #fde68a; }
+:root[data-theme="dark"] .fixture-administrative-note { color: #fde68a !important; }
 
 @media (max-width: 768px) {
   .fixture-header h2 {
@@ -151,6 +167,9 @@
 .fixture-quick-actions .incidents { background: #fef3c7; color: #92400e; }
 .fixture-quick-actions .danger { background: #fee2e2; color: #b91c1c; }
 .fixture-quick-actions .suspend { background: #ffedd5; color: #c2410c; }
+@media (max-width: 768px) {
+  .fixture-quick-actions > :last-child:nth-child(odd) { grid-column: 1 / -1; }
+}
 .fixture-suspension-reason { margin-top: 5px; color: #c2410c !important; font-weight: 700; }
 .fixture-block { margin-bottom: 22px; }
 .fixture-header { margin-bottom: 10px; }

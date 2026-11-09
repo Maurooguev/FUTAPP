@@ -12,5 +12,7 @@ public interface SancionJugadorRepository extends JpaRepository<SancionJugador, 
 
     @EntityGraph(attributePaths = {"tarjeta", "tarjeta.jugador", "tarjeta.equipo", "tarjeta.partido", "tarjeta.partido.fecha", "tarjeta.partido.torneo"})
     List<SancionJugador> findByTarjetaPartidoTorneoIdTorneoOrderByCreadaEnDesc(Long idTorneo);
+    List<SancionJugador> findByTarjetaPartidoTorneoIdTorneoAndTarjetaJugadorIdJugadorAndTarjetaEquipoIdEquipo(
+            Long idTorneo, Long idJugador, Long idEquipo);
 }
 

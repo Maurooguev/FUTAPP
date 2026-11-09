@@ -36,7 +36,7 @@ async function fetchLocations(query, signal) {
   return [...new Set([...cabaMatches, ...items.map(locationLabel)])].slice(0, 8);
 }
 
-function ArgentinaLocationInput({ value, onChange, onSelect, required }) {
+function ArgentinaLocationInput({ value, onChange, onSelect, required, confirmed = false }) {
   const [suggestions, setSuggestions] = useState([]);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
@@ -51,6 +51,14 @@ function ArgentinaLocationInput({ value, onChange, onSelect, required }) {
     document.addEventListener("mousedown", close);
     return () => document.removeEventListener("mousedown", close);
   }, []);
+
+  useEffect(() => {
+    if (!confirmed || !value.trim()) return;
+    selectedValueRef.current = value.trim();
+    setSuggestions([]);
+    setMessage("");
+    setOpen(false);
+  }, [confirmed, value]);
 
   useEffect(() => {
     const query = value.trim();

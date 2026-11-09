@@ -3,8 +3,10 @@ package com.futapp.controller;
 import com.futapp.dto.EquipoRequestDTO;
 import com.futapp.dto.EquipoResponseDTO;
 import com.futapp.dto.PaginaDTO;
+import com.futapp.dto.NamesBatchRequestDTO;
+import com.futapp.dto.CargaRapidaTorneoRequestDTO;
+import com.futapp.dto.CargaRapidaTorneoResponseDTO;
 import com.futapp.service.EquipoService;
-import com.futapp.service.FusionEquipoService;
 import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 
@@ -16,11 +18,8 @@ import java.util.Map;
 public class EquipoController {
 
     private final EquipoService equipoService;
-    private final FusionEquipoService fusionEquipoService;
-
-    public EquipoController(EquipoService equipoService, FusionEquipoService fusionEquipoService) {
+    public EquipoController(EquipoService equipoService) {
         this.equipoService = equipoService;
-        this.fusionEquipoService = fusionEquipoService;
     }
 
     @GetMapping
@@ -69,6 +68,18 @@ public class EquipoController {
         return equipoService.crearEquipo(requestDTO);
     }
 
+    @PostMapping("/torneo/{idTorneo}/lote")
+    public List<EquipoResponseDTO> cargarEquiposPorNombre(@PathVariable Long idTorneo,
+                                                          @Valid @RequestBody NamesBatchRequestDTO request) {
+        return equipoService.cargarEquiposPorNombre(idTorneo, request.nombres());
+    }
+
+    @PostMapping("/torneo/{idTorneo}/carga-rapida")
+    public CargaRapidaTorneoResponseDTO cargaRapida(@PathVariable Long idTorneo,
+                                                     @Valid @RequestBody CargaRapidaTorneoRequestDTO request) {
+        return equipoService.cargaRapida(idTorneo, request);
+    }
+
     @PutMapping("/{id}")
     public EquipoResponseDTO actualizarEquipo(@PathVariable Long id, @Valid @RequestBody EquipoRequestDTO requestDTO) {
         return equipoService.actualizarEquipo(id, requestDTO);
@@ -80,8 +91,4 @@ public class EquipoController {
         return "Equipo eliminado correctamente";
     }
 
-    @PostMapping("/{idOficial}/fusionar/{idDuplicado}")
-    public void fusionarEquipos(@PathVariable Long idOficial, @PathVariable Long idDuplicado) {
-        fusionEquipoService.fusionar(idOficial, idDuplicado);
-    }
 }

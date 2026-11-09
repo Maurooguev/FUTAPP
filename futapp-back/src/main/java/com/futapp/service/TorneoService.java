@@ -22,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.UUID;
+import java.util.Objects;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 
@@ -170,6 +171,7 @@ public class TorneoService {
         if (!propietario.tieneRol("ORGANIZADOR") && !propietario.tieneRol("ADMIN"))
             throw new org.springframework.security.access.AccessDeniedException(
                     "Debés crear una cuenta de organizador de torneos para realizar esta acción");
+        validarEstructura(requestDTO);
         Torneo torneo = new Torneo();
         torneo.setNombre(requestDTO.getNombre());
         torneo.setDescripcion(requestDTO.getDescripcion());
@@ -190,10 +192,24 @@ public class TorneoService {
         return convertirAResponseDTO(torneoGuardado);
     }
 
+    @Transactional
     public TorneoResponseDTO actualizarTorneo(Long id, TorneoRequestDTO requestDTO) {
         Torneo torneo = torneoRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Torneo no encontrado con id: " + id));
         authorization.verificarGestion(torneo);
+        validarEstructura(requestDTO);
+        boolean cambiaEstructura = cambiaEstructura(torneo, requestDTO);
+        if (cambiaEstructura) {
+            if (!"BORRADOR".equalsIgnoreCase(torneo.getEstado())) {
+                throw new IllegalArgumentException("La estructura solo se puede cambiar mientras el torneo está en borrador");
+            }
+            if (!partidos.findByTorneoIdTorneo(id).isEmpty()) {
+                throw new IllegalArgumentException("Eliminá el fixture antes de cambiar el formato o la cantidad de equipos");
+            }
+            if (!inscripcionesEquipo.findByTorneoIdTorneoAndEstado(id, "ACTIVA").isEmpty()) {
+                throw new IllegalArgumentException("Quitá los equipos inscriptos antes de reconstruir la estructura del torneo");
+            }
+        }
 
         torneo.setNombre(requestDTO.getNombre());
         torneo.setDescripcion(requestDTO.getDescripcion());
@@ -207,6 +223,7 @@ public class TorneoService {
         cargarReglas(torneo, requestDTO);
 
         Torneo torneoActualizado = torneoRepository.save(torneo);
+        if (cambiaEstructura) estructuraCompetencia.recrear(torneoActualizado, requestDTO);
         return convertirAResponseDTO(torneoActualizado);
     }
 
@@ -338,6 +355,9 @@ public class TorneoService {
         response.setReglasTexto(torneo.getReglasTexto());
         response.setPremiosTexto(torneo.getPremiosTexto());
         response.setMotivoCancelacion(torneo.getMotivoCancelacion());
+        response.setCantidadZonas(torneo.getCantidadZonas());
+        response.setClasificadosPorZona(torneo.getClasificadosPorZona());
+        response.setClasificadosPlayoff(torneo.getClasificadosPlayoff());
         if (propietario != null) {
             perfilesOrganizador.findByUsuarioIdUsuario(propietario.getIdUsuario())
                     .ifPresent(perfil -> response.setLogoOrganizador(perfil.getFotoPerfil()));
@@ -393,6 +413,9 @@ public class TorneoService {
             default -> "Zonas + Playoffs";
         });
         torneo.setIdaVuelta(Boolean.TRUE.equals(request.getIdaVuelta()) && !"ELIMINACION_DIRECTA".equals(formato));
+        torneo.setCantidadZonas("ZONAS_PLAYOFF".equals(formato) ? request.getCantidadZonas() : null);
+        torneo.setClasificadosPorZona("ZONAS_PLAYOFF".equals(formato) ? request.getClasificadosPorZona() : null);
+        torneo.setClasificadosPlayoff("LIGA_PLAYOFF".equals(formato) ? request.getClasificadosPlayoff() : null);
         if ("ELIMINACION_DIRECTA".equals(formato)) {
             torneo.setPuntosVictoria(0);
             torneo.setPuntosEmpate(0);
@@ -406,6 +429,42 @@ public class TorneoService {
         String criterio = request.getCriterioDesempate() == null ? "DIFERENCIA_GOLES" : request.getCriterioDesempate().trim().toUpperCase();
         if (!java.util.Set.of("DIFERENCIA_GOLES", "GOLES_FAVOR").contains(criterio)) throw new IllegalArgumentException("El criterio de desempate no es válido");
         torneo.setCriterioDesempate(criterio);
+    }
+
+    private void validarEstructura(TorneoRequestDTO request) {
+        String formato = estructuraCompetencia.normalizarFormato(request.getFormato());
+        int equipos = request.getCantidadEquipos();
+        if ("LIGA_PLAYOFF".equals(formato)) {
+            int clasificados = request.getClasificadosPlayoff() == null ? 4 : request.getClasificadosPlayoff();
+            if (!esPotenciaDeDos(clasificados) || clasificados > equipos) {
+                throw new IllegalArgumentException("Los clasificados a playoffs deben ser 2, 4, 8 o 16 y no superar la cantidad de equipos");
+            }
+        }
+        if ("ZONAS_PLAYOFF".equals(formato)) {
+            int cantidadZonas = request.getCantidadZonas() == null ? 2 : request.getCantidadZonas();
+            int porZona = request.getClasificadosPorZona() == null ? 2 : request.getClasificadosPorZona();
+            if (cantidadZonas > equipos || porZona > equipos / cantidadZonas) {
+                throw new IllegalArgumentException("La cantidad de zonas o clasificados no es compatible con los equipos");
+            }
+            if (!esPotenciaDeDos(cantidadZonas * porZona)) {
+                throw new IllegalArgumentException("La clasificación debe formar una llave de 2, 4, 8 o 16 equipos");
+            }
+        }
+    }
+
+    private boolean cambiaEstructura(Torneo torneo, TorneoRequestDTO request) {
+        String actual = estructuraCompetencia.normalizarFormato(torneo.getFormato());
+        String solicitado = estructuraCompetencia.normalizarFormato(request.getFormato());
+        if (!actual.equals(solicitado) || !Objects.equals(torneo.getCantidadEquipos(), request.getCantidadEquipos())
+                || !Objects.equals(Boolean.TRUE.equals(torneo.getIdaVuelta()), Boolean.TRUE.equals(request.getIdaVuelta()))) return true;
+        if ("LIGA_PLAYOFF".equals(solicitado)) return !Objects.equals(torneo.getClasificadosPlayoff(), request.getClasificadosPlayoff());
+        if ("ZONAS_PLAYOFF".equals(solicitado)) return !Objects.equals(torneo.getCantidadZonas(), request.getCantidadZonas())
+                || !Objects.equals(torneo.getClasificadosPorZona(), request.getClasificadosPorZona());
+        return false;
+    }
+
+    private boolean esPotenciaDeDos(int value) {
+        return value >= 2 && (value & (value - 1)) == 0;
     }
 
     private String generarCodigo() {

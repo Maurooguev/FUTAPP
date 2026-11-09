@@ -63,6 +63,7 @@ public class PartidoService {
     private final TablaPosicionService tablaPosiciones;
     private final ResultadoAuditoriaRepository auditorias;
     private final TorneoVisibilityService visibility;
+    private final SancionJugadorService sanciones;
 
     public PartidoService(PartidoRepository partidoRepository,
                           TorneoRepository torneoRepository,
@@ -80,7 +81,8 @@ public class PartidoService {
                           CompeticionFaseRepository fases,
                           TablaPosicionService tablaPosiciones,
                           ResultadoAuditoriaRepository auditorias,
-                          TorneoVisibilityService visibility) {
+                          TorneoVisibilityService visibility,
+                          SancionJugadorService sanciones) {
         this.partidoRepository = partidoRepository;
         this.torneoRepository = torneoRepository;
         this.fechaRepository = fechaRepository;
@@ -98,6 +100,7 @@ public class PartidoService {
         this.tablaPosiciones = tablaPosiciones;
         this.auditorias = auditorias;
         this.visibility = visibility;
+        this.sanciones = sanciones;
     }
 
     public List<PartidoResponseDTO> listarPartidos() {
@@ -175,7 +178,8 @@ public class PartidoService {
                 .map(item -> new JugadorPartidoDTO(item.getJugador().getIdJugador(), item.getJugador().getNombre(),
                         item.getJugador().getApellido(), item.getJugador().getApodo(), item.getJugador().getFoto(),
                         item.getInscripcionEquipo().getEquipo().getIdEquipo(),
-                        item.getInscripcionEquipo().getEquipo().getNombre(), item.getNumeroCamiseta()))
+                        item.getInscripcionEquipo().getEquipo().getNombre(), item.getNumeroCamiseta(),
+                        sanciones.estaSuspendidoParaPartido(item.getJugador().getIdJugador(), partido)))
                 .sorted(java.util.Comparator.comparing(JugadorPartidoDTO::nombreEquipo)
                         .thenComparing(item -> item.numeroCamiseta() == null ? 999 : item.numeroCamiseta()))
                 .toList();
@@ -669,6 +673,7 @@ public class PartidoService {
                 partido.getEquipoVisitante().getNombre(),
                 partido.getEquipoVisitante().getEscudo()
         );
+        dto.setMotivoEstado(partido.getMotivoEstado());
         dto.setPenalesLocal(partido.getPenalesLocal());
         dto.setPenalesVisitante(partido.getPenalesVisitante());
         return dto;
@@ -715,7 +720,7 @@ public class PartidoService {
             throw new IllegalArgumentException("Indicá el motivo del cambio");
         }
         partido.setEstado(destino);
-        if (request.motivo() != null && !request.motivo().isBlank()) partido.setObservaciones(request.motivo().trim());
+        partido.setMotivoEstado(request.motivo() == null || request.motivo().isBlank() ? null : request.motivo().trim());
         return convertirAResponseDTO(partidoRepository.save(partido));
     }
 
@@ -740,6 +745,9 @@ public class PartidoService {
         if (!inscripcionesJugador.existsByJugadorIdJugadorAndInscripcionEquipoTorneoIdTorneoAndInscripcionEquipoEquipoIdEquipoInAndEstado(
                 request.idJugador(), partido.getTorneo().getIdTorneo(), idsEquipo, "ACTIVA")) {
             throw new IllegalArgumentException("El MVP debe pertenecer al plantel de uno de los equipos del partido");
+        }
+        if (sanciones.estaSuspendidoParaPartido(request.idJugador(), partido)) {
+            throw new IllegalArgumentException("El jugador está suspendido para esta fecha y no puede ser elegido MVP");
         }
         partido.setMvp(jugadores.findById(request.idJugador())
                 .orElseThrow(() -> new ResourceNotFoundException("Jugador no encontrado")));

@@ -36,6 +36,12 @@ public class Torneo {
 
     @Column(name = "cantidad_equipos")
     private Integer cantidadEquipos;
+    @Column(name = "cantidad_zonas")
+    private Integer cantidadZonas;
+    @Column(name = "clasificados_por_zona")
+    private Integer clasificadosPorZona;
+    @Column(name = "clasificados_playoff")
+    private Integer clasificadosPlayoff;
 
     @Column(name = "codigo_publico", unique = true, length = 12)
     private String codigoPublico;
@@ -127,6 +133,12 @@ public class Torneo {
     public void setCantidadEquipos(Integer cantidadEquipos) {
         this.cantidadEquipos = cantidadEquipos;
     }
+    public Integer getCantidadZonas() { return cantidadZonas; }
+    public void setCantidadZonas(Integer value) { this.cantidadZonas = value; }
+    public Integer getClasificadosPorZona() { return clasificadosPorZona; }
+    public void setClasificadosPorZona(Integer value) { this.clasificadosPorZona = value; }
+    public Integer getClasificadosPlayoff() { return clasificadosPlayoff; }
+    public void setClasificadosPlayoff(Integer value) { this.clasificadosPlayoff = value; }
 
     public String getCodigoPublico() { return codigoPublico; }
     public void setCodigoPublico(String codigoPublico) { this.codigoPublico = codigoPublico; }

@@ -31,13 +31,14 @@ public class GolService {
     private final InscripcionJugadorRepository inscripciones;
     private final TorneoVisibilityService visibility;
     private final TorneoRepository torneos;
+    private final SancionJugadorService sanciones;
 
     public GolService(GolRepository golRepository,
                       PartidoRepository partidoRepository,
                       JugadorRepository jugadorRepository,
                       EquipoRepository equipoRepository, TorneoAuthorizationService authorization,
                       InscripcionJugadorRepository inscripciones, TorneoVisibilityService visibility,
-                      TorneoRepository torneos) {
+                      TorneoRepository torneos, SancionJugadorService sanciones) {
         this.golRepository = golRepository;
         this.partidoRepository = partidoRepository;
         this.jugadorRepository = jugadorRepository;
@@ -46,6 +47,7 @@ public class GolService {
         this.inscripciones = inscripciones;
         this.visibility = visibility;
         this.torneos = torneos;
+        this.sanciones = sanciones;
     }
 
     public List<GolResponseDTO> listarGoles() {
@@ -153,11 +155,11 @@ public class GolService {
                                         Jugador jugador,
                                         Equipo equipo) {
 
-        if (requestDTO.getMinuto() == null || requestDTO.getMinuto() <= 0) {
+        if (requestDTO.getMinuto() != null && requestDTO.getMinuto() <= 0) {
             throw new IllegalArgumentException("El minuto del gol debe ser mayor a 0");
         }
 
-        if (requestDTO.getMinuto() > 130) {
+        if (requestDTO.getMinuto() != null && requestDTO.getMinuto() > 130) {
             throw new IllegalArgumentException("El minuto del gol no puede ser mayor a 130");
         }
 
@@ -176,6 +178,9 @@ public class GolService {
         if (!inscripciones.existsByJugadorIdJugadorAndInscripcionEquipoTorneoIdTorneoAndInscripcionEquipoEquipoIdEquipoAndEstado(
                 jugador.getIdJugador(), partido.getTorneo().getIdTorneo(), equipo.getIdEquipo(), "ACTIVA")) {
             throw new IllegalArgumentException("El jugador no integra el plantel activo de ese equipo en este torneo");
+        }
+        if (sanciones.estaSuspendidoParaPartido(jugador.getIdJugador(), partido)) {
+            throw new IllegalArgumentException("El jugador está suspendido para esta fecha y no puede participar");
         }
     }
 

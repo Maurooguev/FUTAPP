@@ -1,6 +1,7 @@
 package com.futapp.service;
 
 import com.futapp.dto.*;
+import com.futapp.config.FeatureProperties;
 import com.futapp.model.AuthToken;
 import com.futapp.model.PasswordResetToken;
 import com.futapp.model.Usuario;
@@ -32,6 +33,8 @@ public class AuthService {
     private final Duration passwordResetDuration;
     private final String dummyPasswordHash;
     private final ReclamoService reclamos;
+    private final FeatureProperties features;
+    private final boolean registrationEnabled;
     public AuthService(UsuarioRepository usuarios, AuthTokenRepository tokens,
                        PasswordResetTokenRepository resetTokens, PasswordEncoder encoder,
                        PasswordResetMailService passwordResetMail,
@@ -40,7 +43,8 @@ public class AuthService {
                        @Value("${futapp.auth.maximum-sessions:5}") int maximumSessions,
                        @Value("${futapp.password-reset.duration:30m}") Duration passwordResetDuration,
                        @Value("${futapp.registration.invite-code:}") String registrationInviteCode,
-                       ReclamoService reclamos) {
+                       @Value("${futapp.registration.enabled:false}") boolean registrationEnabled,
+                       ReclamoService reclamos, FeatureProperties features) {
         this.usuarios = usuarios;
         this.tokens = tokens;
         this.resetTokens = resetTokens;
@@ -58,8 +62,13 @@ public class AuthService {
         this.dummyPasswordHash = encoder.encode(TokenSecurity.generate());
         this.registrationInviteCode = registrationInviteCode == null ? "" : registrationInviteCode;
         this.reclamos = reclamos;
+        this.features = features;
+        this.registrationEnabled = registrationEnabled;
     }
     public AuthResponseDTO register(RegisterRequestDTO request) {
+        if (!registrationEnabled) {
+            throw new IllegalArgumentException("Las cuentas de organizador se habilitan únicamente por invitación");
+        }
         if (!registrationInviteCode.isBlank() && !secureEquals(registrationInviteCode, request.codigoInvitacion())) {
             throw new IllegalArgumentException("El código de invitación no es válido");
         }
@@ -68,6 +77,12 @@ public class AuthService {
         String rol = request.rol() == null || request.rol().isBlank() ? "JUGADOR" : request.rol().trim().toUpperCase();
         if (!java.util.Set.of("ORGANIZADOR", "DIRECTOR_EQUIPO", "JUGADOR").contains(rol)) {
             throw new IllegalArgumentException("Tipo de cuenta inválido");
+        }
+        if ("JUGADOR".equals(rol) && !features.playerAccounts()) {
+            throw new IllegalArgumentException("En esta versión las cuentas son exclusivamente para organizadores de torneos");
+        }
+        if ("DIRECTOR_EQUIPO".equals(rol) && !features.teamDirectorAccounts()) {
+            throw new IllegalArgumentException("En esta versión las cuentas son exclusivamente para organizadores de torneos");
         }
         Usuario user = new Usuario(); user.setNombre(request.nombre().trim()); user.setEmail(email); user.setPasswordHash(encoder.encode(request.password())); user.setRol(rol);
         user = usuarios.save(user);
@@ -81,7 +96,26 @@ public class AuthService {
             throw new IllegalArgumentException("Email o contraseña incorrectos");
         }
         if (!encoder.matches(request.password(), user.getPasswordHash())) throw new IllegalArgumentException("Email o contraseña incorrectos");
+        boolean playerAccessDisabled = user.tieneRol("JUGADOR") && !features.playerAccounts();
+        boolean teamAccessDisabled = user.tieneRol("DIRECTOR_EQUIPO") && !features.teamDirectorAccounts();
+        if (playerAccessDisabled || teamAccessDisabled || (!user.tieneRol("ORGANIZADOR") && !user.tieneRol("ADMIN")
+                && !user.tieneRol("JUGADOR") && !user.tieneRol("DIRECTOR_EQUIPO"))) {
+            throw new IllegalArgumentException("El acceso de esta versión es exclusivo para organizadores de torneos");
+        }
         return createToken(user);
+    }
+    public OrganizerInvitationDTO createOrganizer(CreateOrganizerRequestDTO request) {
+        String email = request.email().trim().toLowerCase();
+        if (usuarios.existsByEmailIgnoreCase(email)) throw new IllegalArgumentException("Ya existe una cuenta con ese email");
+        String temporaryPassword = TokenSecurity.generate().substring(0, 16);
+        Usuario user = new Usuario();
+        user.setNombre(request.nombre().trim());
+        user.setEmail(email);
+        user.setPasswordHash(encoder.encode(temporaryPassword));
+        user.setRol("ORGANIZADOR");
+        user.setPasswordChangeRequired(true);
+        user = usuarios.save(user);
+        return new OrganizerInvitationDTO(user.getIdUsuario(), user.getNombre(), user.getEmail(), temporaryPassword);
     }
     public PasswordResetResponseDTO forgotPassword(ForgotPasswordRequestDTO request) {
         final String[] generatedToken = new String[1];
@@ -109,6 +143,7 @@ public class AuthService {
             throw new IllegalArgumentException("La contraseña nueva debe ser diferente");
         }
         user.setPasswordHash(encoder.encode(request.nuevaPassword()));
+        user.setPasswordChangeRequired(false);
         usuarios.save(user);
         reset.setUsedAt(LocalDateTime.now());
         resetTokens.save(reset);
@@ -123,6 +158,7 @@ public class AuthService {
             throw new IllegalArgumentException("La contraseña nueva debe ser diferente");
         }
         user.setPasswordHash(encoder.encode(request.nuevaPassword()));
+        user.setPasswordChangeRequired(false);
         usuarios.save(user);
         tokens.deleteByUsuarioIdUsuario(user.getIdUsuario());
         resetTokens.deleteByUsuarioIdUsuario(user.getIdUsuario());
@@ -147,7 +183,7 @@ public class AuthService {
         if (userTokens.size() > maximumSessions) {
             tokens.deleteAll(userTokens.subList(maximumSessions, userTokens.size()));
         }
-        return new AuthResponseDTO(rawToken, user.getIdUsuario(), user.getNombre(), user.getEmail(), user.getRol(), user.getRoles());
+        return new AuthResponseDTO(rawToken, user.getIdUsuario(), user.getNombre(), user.getEmail(), user.getRol(), user.getRoles(), user.isPasswordChangeRequired());
     }
     private boolean secureEquals(String expected, String received) {
         if (received == null) return false;

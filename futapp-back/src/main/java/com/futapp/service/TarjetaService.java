@@ -101,7 +101,7 @@ public class TarjetaService {
         Tarjeta tarjeta = new Tarjeta();
         cargarDatosTarjeta(tarjeta, requestDTO, partido);
         Tarjeta guardada = tarjetaRepository.save(tarjeta);
-        sancionService.sincronizarConTarjeta(guardada);
+        sancionService.sincronizarConTarjeta(guardada, requestDTO.getFechasSuspension());
         return convertirAResponseDTO(guardada);
     }
 
@@ -118,7 +118,7 @@ public class TarjetaService {
 
         cargarDatosTarjeta(tarjeta, requestDTO, partido);
         Tarjeta guardada = tarjetaRepository.save(tarjeta);
-        sancionService.sincronizarConTarjeta(guardada);
+        sancionService.sincronizarConTarjeta(guardada, requestDTO.getFechasSuspension());
         return convertirAResponseDTO(guardada);
     }
 
@@ -189,6 +189,9 @@ public class TarjetaService {
         if (!inscripciones.existsByJugadorIdJugadorAndInscripcionEquipoTorneoIdTorneoAndInscripcionEquipoEquipoIdEquipoAndEstado(
                 jugador.getIdJugador(), partido.getTorneo().getIdTorneo(), equipo.getIdEquipo(), "ACTIVA")) {
             throw new IllegalArgumentException("El jugador no integra el plantel activo de ese equipo en este torneo");
+        }
+        if (sancionService.estaSuspendidoParaPartido(jugador.getIdJugador(), partido)) {
+            throw new IllegalArgumentException("El jugador está suspendido para esta fecha y no puede participar");
         }
     }
 

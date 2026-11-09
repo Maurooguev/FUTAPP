@@ -8,6 +8,8 @@ try {
     if ($LASTEXITCODE -ne 0) { throw "npm audit detectó vulnerabilidades de producción." }
     npm run lint
     if ($LASTEXITCODE -ne 0) { throw "Falló el lint del frontend." }
+    npm test
+    if ($LASTEXITCODE -ne 0) { throw "Fallaron las pruebas del frontend." }
     npm run build
     if ($LASTEXITCODE -ne 0) { throw "Falló la compilación del frontend." }
 } finally { Pop-Location }

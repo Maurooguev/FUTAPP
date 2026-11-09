@@ -8,5 +8,6 @@ public record JugadorPartidoDTO(
         String foto,
         Long idEquipo,
         String nombreEquipo,
-        Integer numeroCamiseta
+        Integer numeroCamiseta,
+        boolean suspendido
 ) {}

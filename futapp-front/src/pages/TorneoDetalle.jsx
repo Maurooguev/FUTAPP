@@ -24,8 +24,7 @@ import TournamentReadiness from "../components/TournamentReadiness/TournamentRea
 import TournamentExports from "../components/TournamentExports/TournamentExports";
 import KnockoutBracket from "../components/KnockoutBracket/KnockoutBracket";
 import EntityImage from "../components/EntityImage/EntityImage";
-
-const TOURNAMENT_TABS = new Set(["resumen", "info", "tabla", "equipos", "stats", "fixture"]);
+import { tournamentTabFromHash } from "../utils/tournamentTabs";
 
 const formatMatchDate = (value) => value ? new Intl.DateTimeFormat("es-AR", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" }).format(new Date(value)) : "Horario a confirmar";
 
@@ -36,6 +35,8 @@ function TorneoDetalle() {
 
   const [torneo, setTorneo] = useState(null);
   const puedeEditar = puedeAdministrarTorneo(usuario, torneo);
+  const estadoTorneo = torneo?.estado?.toUpperCase();
+  const puedeGestionarDeporte = puedeEditar && !["FINALIZADO", "CANCELADO", "ARCHIVADO", "ELIMINADO"].includes(estadoTorneo);
   const [tabla, setTabla] = useState([]);
   const [goleadores, setGoleadores] = useState([]);
   const [fechas, setFechas] = useState([]);
@@ -59,16 +60,25 @@ function TorneoDetalle() {
   const [loadError, setLoadError] = useState("");
   const [reloadKey, setReloadKey] = useState(0);
   const [showMoreActions, setShowMoreActions] = useState(false);
+  const [readinessRefreshKey, setReadinessRefreshKey] = useState(0);
   const visitedTournament = useRef(null);
-  const [activeTab, setActiveTab] = useState(() => {
-    const requested = window.location.hash.replace("#", "");
-    return TOURNAMENT_TABS.has(requested) ? requested : "resumen";
-  });
+  const [activeTab, setActiveTab] = useState(() => tournamentTabFromHash(window.location.hash));
 
   const changeTab = (tab) => {
     setActiveTab(tab);
     window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}#${tab}`);
   };
+
+  useEffect(() => {
+    const syncTabWithUrl = () => setActiveTab(tournamentTabFromHash(window.location.hash));
+    syncTabWithUrl();
+    window.addEventListener("hashchange", syncTabWithUrl);
+    window.addEventListener("popstate", syncTabWithUrl);
+    return () => {
+      window.removeEventListener("hashchange", syncTabWithUrl);
+      window.removeEventListener("popstate", syncTabWithUrl);
+    };
+  }, [id]);
 
   useEffect(() => {
     if (searchParams.get("accion") !== "resultado" || partidos.length === 0) return;
@@ -141,7 +151,11 @@ function TorneoDetalle() {
     let active = true;
     const getJson = async (path) => {
       const response = await apiFetch(`${API_URL}${path}`);
-      if (!response.ok) throw new Error(`Error ${response.status}`);
+      if (!response.ok) {
+        const requestError = new Error(`Error ${response.status}`);
+        requestError.status = response.status;
+        throw requestError;
+      }
       return response.json();
     };
     Promise.all([
@@ -155,8 +169,11 @@ function TorneoDetalle() {
       setPartidos(matches); setTarjetas(cards); setEquipos(teams); setEstructura(structure);
       setSanciones(suspensions);
       setLoadError("");
-    }).catch(() => {
-      if (active) setLoadError("No pudimos cargar el torneo. Verificá que el backend esté iniciado.");
+    }).catch((requestError) => {
+      if (!active) return;
+      setLoadError(requestError?.status === 404
+        ? "Este torneo no existe o ya no está disponible."
+        : "No pudimos cargar el torneo. Intentá nuevamente en unos segundos.");
     });
     return () => { active = false; };
   }, [id, reloadKey]);
@@ -283,11 +300,21 @@ function TorneoDetalle() {
   const podio = useMemo(() => tabla.slice(0, 3), [tabla]);
   const buscarEquipo = (teamId) => equipos.find((equipo) => equipo.idEquipo === teamId);
   const cantidadEquiposLlave = estructura?.divisiones?.[0]?.fases?.find((fase) => fase.tipo === "ELIMINACION_DIRECTA")?.clasificados || equipos.length;
-  const usaLlave = torneo?.formato?.toLowerCase() === "eliminación directa" || torneo?.formato?.toLowerCase().includes("playoffs");
+  const formatoNormalizado = torneo?.formato?.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") || "";
+  const usaLlave = formatoNormalizado.includes("eliminacion") || formatoNormalizado.includes("playoff");
+  const combinaTablaYLlave = formatoNormalizado.includes("zona") || formatoNormalizado.includes("grupo");
   const filaCampeon = tabla.find((fila) => fila.idEquipo === torneo?.idCampeon) || tabla[0];
-  const campeonLiga = torneo?.estado?.toUpperCase() === "FINALIZADO" && !usaLlave && torneo?.idCampeon
-    ? { ...filaCampeon, idEquipo: torneo.idCampeon, nombreEquipo: torneo.nombreCampeon }
-    : null;
+  const equipoCampeon = buscarEquipo(torneo?.idCampeon);
+  const finalTorneo = partidos.find((partido) => partido.observaciones?.toLowerCase() === "final" && partido.estado?.toUpperCase() === "FINALIZADO");
+  const campeonTorneo = torneo?.idCampeon ? {
+    ...filaCampeon,
+    idEquipo: torneo.idCampeon,
+    nombreEquipo: torneo.nombreCampeon || equipoCampeon?.nombre,
+    escudo: equipoCampeon?.escudo,
+  } : null;
+  const detalleCampeon = usaLlave && finalTorneo
+    ? `Final ${finalTorneo.golesLocal} - ${finalTorneo.golesVisitante}${finalTorneo.penalesLocal != null ? ` · Penales ${finalTorneo.penalesLocal} - ${finalTorneo.penalesVisitante}` : ""}`
+    : filaCampeon ? `${filaCampeon.puntos} puntos · ${filaCampeon.ganados} partidos ganados` : "Ganador de la competencia";
 
   if (!torneo) {
     if (loadError) return <div className="empty-state" role="alert"><h3>No se pudo cargar el torneo</h3><p>{loadError}</p><button type="button" onClick={() => setReloadKey((value) => value + 1)}>Reintentar</button></div>;
@@ -393,11 +420,10 @@ const recargarDatosTorneo = () => {
     if (!motivo.trim()) { setAdminError("Indicá el motivo de la suspensión."); return; }
     setAdminError("");
     try {
-      const response = await apiFetch(`${API_URL}/partidos/${partido.idPartido}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({
-        fechaHora: partido.fechaHora, estado: "SUSPENDIDO", golesLocal: partido.golesLocal ?? 0, golesVisitante: partido.golesVisitante ?? 0,
-        observaciones: motivo.trim(), cancha: partido.cancha, idTorneo: Number(id), idFecha: partido.idFecha,
-        idEquipoLocal: partido.idEquipoLocal, idEquipoVisitante: partido.idEquipoVisitante,
-      }) });
+      const response = await apiFetch(`${API_URL}/partidos/${partido.idPartido}/estado`, {
+        method: "PUT", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ estado: "SUSPENDIDO", motivo: motivo.trim() }),
+      });
       const payload = await response.json().catch(() => null);
       if (!response.ok) throw new Error(payload?.message || "No se pudo suspender el partido");
       setPartidos((current) => current.map((item) => item.idPartido === payload.idPartido ? payload : item));
@@ -410,11 +436,14 @@ const recargarDatosTorneo = () => {
     if (torneo.estado?.toUpperCase() === "FINALIZADO") return { icon: "🏆", label: "Torneo finalizado", action: () => changeTab("resumen"), disabled: false };
     if (equipos.length < 2) return { icon: "👥", label: "Agregar equipos", action: () => changeTab("equipos"), disabled: false };
     if (partidos.length === 0) return { icon: "▦", label: usaLlave ? "Generar llaves" : "Generar fixture", action: abrirGeneradorFixture, disabled: generandoFixture };
+    if (torneo.estado?.toUpperCase() === "BORRADOR") return { icon: "📣", label: "Publicar torneo", action: () => cambiarEstadoTorneo("publicar"), disabled: false };
+    if (torneo.estado?.toUpperCase() === "PUBLICADO") return { icon: "▶", label: "Iniciar torneo", action: () => cambiarEstadoTorneo("iniciar"), disabled: false };
     if (siguientePartidoPendiente) return { icon: "⚽", label: "Cargar próximo resultado", action: abrirProximoResultado, disabled: false };
     if (usaLlave && !torneo.idCampeon) return { icon: "→", label: "Generar siguiente fase", action: generarSiguienteLlave, disabled: generandoFixture };
     if (torneo.estado?.toUpperCase() === "ACTIVO") return { icon: "✓", label: "Finalizar torneo", action: () => cambiarEstadoTorneo("finalizar"), disabled: false };
     return { icon: "▦", label: "Revisar fixture", action: () => changeTab("fixture"), disabled: false };
   })();
+  const setupGuideVisible = torneo.estado?.toUpperCase() === "BORRADOR" && ["resumen", "equipos"].includes(activeTab);
 
   return (
     <div className="torneo-page">
@@ -422,19 +451,17 @@ const recargarDatosTorneo = () => {
 
       {puedeEditar && <div className="tournament-admin-bar">
         <div className="tournament-admin-main">
-          <button className="admin-primary-action" type="button" onClick={primaryAdminAction.action} disabled={primaryAdminAction.disabled}>
+          {!setupGuideVisible && <button className="admin-primary-action" type="button" onClick={primaryAdminAction.action} disabled={primaryAdminAction.disabled}>
             <span>{primaryAdminAction.icon}</span><span><small>Siguiente acción</small><strong>{primaryAdminAction.label}</strong></span>
-          </button>
-          {torneo.estado?.toUpperCase() === "BORRADOR" && <button className="admin-lifecycle-action" type="button" onClick={() => cambiarEstadoTorneo("publicar")}><span>📣</span> Publicar torneo</button>}
-          {torneo.estado?.toUpperCase() === "PUBLICADO" && <button className="admin-lifecycle-action" type="button" onClick={() => cambiarEstadoTorneo("iniciar")}><span>▶</span> Iniciar torneo</button>}
-          <div className="admin-context-actions">
+          </button>}
+          {puedeGestionarDeporte && <div className="admin-context-actions">
             {activeTab === "resumen" && <><button type="button" onClick={() => setMostrarEdicion(true)}>Editar torneo</button>{torneo.estado?.toUpperCase() === "ACTIVO" && <button type="button" onClick={() => cambiarEstadoTorneo("finalizar")}>Finalizar</button>}{torneo.estado?.toUpperCase() === "BORRADOR" && <button type="button" className="admin-delete-draft" onClick={eliminarBorrador}>Eliminar borrador</button>}</>}
             {activeTab === "fixture" && <><button type="button" onClick={() => setMostrarFecha(true)}>+ Jornada</button><button type="button" onClick={() => setMostrarPartido(true)}>+ Partido</button><button type="button" onClick={partidos.length > 0 ? rehacerFixture : abrirGeneradorFixture} disabled={generandoFixture}>{partidos.length > 0 ? "Rehacer fixture" : "Generar fixture"}</button></>}
             {activeTab === "equipos" && <span>Administrá los clubes desde esta sección</span>}
             {activeTab === "stats" && <span>Goles y tarjetas se cargan desde cada partido</span>}
             {activeTab === "info" && <span>La información pública se modifica desde Editar torneo</span>}
-          </div>
-          <div className="admin-more-wrap">
+          </div>}
+          {puedeGestionarDeporte && <div className="admin-more-wrap">
             <button className="admin-more-toggle" type="button" aria-expanded={showMoreActions} onClick={() => setShowMoreActions((value) => !value)}>Más <span>⋯</span></button>
             {showMoreActions && <div className="admin-more-menu">
               <button type="button" onClick={() => { setPartidoResultado(null); setMostrarResultado(true); setShowMoreActions(false); }}>Elegir partido para resultado</button>
@@ -446,7 +473,7 @@ const recargarDatosTorneo = () => {
               {torneo.estado?.toUpperCase() === "FINALIZADO" && <button type="button" onClick={() => cambiarVisibilidadTorneo("archivar")}>Archivar torneo</button>}
               {torneo.estado?.toUpperCase() === "ARCHIVADO" && <button type="button" onClick={() => cambiarVisibilidadTorneo("restaurar")}>Restaurar torneo</button>}
             </div>}
-          </div>
+          </div>}
         </div>
         {adminError && <p className="tournament-form-error">{adminError}</p>}
       </div>}
@@ -454,10 +481,11 @@ const recargarDatosTorneo = () => {
       <main className="torneo-content">
         <div className="torneo-shell">
           {activeTab === "resumen" && torneo.estado?.toUpperCase() === "CANCELADO" && <div className="tournament-cancelled-notice"><strong>Torneo cancelado</strong><p>{torneo.motivoCancelacion || "No se informó un motivo."}</p></div>}
-          {activeTab === "resumen" && puedeEditar && ["BORRADOR", "PUBLICADO", "ACTIVO"].includes(torneo.estado?.toUpperCase()) && <TournamentReadiness torneoId={id} torneo={torneo} equipos={equipos} fechas={fechas} partidos={partidos} onGenerateFixture={abrirGeneradorFixture} onNextRound={generarSiguienteLlave} onNavigate={changeTab} />}
-          {activeTab === "resumen" && campeonLiga && <div className="league-champion">
+          {activeTab === "resumen" && puedeEditar && ["BORRADOR", "PUBLICADO", "ACTIVO"].includes(torneo.estado?.toUpperCase()) && <TournamentReadiness torneoId={id} torneo={torneo} equipos={equipos} fechas={fechas} partidos={partidos} refreshKey={readinessRefreshKey} onGenerateFixture={abrirGeneradorFixture} onNextRound={generarSiguienteLlave} onPublish={() => cambiarEstadoTorneo("publicar")} onStart={() => cambiarEstadoTorneo("iniciar")} onNavigate={changeTab} />}
+          {activeTab === "resumen" && campeonTorneo && <div className="league-champion">
             <span className="league-champion-trophy">🏆</span>
-            <div><small>Campeón del torneo</small><Link to={`/equipo/${campeonLiga.idEquipo}`}>{campeonLiga.nombreEquipo}</Link><p>{campeonLiga.puntos} puntos · {campeonLiga.ganados} partidos ganados</p></div>
+            <EntityImage type="team" value={campeonTorneo.escudo} alt="" />
+            <div><small>Campeón del torneo</small><Link to={`/equipo/${campeonTorneo.idEquipo}`}>{campeonTorneo.nombreEquipo}</Link><p>{detalleCampeon}</p></div>
           </div>}
           {activeTab === "resumen" && <div className="torneo-stats-grid" id="resumen">
             <StatsCard label="Torneo" value={torneo.nombre} />
@@ -473,7 +501,7 @@ const recargarDatosTorneo = () => {
             />
           </div>}
           {activeTab === "resumen" && <section className="tournament-summary-highlights">
-            {!usaLlave ? <article className="summary-highlight-card summary-podium"><header><span>Clasificación</span><h2>Podio actual</h2></header><div>{podio.length > 0 ? podio.map((fila, index) => { const team = buscarEquipo(fila.idEquipo); return <Link to={`/equipo/${fila.idEquipo}`} key={fila.idEquipo}><b>{index + 1}</b><EntityImage type="team" value={team?.escudo} alt="" /><strong>{fila.nombreEquipo}</strong><span>{fila.puntos} pts</span></Link>; }) : <p className="summary-highlight-empty">La tabla todavía no tiene posiciones.</p>}</div><button type="button" onClick={() => changeTab("tabla")}>Ver tabla completa →</button></article> : <article className="summary-highlight-card summary-knockout"><header><span>Eliminación directa</span><h2>{siguientePartidoPendiente?.observaciones || ultimoResultado?.observaciones || "Llave del torneo"}</h2></header><p>{siguientePartidoPendiente ? "La competencia continúa con el próximo cruce programado." : torneo.idCampeon ? `Campeón: ${torneo.nombreCampeon}` : "Revisá los cruces y resultados de cada fase."}</p><button type="button" onClick={() => changeTab("fixture")}>Ver llave completa →</button></article>}
+            {!usaLlave ? <article className="summary-highlight-card summary-podium"><header><span>Clasificación</span><h2>Podio actual</h2></header><div>{podio.length > 0 ? podio.map((fila, index) => { const team = buscarEquipo(fila.idEquipo); return <Link to={`/equipo/${fila.idEquipo}`} key={fila.idEquipo}><b>{index + 1}</b><EntityImage type="team" value={team?.escudo} alt="" /><strong>{fila.nombreEquipo}</strong><span>{fila.puntos} pts</span></Link>; }) : <p className="summary-highlight-empty">La tabla todavía no tiene posiciones.</p>}</div><button type="button" onClick={() => changeTab("tabla")}>Ver tabla completa →</button></article> : <article className="summary-highlight-card summary-knockout"><header><span>{combinaTablaYLlave ? "Zonas + playoffs" : "Eliminación directa"}</span><h2>{campeonTorneo ? "Competencia finalizada" : siguientePartidoPendiente?.observaciones || ultimoResultado?.observaciones || "Llave del torneo"}</h2></header>{campeonTorneo ? <Link className="summary-knockout-champion" to={`/equipo/${campeonTorneo.idEquipo}`}><EntityImage type="team" value={campeonTorneo.escudo} alt="" /><span><small>Campeón</small><strong>{campeonTorneo.nombreEquipo}</strong></span></Link> : <p>{siguientePartidoPendiente ? "La competencia continúa con el próximo cruce programado." : "Revisá los cruces y resultados de cada fase."}</p>}<button type="button" onClick={() => changeTab("fixture")}>Ver llave completa →</button></article>}
             <article className="summary-highlight-card summary-featured-match"><header><span>Próximo partido</span><h2>{siguientePartidoPendiente ? formatMatchDate(siguientePartidoPendiente.fechaHora) : "Sin partidos programados"}</h2></header>{siguientePartidoPendiente ? <Link to={`/partido/${siguientePartidoPendiente.idPartido}`} className="summary-match-teams"><span><EntityImage type="team" value={siguientePartidoPendiente.escudoEquipoLocal} alt="" /><strong>{siguientePartidoPendiente.nombreEquipoLocal}</strong></span><b>VS</b><span><EntityImage type="team" value={siguientePartidoPendiente.escudoEquipoVisitante} alt="" /><strong>{siguientePartidoPendiente.nombreEquipoVisitante}</strong></span></Link> : <p className="summary-highlight-empty">No hay un próximo encuentro confirmado.</p>}<button type="button" onClick={() => changeTab("fixture")}>Ver fixture →</button></article>
             <article className="summary-highlight-card summary-last-result"><header><span>Último resultado</span><h2>{ultimoResultado ? formatMatchDate(ultimoResultado.fechaHora) : "Sin resultados"}</h2></header>{ultimoResultado ? <Link to={`/partido/${ultimoResultado.idPartido}`} className="summary-result-row"><span><EntityImage type="team" value={ultimoResultado.escudoEquipoLocal} alt="" /><strong>{ultimoResultado.nombreEquipoLocal}</strong></span><b>{ultimoResultado.golesLocal} - {ultimoResultado.golesVisitante}</b><span><EntityImage type="team" value={ultimoResultado.escudoEquipoVisitante} alt="" /><strong>{ultimoResultado.nombreEquipoVisitante}</strong></span></Link> : <p className="summary-highlight-empty">Todavía no se cargaron resultados.</p>}<button type="button" onClick={() => changeTab("fixture")}>Ver resultados →</button></article>
           </section>}
@@ -502,10 +530,12 @@ const recargarDatosTorneo = () => {
             <KnockoutBracket equipos={equipos} teamCount={cantidadEquiposLlave} partidos={partidos} canManage={false} loading={generandoFixture} />
           </>}
 
-          {activeTab === "equipos" && <TeamManagement
+          {activeTab === "equipos" && <>{puedeEditar && ["BORRADOR", "PUBLICADO", "ACTIVO"].includes(torneo.estado?.toUpperCase()) && <TournamentReadiness torneoId={id} torneo={torneo} equipos={equipos} fechas={fechas} partidos={partidos} refreshKey={readinessRefreshKey} onGenerateFixture={abrirGeneradorFixture} onNextRound={generarSiguienteLlave} onPublish={() => cambiarEstadoTorneo("publicar")} onStart={() => cambiarEstadoTorneo("iniciar")} onNavigate={changeTab} />}<TeamManagement
             torneoId={id}
+            capacidad={torneo.cantidadEquipos}
             equipos={equipos}
-            canManage={puedeEditar}
+            canManage={puedeGestionarDeporte}
+            onRosterChanged={() => setReadinessRefreshKey((current) => current + 1)}
             onTeamDeleted={(teamId) => setEquipos((current) => current.filter((team) => team.idEquipo !== teamId))}
             onTeamSaved={(savedTeam) => {
               setEquipos((current) => {
@@ -524,22 +554,24 @@ const recargarDatosTorneo = () => {
                   : {}),
               })));
             }}
-          />}
+          /></>}
 
           {activeTab === "stats" && <div className="torneo-dobles" id="stats">
             <TopScorersTable goleadores={topGoleadores} />
             <TopCardsTable jugadores={topAmarillas} />
             <TournamentTeamLeaders tabla={tabla} />
-            <SuspensionsPanel sanciones={sanciones} canManage={puedeEditar} onError={setAdminError} onUpdated={(actualizada) => setSanciones((current) => current.map((item) => item.idSancion === actualizada.idSancion ? actualizada : item))} />
+            <SuspensionsPanel sanciones={sanciones} canManage={puedeGestionarDeporte} onError={setAdminError} onUpdated={(actualizada) => setSanciones((current) => current.map((item) => item.idSancion === actualizada.idSancion ? actualizada : item))} />
           </div>}
 
-          {activeTab === "fixture" && (torneo.formato?.toLowerCase() === "eliminación directa" || torneo.formato?.toLowerCase().includes("playoffs")) && <KnockoutBracket equipos={equipos} teamCount={cantidadEquiposLlave} partidos={partidos} canManage={puedeEditar} onNextRound={generarSiguienteLlave} loading={generandoFixture} />}
+          {activeTab === "fixture" && usaLlave && <KnockoutBracket equipos={equipos} teamCount={cantidadEquiposLlave} partidos={partidos} canManage={puedeGestionarDeporte} onNextRound={generarSiguienteLlave} loading={generandoFixture} />}
 
           {activeTab === "fixture" && <FixtureByDate
             fechas={fechas}
             partidos={partidos}
+            equipos={equipos}
+            mostrarLibres={!usaLlave}
             onSelectPartido={setPartidoSeleccionado}
-            canManage={puedeEditar}
+            canManage={puedeGestionarDeporte}
             onEditDate={(fecha) => { setFechaEnEdicion(fecha); setMostrarFecha(true); }}
             onCloseDate={async (fecha) => {
               if (!window.confirm(`¿Cerrar la fecha ${fecha.numeroFecha}? Todos sus partidos deben estar finalizados.`)) return;
@@ -566,12 +598,13 @@ const recargarDatosTorneo = () => {
             key={partidoSeleccionado?.idPartido ?? "closed-match"}
             partido={partidoSeleccionado}
             onClose={() => setPartidoSeleccionado(null)}
-            canManage={puedeEditar}
+            canManage={puedeGestionarDeporte}
             onChanged={recargarDatosTorneo}
           />
           {mostrarResultado && (
             <ResultModal
               partidos={partidos}
+              fechas={fechas}
               partidoInicial={partidoResultado}
               onClose={() => { setMostrarResultado(false); setPartidoResultado(null); }}
               onResultadoGuardado={(partidoActualizado, abrirDetalles = false) => {
@@ -624,7 +657,7 @@ const recargarDatosTorneo = () => {
           }} />}
         </div>
       </main>
-      {puedeEditar && <nav className="tournament-mobile-actions" aria-label="Acciones rápidas del organizador">
+      {puedeGestionarDeporte && <nav className="tournament-mobile-actions" aria-label="Acciones rápidas del organizador">
         <button type="button" className={activeTab === "resumen" ? "active" : ""} onClick={() => changeTab("resumen")}><span>⌂</span>Resumen</button>
         <button type="button" className={activeTab === "equipos" ? "active" : ""} onClick={() => changeTab("equipos")}><span>♙</span>Equipos</button>
         <button type="button" className={activeTab === "fixture" ? "active" : ""} onClick={() => changeTab("fixture")}><span>▦</span>Fixture</button>

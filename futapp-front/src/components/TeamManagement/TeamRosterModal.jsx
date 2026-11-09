@@ -7,7 +7,7 @@ import { Link } from "react-router-dom";
 import ExistingPlayerEnrollment from "./ExistingPlayerEnrollment";
 import RosterEnrollmentForm from "./RosterEnrollmentForm";
 
-function TeamRosterModal({ equipo, torneoId, canManage, onClose }) {
+function TeamRosterModal({ equipo, torneoId, canManage, onClose, onRosterChanged }) {
   const [players, setPlayers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -21,6 +21,24 @@ function TeamRosterModal({ equipo, torneoId, canManage, onClose }) {
   const [generatingPlayers, setGeneratingPlayers] = useState(false);
   const [tournamentName, setTournamentName] = useState("");
   const [reloadKey, setReloadKey] = useState(0);
+  const [showQuickPlayers, setShowQuickPlayers] = useState(false);
+  const [quickPlayerNames, setQuickPlayerNames] = useState("");
+  const [savingQuickPlayers, setSavingQuickPlayers] = useState(false);
+  const parsedPlayerNames = quickPlayerNames.split(/\r?\n/).map((name) => name.trim()).filter(Boolean);
+
+  const saveQuickPlayers = async () => {
+    if (!enrollmentId || parsedPlayerNames.length === 0) return;
+    setSavingQuickPlayers(true); setActionError(""); setActionNotice("");
+    try {
+      const response = await apiFetch(`${API_URL}/inscripciones/${enrollmentId}/jugadores/lote`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ nombres: parsedPlayerNames }) });
+      const payload = await response.json().catch(() => null);
+      if (!response.ok) throw new Error(payload?.message || "No se pudieron cargar los jugadores");
+      setQuickPlayerNames(""); setShowQuickPlayers(false); setReloadKey((current) => current + 1);
+      onRosterChanged?.();
+      setActionNotice(`${payload.length} ${payload.length === 1 ? "jugador cargado" : "jugadores cargados"}. Podés completar dorsales, posiciones y datos personales individualmente.`);
+    } catch (requestError) { setActionError(requestError.message); }
+    finally { setSavingQuickPlayers(false); }
+  };
 
   const closeForm = () => {
     setShowForm(false);
@@ -46,6 +64,7 @@ function TeamRosterModal({ equipo, torneoId, canManage, onClose }) {
       ? "Se envió una solicitud al jugador. Los cambios se aplicarán cuando la apruebe."
       : "La operación se realizó correctamente."));
     setReloadKey((current) => current + 1);
+    onRosterChanged?.();
   };
 
   const deactivatePlayer = async (player) => {
@@ -60,6 +79,7 @@ function TeamRosterModal({ equipo, torneoId, canManage, onClose }) {
       }
       const updated = await response.json();
       setPlayers((current) => current.map((item) => item.idInscripcionJugador === updated.idInscripcionJugador ? { ...item, ...updated } : item));
+      onRosterChanged?.();
     } catch (requestError) {
       setActionError(requestError.message);
     }
@@ -84,6 +104,7 @@ function TeamRosterModal({ equipo, torneoId, canManage, onClose }) {
       if (!response.ok) throw new Error(payload?.message || "No se pudieron generar los jugadores");
       setActionNotice(`Se generaron ${payload.length} jugadores de prueba. Podés editar sus datos cuando quieras.`);
       setReloadKey((current) => current + 1);
+      onRosterChanged?.();
     } catch (requestError) {
       setActionError(requestError.message);
     } finally {
@@ -125,18 +146,19 @@ function TeamRosterModal({ equipo, torneoId, canManage, onClose }) {
         <span className="tournament-form-chip">Plantel por torneo</span>
         <h2>{equipo.nombre}</h2>
         <p><strong>{tournamentName || "Torneo"}</strong> · {players.filter((player) => player.estado === "ACTIVA").length} activos · {players.filter((player) => player.estado === "INACTIVA").length} bajas.</p>
-        {canManage && !showForm && !showExisting && <div className="roster-add-actions"><button type="button" className="tournament-form-save" onClick={() => { setEditingPlayer(null); setShowForm(true); }}>+ Crear jugador</button><button type="button" className="tournament-form-cancel" onClick={() => setShowExisting(true)}>Agregar jugador existente</button><button type="button" className="roster-generate-players" onClick={generateTestPlayers} disabled={!enrollmentId || generatingPlayers}>{generatingPlayers ? "Generando..." : "✨ Generar jugadores de prueba"}</button></div>}
+        {canManage && !showForm && !showExisting && <div className="roster-add-actions"><button type="button" className="tournament-form-save" onClick={() => setShowQuickPlayers((value) => !value)}>Carga rápida</button><button type="button" onClick={() => { setEditingPlayer(null); setShowForm(true); }}>+ Crear uno</button><button type="button" className="tournament-form-cancel" onClick={() => setShowExisting(true)}>Convocar existente</button><button type="button" className="roster-generate-players" onClick={generateTestPlayers} disabled={!enrollmentId || generatingPlayers}>{generatingPlayers ? "Generando..." : "Generar aleatorios"}</button></div>}
+        {showQuickPlayers && <div className="quick-entry-panel roster-quick-entry"><div><strong>Cargar jugadores por lista</strong><small>Escribí nombre y apellido, uno por línea. Después podés editar dorsal, posición y el resto de sus datos.</small></div><textarea autoFocus rows="7" value={quickPlayerNames} onChange={(event) => setQuickPlayerNames(event.target.value)} placeholder={"Juan Pérez\nMateo González\nLucas Fernández"} /><div className="quick-entry-summary"><span>{parsedPlayerNames.length} {parsedPlayerNames.length === 1 ? "jugador" : "jugadores"}</span><div><button type="button" onClick={() => setShowQuickPlayers(false)}>Cancelar</button><button type="button" className="primary" disabled={savingQuickPlayers || parsedPlayerNames.length === 0} onClick={saveQuickPlayers}>{savingQuickPlayers ? "Cargando…" : "Cargar jugadores"}</button></div></div></div>}
         {showForm && <PlayerForm equipoId={equipo.idEquipo} torneoId={torneoId} player={editingPlayer} onCancel={closeForm} onSaved={savePlayer} />}
-        {showExisting && enrollmentId && <ExistingPlayerEnrollment equipoId={equipo.idEquipo} enrollmentId={enrollmentId} currentPlayers={players} onCancel={() => setShowExisting(false)} onSaved={() => { setShowExisting(false); setReloadKey((current) => current + 1); }} />}
+        {showExisting && enrollmentId && <ExistingPlayerEnrollment equipoId={equipo.idEquipo} enrollmentId={enrollmentId} currentPlayers={players} onCancel={() => setShowExisting(false)} onSaved={() => { setShowExisting(false); setReloadKey((current) => current + 1); onRosterChanged?.(); }} />}
         {actionNotice && <p className="roster-notice">{actionNotice}</p>}
         {actionError && <p className="tournament-form-error">{actionError}</p>}
         <div className="roster-list">
           {loading ? <p>Cargando plantel...</p> : players.length === 0 ? <p className="roster-empty">Todavía no hay jugadores.</p> : players.map((player) => (
             <article className={`roster-player ${player.estado === "INACTIVA" ? "inactive" : ""}`} key={player.idInscripcionJugador || player.idJugador}>
               <strong className="roster-number">{player.numeroCamiseta}</strong>
-              <div><h3><Link to={`/jugador/${player.idJugador}`} onClick={onClose}>{player.nombre} {player.apellido}</Link></h3><p>{player.posicion}{player.apodo ? ` · ${player.apodo}` : ""}</p></div>
+              <div><h3><Link to={`/jugador/${player.idJugador}`} onClick={onClose}>{player.nombre} {player.apellido}</Link></h3><p>{player.posicion || "Sin posición"}{player.apodo ? ` · ${player.apodo}` : ""}</p></div>
               <div className="roster-player-actions"><span className="roster-status">{player.estado}{player.fechaBaja ? ` · Baja ${player.fechaBaja}` : ""}</span>{canManage && player.estado === "ACTIVA" && <><button type="button" onClick={() => { setEditingEnrollment(player); setReactivating(false); }}>Dorsal/posición</button><button type="button" onClick={() => { setEditingPlayer(player); setShowForm(true); }}>Editar jugador</button><button type="button" className="danger" onClick={() => deactivatePlayer(player)}>Dar de baja</button></>}{canManage && player.estado === "INACTIVA" && <button type="button" className="reactivate" onClick={() => { setEditingEnrollment(player); setReactivating(true); }}>Reactivar</button>}</div>
-              {editingEnrollment?.idInscripcionJugador === player.idInscripcionJugador && <RosterEnrollmentForm player={player} reactivate={reactivating} onCancel={() => setEditingEnrollment(null)} onSaved={(updated) => { setPlayers((current) => current.map((item) => item.idInscripcionJugador === updated.idInscripcionJugador ? { ...item, ...updated } : item)); setEditingEnrollment(null); }} />}
+              {editingEnrollment?.idInscripcionJugador === player.idInscripcionJugador && <RosterEnrollmentForm player={player} reactivate={reactivating} onCancel={() => setEditingEnrollment(null)} onSaved={(updated) => { setPlayers((current) => current.map((item) => item.idInscripcionJugador === updated.idInscripcionJugador ? { ...item, ...updated } : item)); setEditingEnrollment(null); onRosterChanged?.(); }} />}
             </article>
           ))}
         </div>

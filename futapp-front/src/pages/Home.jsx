@@ -128,9 +128,9 @@ function Home() {
   const champions = useMemo(() => torneos.filter((tournament) => tournament.idCampeon).slice(0, 6), [torneos]);
 
   const createTournament = () => {
-    if (!usuario) return navigate(`/register?next=${encodeURIComponent("/?crearTorneo=1")}&intent=crear-torneo`);
+    if (!usuario) return navigate("/login?next=%2F%3FcrearTorneo%3D1&intent=crear-torneo");
     if (!canCreateTournament) {
-      setRoleMessage("Debés crear una cuenta de organizador de torneos. Los roles de las cuentas no se pueden cambiar.");
+      setRoleMessage("El acceso para administrar torneos es exclusivo para organizadores invitados por FUTAPP.");
       return;
     }
     setRoleMessage("");
@@ -150,7 +150,7 @@ function Home() {
         <div><span>Explorar</span><h1>Descubrí el fútbol de tu zona</h1><p>Torneos, resultados y próximos partidos en un solo lugar.</p></div>
         <button type="button" className="home-btn-primary" onClick={createTournament}>+ Crear torneo</button>
       </section>
-      {roleMessage && <div className="empty-state explore-message account-role-message" role="status"><h3>Cuenta de organizador requerida</h3><p>{roleMessage}</p><Link to="/register?intent=crear-torneo">Crear otra cuenta como organizador</Link></div>}
+      {roleMessage && <div className="empty-state explore-message account-role-message" role="status"><h3>Acceso de organizador requerido</h3><p>{roleMessage}</p><Link to="/login">Acceso organizadores</Link></div>}
 
       <section className="explore-controls" aria-label="Filtros de torneos">
         <div className="explore-filter-row">{FILTERS.map(([value, label]) => <button type="button" className={activeFilter === value ? "active" : ""} key={value} onClick={() => setActiveFilter(value)}>{label}</button>)}</div>
@@ -198,7 +198,7 @@ function Home() {
         </section>
       )}
 
-      {showTournamentForm && <TournamentFormModal onClose={() => setShowTournamentForm(false)} onSaved={async (savedTournament) => { setExploreData((current) => ({ ...current, torneos: [savedTournament, ...current.torneos] })); if (!tieneRol(usuario, "ORGANIZADOR")) await refreshSession(); navigate(`/torneo/${savedTournament.idTorneo}`); }} />}
+      {showTournamentForm && <TournamentFormModal onClose={() => setShowTournamentForm(false)} onSaved={async (savedTournament) => { setExploreData((current) => ({ ...current, torneos: [savedTournament, ...current.torneos] })); if (!tieneRol(usuario, "ORGANIZADOR")) await refreshSession(); navigate(`/torneo/${savedTournament.idTorneo}#equipos`); }} />}
     </div>
   );
 }

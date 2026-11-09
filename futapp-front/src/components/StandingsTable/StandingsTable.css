@@ -55,6 +55,23 @@
   font-weight: 700;
 }
 
+.standings-table .crest-column,
+.standings-table .crest-cell {
+  width: 42px;
+  padding-inline: 4px;
+}
+
+.crest-cell a {
+  display: grid;
+  place-items: center;
+}
+
+.crest-cell img {
+  width: 27px;
+  height: 27px;
+  object-fit: contain;
+}
+
 .standings-full-button { display: none; }
 .standings-modal-backdrop { position: fixed; inset: 0; z-index: 300; display: grid; place-items: center; padding: 16px; background: rgba(6,24,36,.76); backdrop-filter: blur(4px); }
 .standings-modal { width: min(920px,100%); max-height: min(82vh,680px); overflow: hidden; border-radius: 10px; background: #f5f8fa; box-shadow: 0 24px 70px rgba(0,0,0,.3); }
@@ -79,8 +96,8 @@
   .standings-table { width: 100%; min-width: 0; table-layout: fixed; }
   .standings-table th,
   .standings-table td { height: 44px; padding-inline: 5px; }
-  .standings-table th:nth-child(n+5):nth-child(-n+9),
-  .standings-table td:nth-child(n+5):nth-child(-n+9) { display: none; }
+  .standings-table th:nth-child(n+6):nth-child(-n+10),
+  .standings-table td:nth-child(n+6):nth-child(-n+10) { display: none; }
   .standings-table th:first-child,
   .standings-table td:first-child {
     position: static;
@@ -89,17 +106,23 @@
   .standings-table th:nth-child(2),
   .standings-table td:nth-child(2) {
     position: static;
+    width: 30px;
+    padding-inline: 2px;
+  }
+  .standings-table th:nth-child(3),
+  .standings-table td:nth-child(3) {
+    position: static;
     width: auto;
     text-align: left;
   }
-  .standings-table th:nth-child(3),
-  .standings-table td:nth-child(3),
   .standings-table th:nth-child(4),
   .standings-table td:nth-child(4),
-  .standings-table th:nth-child(10),
-  .standings-table td:nth-child(10) { width: 38px; }
-  .standings-table .team-cell a { display: flex; overflow: hidden; gap: 5px; font-size: 10px; line-height: 1.25; }
-  .standings-table .team-cell a img { width: 22px; height: 22px; }
+  .standings-table th:nth-child(5),
+  .standings-table td:nth-child(5),
+  .standings-table th:nth-child(11),
+  .standings-table td:nth-child(11) { width: 38px; }
+  .standings-table .crest-cell img { width: 22px; height: 22px; }
+  .standings-table .team-cell a { display: block; overflow: hidden; font-size: 10px; line-height: 1.25; text-overflow: ellipsis; white-space: nowrap; }
   .standings-full-button { display: block; width: 100%; min-height: 44px; margin-top: 10px; border: 1px solid #0877a7; border-radius: 5px; background: #fff; color: #0877a7; font-size: 11px; font-weight: 900; }
   .standings-modal-backdrop { place-items: center; padding: 14px; }
   .standings-modal { width: 100%; max-height: 82vh; border-radius: 10px; }
@@ -107,11 +130,11 @@
   .standings-modal-scroll .standings-table-full th,
   .standings-modal-scroll .standings-table-full td { display: table-cell; position: static; width: auto; min-width: 52px; padding: 10px 8px; }
   .standings-modal-scroll .standings-table-full th:nth-child(2),
-  .standings-modal-scroll .standings-table-full td:nth-child(2) { min-width: 190px; }
+  .standings-modal-scroll .standings-table-full td:nth-child(2) { min-width: 42px; }
+  .standings-modal-scroll .standings-table-full th:nth-child(3),
+  .standings-modal-scroll .standings-table-full td:nth-child(3) { min-width: 190px; }
 }
-.team-cell a { display: inline-flex; max-width: 100%; align-items: center; gap: 8px; color: inherit; text-decoration: none; }
-.team-cell a img { width: 27px; height: 27px; flex: 0 0 auto; object-fit: contain; }
-.team-cell a span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.team-cell a { display: block; max-width: 100%; overflow: hidden; color: inherit; text-decoration: none; text-overflow: ellipsis; white-space: nowrap; }
 .team-cell a:hover { color: #0877a7; text-decoration: underline; }
 
 .standings-block { margin-bottom: 22px; }
@@ -131,9 +154,10 @@
 :root[data-theme="dark"] .standings-swipe-hint { color: #b9c8d2; }
 :root[data-theme="dark"] .standings-full-button { border-color: #67d7ee; background: #29414f; color: #67d7ee; }
 @media (max-width: 768px) {
-  .standings-table .team-cell a img { width: 22px; height: 22px; }
   :root[data-theme="dark"] .standings-table td:first-child,
-  :root[data-theme="dark"] .standings-table td:nth-child(2) { background: #213744; }
+  :root[data-theme="dark"] .standings-table td:nth-child(2),
+  :root[data-theme="dark"] .standings-table td:nth-child(3) { background: #213744; }
   :root[data-theme="dark"] .standings-table .top-row td:first-child,
-  :root[data-theme="dark"] .standings-table .top-row td:nth-child(2) { background: #23483f; }
+  :root[data-theme="dark"] .standings-table .top-row td:nth-child(2),
+  :root[data-theme="dark"] .standings-table .top-row td:nth-child(3) { background: #23483f; }
 }

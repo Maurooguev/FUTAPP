@@ -10,6 +10,7 @@ import EntityImage from "../components/EntityImage/EntityImage";
 import { jugadorGenerico } from "../utils/defaultEntityImages";
 import CopyableCode from "../components/CopyableCode/CopyableCode";
 import TournamentIcon from "../components/TournamentIcon/TournamentIcon";
+import { FEATURES } from "../config/features";
 
 async function fetchJson(url, message) {
   const response = await apiFetch(url);
@@ -39,7 +40,6 @@ function JugadorPerfil() {
   const [error, setError] = useState("");
   const [claimMessage, setClaimMessage] = useState("");
   const [ownPlayerId, setOwnPlayerId] = useState(null);
-  const [organizerProfileExists, setOrganizerProfileExists] = useState(false);
   const [previewImage, setPreviewImage] = useState(null);
   const [showAllStats, setShowAllStats] = useState(false);
   const [expandedMatch, setExpandedMatch] = useState(null);
@@ -81,18 +81,11 @@ function JugadorPerfil() {
   }, [id, jugador?.idJugador]);
 
   useEffect(() => {
-    if (!tieneRol(usuario, "JUGADOR")) return;
+    if (!FEATURES.playerAccounts || !tieneRol(usuario, "JUGADOR")) return;
     apiFetch(`${API_URL}/perfil-jugador/mio`)
       .then((response) => response.ok ? response.json() : null)
       .then((profile) => setOwnPlayerId(profile?.idJugador ?? null))
       .catch(() => setOwnPlayerId(null));
-  }, [usuario]);
-
-  useEffect(() => {
-    if (!tieneRol(usuario, "ORGANIZADOR") && !tieneRol(usuario, "ADMIN")) return;
-    apiFetch(`${API_URL}/perfiles-organizador/mio`)
-      .then((response) => setOrganizerProfileExists(response.ok))
-      .catch(() => setOrganizerProfileExists(false));
   }, [usuario]);
 
   const isOwnProfile = ownPlayerId === Number(id);
@@ -145,10 +138,10 @@ function JugadorPerfil() {
     <section className="player-hero">
       <button type="button" className="profile-avatar player-avatar image-preview-trigger" onClick={() => setPreviewImage({ src: jugador.foto ? assetUrl(jugador.foto) : jugadorGenerico, alt: `${jugador.nombre} ${jugador.apellido}` })} aria-label={`Ampliar foto de ${jugador.nombre} ${jugador.apellido}`}><EntityImage type="player" value={jugador.foto} alt={`${jugador.nombre} ${jugador.apellido}`} /></button>
       <div><CopyableCode className="profile-code" value={jugador.codigoPublico} /><h1>{jugador.nombre} {jugador.apellido} {jugador.verificado && <span className="verified-badge" title="Perfil vinculado con la cuenta del jugador">✓ Verificado</span>}</h1>{jugador.apodo && <p className="player-nickname">“{jugador.apodo}”</p>}<Link className="player-current-team" to={`/equipo/${equipo.idEquipo}`}><EntityImage type="team" value={equipo.escudo} alt="" /><span>{equipo.nombre}</span></Link></div>
-      <div className="player-hero-side"><strong className="shirt-number">#{jugador.numeroCamiseta}</strong><FavoriteButton type="jugadores" id={jugador.idJugador} /><span className="profile-views">👁 {jugador.visitas || 0} visitas</span></div>
-      {isOwnProfile ? <div className="player-profile-actions"><Link className="profile-edit-link" to="/mi-perfil-jugador/editar">Editar perfil de jugador</Link>{(tieneRol(usuario, "ORGANIZADOR") || tieneRol(usuario, "ADMIN")) && <Link className="profile-organizer-link" to={organizerProfileExists ? "/mi-perfil-organizador" : "/mi-perfil-organizador/editar"}>{organizerProfileExists ? "Ver perfil de organizador" : "Generar perfil de organizador"}</Link>}</div> : tieneRol(usuario, "JUGADOR") && !jugador.verificado && <button className="profile-claim-button" onClick={claimPlayer}>Este jugador soy yo</button>}
+      <div className="player-hero-side"><strong className="shirt-number">#{jugador.numeroCamiseta}</strong>{FEATURES.favorites && <FavoriteButton type="jugadores" id={jugador.idJugador} />}<span className="profile-views">👁 {jugador.visitas || 0} visitas</span></div>
+      {FEATURES.playerAccounts && (isOwnProfile ? <div className="player-profile-actions"><Link className="profile-edit-link" to="/mi-perfil-jugador/editar">Editar perfil de jugador</Link></div> : FEATURES.claims && tieneRol(usuario, "JUGADOR") && !jugador.verificado && <button className="profile-claim-button" onClick={claimPlayer}>Este jugador soy yo</button>)}
     </section>
-    {claimMessage && <p className="profile-action-message">{claimMessage}</p>}
+    {FEATURES.claims && claimMessage && <p className="profile-action-message">{claimMessage}</p>}
     <section className="player-facts"><div><span>Posición</span><strong>{jugador.posicion}</strong></div><div><span>Edad</span><strong>{calcularEdad(jugador.fechaNacimiento) ?? "—"}</strong></div><div><span>Nacimiento</span><strong>{jugador.fechaNacimiento || "—"}</strong></div><div><span>Pierna hábil</span><strong>{jugador.piernaHabil || "—"}</strong></div></section>
     {inscripciones.length > 0 && <section className="profile-panel">
       <h2>Torneos</h2>

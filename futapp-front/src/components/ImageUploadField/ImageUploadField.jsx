@@ -33,7 +33,7 @@ function ImageUploadField({ label, value, onUploaded, shape = "wide", allowBackg
     event.target.value = "";
     if (!file) return;
     if (allowBackgroundRemoval) setBackgroundFile(file);
-    else if (shape === "wide") setCropFile(file);
+    else if (shape === "wide" || shape === "avatar") setCropFile(file);
     else uploadFile(file);
   };
 
@@ -43,7 +43,7 @@ function ImageUploadField({ label, value, onUploaded, shape = "wide", allowBackg
     <label className="image-upload-button">{uploading ? "Subiendo..." : value ? "Cambiar imagen" : "Elegir imagen"}<input type="file" accept="image/jpeg,image/png,image/webp" onChange={selectFile} disabled={uploading} /></label>
     {value && <button type="button" className="image-upload-remove" onClick={() => onUploaded("")}>Quitar</button>}
     {error && <small className="image-upload-error">{error}</small>}
-    {cropFile && <PlantelCropModal file={cropFile} onCancel={() => setCropFile(null)} onConfirm={async (cropped) => { await uploadFile(cropped); setCropFile(null); }} />}
+    {cropFile && <PlantelCropModal file={cropFile} variant={shape === "avatar" ? "avatar" : "wide"} onCancel={() => setCropFile(null)} onConfirm={async (cropped) => { await uploadFile(cropped); setCropFile(null); }} />}
     {backgroundFile && <BackgroundRemovalModal file={backgroundFile} onCancel={() => setBackgroundFile(null)} onConfirm={async (prepared) => { await uploadFile(prepared); setBackgroundFile(null); }} />}
   </div>;
 }

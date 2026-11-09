@@ -28,7 +28,23 @@ public class BearerTokenFilter extends OncePerRequestFilter {
             storedToken.filter(token -> !token.getExpiresAt().isAfter(LocalDateTime.now()))
                     .ifPresent(token -> tokens.deleteById(token.getToken()));
         }
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.getPrincipal() instanceof com.futapp.model.Usuario user
+                && user.isPasswordChangeRequired() && mustChangePasswordBefore(request)) {
+            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+            response.setContentType("application/json");
+            response.getWriter().write("{\"status\":403,\"message\":\"Debés cambiar la contraseña temporal antes de continuar\"}");
+            return;
+        }
         chain.doFilter(request, response);
+    }
+
+    private boolean mustChangePasswordBefore(HttpServletRequest request) {
+        String path = request.getRequestURI();
+        if (path.contains("/auth/")) return false;
+        if (!"GET".equalsIgnoreCase(request.getMethod())) return true;
+        return path.contains("/torneos/mios") || path.contains("/perfiles-organizador/mio")
+                || path.contains("/admin/") || path.contains("/auditoria/");
     }
 
     private String resolveToken(HttpServletRequest request) {

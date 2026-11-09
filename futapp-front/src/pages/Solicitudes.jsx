@@ -27,7 +27,7 @@ function SolicitudCard({ item, onResolve, rejecting, onReject, onCancelReject, c
       {isPlayerChange
         ? <><p>Propone modificar los datos privados de <Link to={targetUrl}>{targetName}</Link>.</p><dl className="request-changes"><div><dt>Nombre</dt><dd>{item.nombrePropuesto || "—"}</dd></div><div><dt>Apellido</dt><dd>{item.apellidoPropuesto || "—"}</dd></div><div><dt>DNI</dt><dd>{item.dniPropuesto || "Sin informar"}</dd></div><div><dt>Nacimiento</dt><dd>{item.fechaNacimientoPropuesta || "—"}</dd></div></dl></>
         : isInvitation
-        ? <p>Invita a <Link to={`/equipo/${item.idEquipo}`}>{item.nombreEquipo}</Link> a participar en <Link to={`/torneo/${item.idTorneo}`}>{item.nombreTorneo}</Link>{item.categoria ? ` en la categoría ${item.categoria}` : ""}. Al aceptar se inscribirá también su plantel actual.</p>
+        ? <p>Invita a <Link to={`/equipo/${item.idEquipo}`}>{item.nombreEquipo}</Link> a participar en <Link to={`/torneo/${item.idTorneo}`}>{item.nombreTorneo}</Link>{item.categoria ? ` en la categoría ${item.categoria}` : ""}. Al aceptar, el director podrá elegir qué jugadores del club disputarán el torneo.</p>
         : isManagementInvitation
         ? <p>Te invita a administrar <Link to={targetUrl}>{targetName}</Link>. Al aceptar, este será el único club asociado a tu cuenta de director.</p>
         : isFusion

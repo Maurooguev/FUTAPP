@@ -14,6 +14,9 @@ public class TorneoResponseDTO {
     private String motivoCancelacion;
     private String formato;
     private Integer cantidadEquipos;
+    private Integer cantidadZonas;
+    private Integer clasificadosPorZona;
+    private Integer clasificadosPlayoff;
     private String codigoPublico;
     private Long idPropietario;
     private String nombrePropietario;
@@ -115,6 +118,12 @@ public class TorneoResponseDTO {
     public void setCantidadEquipos(Integer cantidadEquipos) {
         this.cantidadEquipos = cantidadEquipos;
     }
+    public Integer getCantidadZonas() { return cantidadZonas; }
+    public void setCantidadZonas(Integer value) { this.cantidadZonas = value; }
+    public Integer getClasificadosPorZona() { return clasificadosPorZona; }
+    public void setClasificadosPorZona(Integer value) { this.clasificadosPorZona = value; }
+    public Integer getClasificadosPlayoff() { return clasificadosPlayoff; }
+    public void setClasificadosPlayoff(Integer value) { this.clasificadosPlayoff = value; }
     public String getCodigoPublico() { return codigoPublico; }
     public void setCodigoPublico(String codigoPublico) { this.codigoPublico = codigoPublico; }
     public Long getIdPropietario() { return idPropietario; }

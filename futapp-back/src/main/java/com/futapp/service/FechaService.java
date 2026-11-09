@@ -123,10 +123,12 @@ public class FechaService {
         if (partidos.isEmpty()) {
             throw new IllegalArgumentException("No se puede cerrar una jornada sin partidos");
         }
-        boolean quedanPartidos = partidos.stream()
-                .anyMatch(partido -> !java.util.Set.of("FINALIZADO", "CANCELADO").contains(partido.getEstado().toUpperCase()));
-        if (quedanPartidos) {
-            throw new IllegalArgumentException("Todos los partidos deben estar finalizados o cancelados antes de cerrar la jornada");
+        List<Partido> pendientes = partidos.stream()
+                .filter(partido -> !java.util.Set.of("FINALIZADO", "CANCELADO").contains(partido.getEstado().toUpperCase()))
+                .toList();
+        if (!pendientes.isEmpty()) {
+            String detalle = pendientes.stream().map(this::describirPendiente).collect(Collectors.joining(", "));
+            throw new IllegalArgumentException("No podés cerrar la jornada. Falta resolver: " + detalle);
         }
 
         fecha.setEstado("FINALIZADA");
@@ -142,6 +144,13 @@ public class FechaService {
                 });
 
         return convertirAResponseDTO(fecha);
+    }
+
+    private String describirPendiente(Partido partido) {
+        String local = partido.getEquipoLocal() == null ? "Local sin definir" : partido.getEquipoLocal().getNombre();
+        String visitante = partido.getEquipoVisitante() == null ? "Visitante sin definir" : partido.getEquipoVisitante().getNombre();
+        String estado = partido.getEstado() == null ? "sin estado" : partido.getEstado().toLowerCase().replace('_', ' ');
+        return local + " vs " + visitante + " (" + estado + ")";
     }
 
     private FechaResponseDTO convertirAResponseDTO(Fecha fecha) {

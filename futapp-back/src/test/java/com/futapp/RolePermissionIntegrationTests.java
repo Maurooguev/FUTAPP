@@ -86,7 +86,7 @@ class RolePermissionIntegrationTests {
         mockMvc.perform(delete("/equipos/999999").header("Authorization", bearer(token)))
                 .andExpect(status().isNotFound());
         mockMvc.perform(post("/equipos/999998/fusionar/999999").header("Authorization", bearer(token)))
-                .andExpect(status().isNotFound());
+                .andExpect(status().isForbidden());
         mockMvc.perform(get("/partidos/1/historial-resultado").header("Authorization", bearer(token)))
                 .andExpect(status().isForbidden());
     }

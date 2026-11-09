@@ -4,13 +4,14 @@ import ImageUploadField from "../ImageUploadField/ImageUploadField";
 
 function PlayerForm({ equipoId, torneoId, player, onSaved, onCancel }) {
   const isEditing = Boolean(player?.idJugador);
+  const today = new Date().toISOString().slice(0, 10);
   const [form, setForm] = useState({
     nombre: player?.nombre ?? "",
     apellido: player?.apellido ?? "",
     dni: player?.dni ?? "",
     fechaNacimiento: player?.fechaNacimiento ?? "",
     numeroCamiseta: player?.numeroCamiseta ?? "",
-    posicion: player?.posicion ?? "Delantero",
+    posicion: player?.posicion ?? "",
     foto: player?.foto ?? "",
     apodo: player?.apodo ?? "",
     piernaHabil: player?.piernaHabil ?? "",
@@ -90,9 +91,9 @@ function PlayerForm({ equipoId, torneoId, player, onSaved, onCancel }) {
         <label>Apellido<input name="apellido" value={form.apellido} onChange={updateField} required /></label>
         <label>Apodo<input name="apodo" value={form.apodo} onChange={updateField} /></label>
         <label>DNI (opcional)<input name="dni" value={form.dni} onChange={updateField} /></label>
-        <label>Fecha de nacimiento<input type="date" name="fechaNacimiento" value={form.fechaNacimiento} onChange={updateField} required /></label>
+        <label>Fecha de nacimiento<input type="date" name="fechaNacimiento" value={form.fechaNacimiento} onChange={updateField} min="1900-01-01" max={today} required /></label>
         <label>Número de camiseta<input type="number" name="numeroCamiseta" value={form.numeroCamiseta} onChange={updateField} min="1" max="99" required /></label>
-        <label>Posición<select name="posicion" value={form.posicion} onChange={updateField}><option>Arquero</option><option>Defensor</option><option>Mediocampista</option><option>Delantero</option></select></label>
+        <label>Posición<select name="posicion" value={form.posicion} onChange={updateField}><option value="">Sin posición</option><option>Arquero</option><option>Defensor</option><option>Mediocampista</option><option>Delantero</option></select></label>
         <label>Pierna hábil<select name="piernaHabil" value={form.piernaHabil} onChange={updateField}><option value="">Sin informar</option><option>Derecha</option><option>Izquierda</option><option>Ambas</option></select></label>
       </div>
       <ImageUploadField label="Foto del jugador" value={form.foto} shape="avatar" onUploaded={(foto) => setForm((current) => ({ ...current, foto }))} />

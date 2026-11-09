@@ -22,14 +22,15 @@ function StandingsTable({ tabla, title = "Tabla de posiciones" }) {
     <table className={`standings-table ${className}`.trim()}>
       <thead>
         <tr>
-          <th>#</th><th>Equipo</th><th>Pts</th><th>PJ</th><th>PG</th><th>PE</th><th>PP</th><th>GF</th><th>GC</th><th>DG</th>
+          <th>#</th><th className="crest-column" aria-label="Escudo"></th><th>Equipo</th><th>Pts</th><th>PJ</th><th>PG</th><th>PE</th><th>PP</th><th>GF</th><th>GC</th><th>DG</th>
         </tr>
       </thead>
       <tbody>
         {tabla.map((fila, index) => (
           <tr key={fila.idEquipo} className={index === 0 ? "top-row" : ""}>
             <td>{index + 1}</td>
-            <td className="team-cell"><Link to={`/equipo/${fila.idEquipo}`}><EntityImage type="team" value={fila.escudoEquipo} alt="" /><span>{fila.nombreEquipo}</span></Link></td>
+            <td className="crest-cell"><Link to={`/equipo/${fila.idEquipo}`} aria-label={`Ver ${fila.nombreEquipo}`}><EntityImage type="team" value={fila.escudoEquipo} alt="" /></Link></td>
+            <td className="team-cell"><Link to={`/equipo/${fila.idEquipo}`}>{fila.nombreEquipo}</Link></td>
             <td>{fila.puntos}</td><td>{fila.partidosJugados}</td><td>{fila.ganados}</td><td>{fila.empatados}</td><td>{fila.perdidos}</td><td>{fila.golesFavor}</td><td>{fila.golesContra}</td><td>{fila.diferenciaGol}</td>
           </tr>
         ))}

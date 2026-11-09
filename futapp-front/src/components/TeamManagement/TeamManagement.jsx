@@ -1,21 +1,22 @@
 import { useState } from "react";
 import TeamFormModal from "./TeamFormModal";
 import TeamRosterModal from "./TeamRosterModal";
+import QuickTeamLoadWizard from "./QuickTeamLoadWizard";
 import "./TeamManagement.css";
 import { API_URL, apiFetch } from "../../config/api";
 import { Link } from "react-router-dom";
-import ExistingTeamEnrollmentModal from "./ExistingTeamEnrollmentModal";
 import EntityImage from "../EntityImage/EntityImage";
+import TeamWithdrawalModal from "./TeamWithdrawalModal";
 
-function TeamManagement({ torneoId, equipos, canManage, onTeamSaved, onTeamDeleted }) {
+function TeamManagement({ torneoId, capacidad, equipos, canManage, onTeamSaved, onTeamDeleted, onRosterChanged }) {
   const [editingTeam, setEditingTeam] = useState(null);
   const [showTeamForm, setShowTeamForm] = useState(false);
   const [rosterTeam, setRosterTeam] = useState(null);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
-  const [showExistingTeam, setShowExistingTeam] = useState(false);
+  const [withdrawingTeam, setWithdrawingTeam] = useState(null);
+  const [showQuickWizard, setShowQuickWizard] = useState(false);
 
-  const openNewTeam = () => { setMessage(""); setEditingTeam(null); setShowTeamForm(true); };
   const openEditTeam = (team) => { setMessage(""); setEditingTeam(team); setShowTeamForm(true); };
   const removeTeam = async (team) => {
     if (!window.confirm(`¿Quitar a ${team.nombre} de este torneo? El perfil del club y sus otros torneos se conservarán.`)) return;
@@ -25,14 +26,19 @@ function TeamManagement({ torneoId, equipos, canManage, onTeamSaved, onTeamDelet
       if (!response.ok) { const payload = await response.json().catch(() => null); throw new Error(payload?.message || "No se pudo quitar el equipo del torneo"); }
       onTeamDeleted(team.idEquipo);
       setMessage(`${team.nombre} se quitó correctamente del torneo.`);
-    } catch (requestError) { setError(requestError.message); }
+    } catch (requestError) {
+      if (requestError.message.toLowerCase().includes("partidos")) {
+        setError("");
+        setWithdrawingTeam(team);
+      } else setError(requestError.message);
+    }
   };
 
   return (
     <section className="team-management" id="equipos">
       <div className="team-management-head">
         <div><span>Participantes</span><h2>Equipos y planteles</h2><p>Administrá los clubes y sus jugadores.</p></div>
-        {canManage && <div className="team-head-actions"><button type="button" onClick={() => setShowExistingTeam(true)}>Inscribir club existente</button><button type="button" onClick={openNewTeam}>+ Crear club nuevo</button></div>}
+        {canManage && <div className="team-head-actions"><button type="button" className="quick" onClick={() => setShowQuickWizard(true)}>＋ Carga rápida</button></div>}
       </div>
       {error && <p className="tournament-form-error">{error}</p>}
       {message && <p className="profile-action-message">{message}</p>}
@@ -55,9 +61,10 @@ function TeamManagement({ torneoId, equipos, canManage, onTeamSaved, onTeamDelet
           </article>
         ))}</div>
       )}
-      {showTeamForm && <TeamFormModal torneoId={torneoId} equipo={editingTeam} onClose={() => setShowTeamForm(false)} onSaved={(savedTeam) => { onTeamSaved(savedTeam); setMessage(editingTeam ? "Los cambios del equipo se guardaron correctamente." : "El equipo se creó correctamente."); }} onLinked={(officialTeam, duplicateId) => { onTeamDeleted(duplicateId); onTeamSaved(officialTeam); setMessage("Los equipos se vincularon correctamente."); }} />}
-      {rosterTeam && <TeamRosterModal equipo={rosterTeam} torneoId={torneoId} canManage={canManage} onClose={() => setRosterTeam(null)} />}
-      {showExistingTeam && <ExistingTeamEnrollmentModal torneoId={torneoId} currentTeams={equipos} onClose={() => setShowExistingTeam(false)} onSaved={(savedTeam) => { onTeamSaved(savedTeam); setMessage("El equipo se inscribió correctamente en el torneo."); }} />}
+      {showTeamForm && <TeamFormModal torneoId={torneoId} equipo={editingTeam} onClose={() => setShowTeamForm(false)} onSaved={(savedTeam) => { onTeamSaved(savedTeam); setMessage(editingTeam ? "Los cambios del equipo se guardaron correctamente." : "El equipo se creó correctamente."); }} />}
+      {rosterTeam && <TeamRosterModal equipo={rosterTeam} torneoId={torneoId} canManage={canManage} onRosterChanged={onRosterChanged} onClose={() => setRosterTeam(null)} />}
+      {showQuickWizard && <QuickTeamLoadWizard torneoId={torneoId} capacidad={capacidad} equiposActuales={equipos} onClose={() => setShowQuickWizard(false)} onSaved={(payload) => { payload.equipos.forEach(onTeamSaved); setShowQuickWizard(false); setMessage(`Listo: ${payload.equipos.length} equipos y ${payload.jugadoresCreados} jugadores creados. Ahora podés personalizarlos.`); onRosterChanged?.(); }} />}
+      {withdrawingTeam && <TeamWithdrawalModal torneoId={torneoId} team={withdrawingTeam} onClose={() => setWithdrawingTeam(null)} onSaved={(team) => { onTeamDeleted(team.idEquipo); setWithdrawingTeam(null); setMessage(`${team.nombre} quedó dado de baja. Su historial se conserva.`); }} />}
     </section>
   );
 }

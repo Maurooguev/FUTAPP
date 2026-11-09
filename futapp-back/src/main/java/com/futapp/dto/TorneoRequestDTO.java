@@ -13,7 +13,6 @@ public class TorneoRequestDTO {
     @Size(max = 120, message = "El nombre no puede superar los 120 caracteres")
     private String nombre;
 
-    @NotBlank(message = "La descripción es obligatoria")
     @Size(max = 500, message = "La descripción no puede superar los 500 caracteres")
     private String descripcion;
 
@@ -55,8 +54,11 @@ public class TorneoRequestDTO {
     @Min(value = 1, message = "Debe clasificar al menos 1 equipo por zona")
     @Max(value = 16, message = "No pueden clasificar más de 16 equipos por zona")
     private Integer clasificadosPorZona = 2;
-    private Boolean generarEquiposPrueba = true;
-    @Min(0) @Max(30) private Integer jugadoresPorEquipoPrueba = 5;
+    @Min(value = 2, message = "Deben clasificar al menos 2 equipos a playoffs")
+    @Max(value = 16, message = "No pueden clasificar más de 16 equipos a playoffs")
+    private Integer clasificadosPlayoff = 4;
+    private Boolean generarEquiposPrueba = false;
+    @Min(0) @Max(30) private Integer jugadoresPorEquipoPrueba = 0;
 
     public TorneoRequestDTO() {
     }
@@ -124,6 +126,7 @@ public class TorneoRequestDTO {
     public String getCriterioDesempate() { return criterioDesempate; } public void setCriterioDesempate(String value) { this.criterioDesempate = value; }
     public Integer getCantidadZonas() { return cantidadZonas; } public void setCantidadZonas(Integer value) { this.cantidadZonas = value; }
     public Integer getClasificadosPorZona() { return clasificadosPorZona; } public void setClasificadosPorZona(Integer value) { this.clasificadosPorZona = value; }
+    public Integer getClasificadosPlayoff() { return clasificadosPlayoff; } public void setClasificadosPlayoff(Integer value) { this.clasificadosPlayoff = value; }
     public Boolean getGenerarEquiposPrueba() { return generarEquiposPrueba; } public void setGenerarEquiposPrueba(Boolean value) { this.generarEquiposPrueba = value; }
     public Integer getJugadoresPorEquipoPrueba() { return jugadoresPorEquipoPrueba; } public void setJugadoresPorEquipoPrueba(Integer value) { this.jugadoresPorEquipoPrueba = value; }
 }

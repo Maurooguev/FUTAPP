@@ -22,6 +22,7 @@ import java.util.stream.Collectors;
 public class ExplorarService {
     private static final int CANTIDAD_ACTIVIDAD = 8;
     private static final int CANTIDAD_PROXIMOS_BASE = 100;
+    private static final List<String> ESTADOS_PUBLICOS = List.of("ACTIVO", "FINALIZADO");
     private final TorneoRepository torneos;
     private final PartidoRepository partidos;
     private final TablaPosicionService tablaPosicionService;
@@ -38,8 +39,9 @@ public class ExplorarService {
     @Transactional(readOnly = true)
     public ExplorarDTO obtener() {
         List<Partido> proximos = partidos
-                .findByEstadoIgnoreCaseAndFechaHoraGreaterThanEqualOrderByFechaHoraAsc(
-                        "PROGRAMADO", LocalDateTime.now(), PageRequest.of(0, CANTIDAD_PROXIMOS_BASE))
+                .findByEstadoIgnoreCaseAndFechaHoraGreaterThanEqualAndTorneoEstadoInOrderByFechaHoraAsc(
+                        "PROGRAMADO", LocalDateTime.now(), ESTADOS_PUBLICOS,
+                        PageRequest.of(0, CANTIDAD_PROXIMOS_BASE))
                 .getContent();
         List<PartidoExplorarDTO> proximosDto = proximos.stream().limit(CANTIDAD_ACTIVIDAD).map(this::partidoDto).toList();
         Map<Long, PartidoExplorarDTO> proximoPorTorneo = proximos.stream()
@@ -49,12 +51,12 @@ public class ExplorarService {
                         (primero, ignorado) -> primero));
 
         List<TorneoExplorarDTO> torneosDto = torneos.findAll().stream()
-                .filter(torneo -> List.of("ACTIVO", "FINALIZADO").contains(torneo.getEstado().toUpperCase()))
+                .filter(torneo -> torneo.getEstado() != null && ESTADOS_PUBLICOS.contains(torneo.getEstado().toUpperCase()))
                 .map(torneo -> torneoDto(torneo, proximoPorTorneo.get(torneo.getIdTorneo())))
                 .toList();
         List<PartidoExplorarDTO> resultados = partidos
-                .findByEstadoIgnoreCaseOrderByFechaHoraDesc(
-                        "FINALIZADO", PageRequest.of(0, CANTIDAD_ACTIVIDAD))
+                .findByEstadoIgnoreCaseAndTorneoEstadoInOrderByFechaHoraDesc(
+                        "FINALIZADO", ESTADOS_PUBLICOS, PageRequest.of(0, CANTIDAD_ACTIVIDAD))
                 .map(this::partidoDto).getContent();
         List<String> ubicaciones = torneosDto.stream()
                 .map(TorneoExplorarDTO::ubicacion)

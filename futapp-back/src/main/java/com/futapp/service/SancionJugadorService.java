@@ -49,18 +49,49 @@ public class SancionJugadorService {
         return convertir(sanciones.save(sancion));
     }
 
-    void sincronizarConTarjeta(Tarjeta tarjeta) {
+    void sincronizarConTarjeta(Tarjeta tarjeta, Integer fechasSuspension) {
         boolean esRoja = "ROJA".equalsIgnoreCase(tarjeta.getTipoTarjeta());
         var existente = sanciones.findByTarjetaIdTarjeta(tarjeta.getIdTarjeta());
         if (esRoja && existente.isEmpty()) {
             SancionJugador sancion = new SancionJugador();
             sancion.setTarjeta(tarjeta);
-            sancion.setFechasTotal(1);
+            sancion.setFechasTotal(fechasSuspension == null ? 1 : fechasSuspension);
             sancion.setMotivo(tarjeta.getMotivo());
             sanciones.save(sancion);
+        } else if (esRoja && existente.isPresent() && fechasSuspension != null) {
+            existente.get().setFechasTotal(fechasSuspension);
+            existente.get().setMotivo(tarjeta.getMotivo());
+            sanciones.save(existente.get());
         } else if (!esRoja && existente.isPresent()) {
             sanciones.delete(existente.get());
         }
+    }
+
+    public boolean estaSuspendidoParaPartido(Long idJugador, Partido partido) {
+        return estaSuspendidoParaEquipo(idJugador, partido, partido.getEquipoLocal().getIdEquipo())
+                || estaSuspendidoParaEquipo(idJugador, partido, partido.getEquipoVisitante().getIdEquipo());
+    }
+
+    private boolean estaSuspendidoParaEquipo(Long idJugador, Partido objetivo, Long idEquipo) {
+        if (!participa(objetivo, idEquipo)) return false;
+        return sanciones.findByTarjetaPartidoTorneoIdTorneoAndTarjetaJugadorIdJugadorAndTarjetaEquipoIdEquipo(
+                        objetivo.getTorneo().getIdTorneo(), idJugador, idEquipo).stream()
+                .anyMatch(sancion -> fechaIncluidaEnSancion(sancion, objetivo, idEquipo));
+    }
+
+    private boolean fechaIncluidaEnSancion(SancionJugador sancion, Partido objetivo, Long idEquipo) {
+        int origen = sancion.getTarjeta().getPartido().getFecha().getNumeroFecha();
+        if (objetivo.getFecha().getNumeroFecha() <= origen) return false;
+        return partidos.findByTorneoIdTorneo(objetivo.getTorneo().getIdTorneo()).stream()
+                .filter(partido -> partido.getFecha().getNumeroFecha() > origen)
+                .filter(partido -> participa(partido, idEquipo))
+                .map(Partido::getFecha)
+                .collect(java.util.stream.Collectors.toMap(fecha -> fecha.getIdFecha(), fecha -> fecha,
+                        (primera, ignorada) -> primera))
+                .values().stream()
+                .sorted(java.util.Comparator.comparingInt(fecha -> fecha.getNumeroFecha()))
+                .limit(sancion.getFechasTotal())
+                .anyMatch(fecha -> fecha.getIdFecha().equals(objetivo.getFecha().getIdFecha()));
     }
 
     void eliminarPorTarjeta(Long idTarjeta) {

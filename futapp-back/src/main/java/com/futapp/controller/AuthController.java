@@ -81,7 +81,7 @@ public class AuthController {
                 .path("/api/v1").maxAge(sessionDuration).build();
         response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
         return exposeToken ? session : new AuthResponseDTO(null, session.idUsuario(), session.nombre(),
-                session.email(), session.rol(), session.roles());
+                session.email(), session.rol(), session.roles(), session.passwordChangeRequired());
     }
 
     private void clearSessionCookie(HttpServletResponse response) {

@@ -35,8 +35,16 @@ public interface PartidoRepository extends JpaRepository<Partido, Long> {
     Page<Partido> findByEstadoIgnoreCaseOrderByFechaHoraDesc(String estado, Pageable pageable);
 
     @EntityGraph(attributePaths = {"torneo", "fecha", "equipoLocal", "equipoVisitante", "mvp"})
+    Page<Partido> findByEstadoIgnoreCaseAndTorneoEstadoInOrderByFechaHoraDesc(
+            String estado, List<String> estadosTorneo, Pageable pageable);
+
+    @EntityGraph(attributePaths = {"torneo", "fecha", "equipoLocal", "equipoVisitante", "mvp"})
     Page<Partido> findByEstadoIgnoreCaseAndFechaHoraGreaterThanEqualOrderByFechaHoraAsc(
             String estado, LocalDateTime desde, Pageable pageable);
+
+    @EntityGraph(attributePaths = {"torneo", "fecha", "equipoLocal", "equipoVisitante", "mvp"})
+    Page<Partido> findByEstadoIgnoreCaseAndFechaHoraGreaterThanEqualAndTorneoEstadoInOrderByFechaHoraAsc(
+            String estado, LocalDateTime desde, List<String> estadosTorneo, Pageable pageable);
 
     List<Partido> findByFechaIdFecha(Long idFecha);
     List<Partido> findByEquipoLocalIdEquipoOrEquipoVisitanteIdEquipo(Long idEquipoLocal, Long idEquipoVisitante);

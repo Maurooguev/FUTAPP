@@ -16,6 +16,7 @@ public class Usuario {
     @Column(name = "failed_login_attempts", nullable = false) private int failedLoginAttempts;
     @Column(name = "login_failure_started_at") private LocalDateTime loginFailureStartedAt;
     @Column(name = "locked_until") private LocalDateTime lockedUntil;
+    @Column(name = "password_change_required", nullable = false) private boolean passwordChangeRequired;
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "usuario_rol", joinColumns = @JoinColumn(name = "id_usuario"))
     @Column(name = "rol")
@@ -37,6 +38,8 @@ public class Usuario {
     public void setLoginFailureStartedAt(LocalDateTime value) { this.loginFailureStartedAt = value; }
     public LocalDateTime getLockedUntil() { return lockedUntil; }
     public void setLockedUntil(LocalDateTime value) { this.lockedUntil = value; }
+    public boolean isPasswordChangeRequired() { return passwordChangeRequired; }
+    public void setPasswordChangeRequired(boolean value) { this.passwordChangeRequired = value; }
     public void agregarRol(String rol) {
         if (this.rol == null || prioridad(rol) > prioridad(this.rol)) setRol(rol);
     }

@@ -3,11 +3,28 @@ import "./TournamentHero.css";
 import FavoriteButton from "../FavoriteButton/FavoriteButton";
 import CopyableCode from "../CopyableCode/CopyableCode";
 import TournamentIcon from "../TournamentIcon/TournamentIcon";
+import { useEffect, useRef } from "react";
 
 const TABS = [["resumen", "Resumen"], ["info", "Info"], ["tabla", "Tabla"], ["equipos", "Equipos"], ["stats", "Estadísticas"], ["fixture", "Fixture"]];
 
 function TournamentHero({ torneo, fechaActual, activeTab = "resumen", onTabChange }) {
   const tabs = torneo.formato?.toLowerCase() === "eliminación directa" ? TABS.filter(([id]) => id !== "tabla") : TABS;
+  const tabsRef = useRef(null);
+
+  useEffect(() => {
+    const frame = window.requestAnimationFrame(() => {
+      const tabsContainer = tabsRef.current;
+      const activeButton = tabsContainer?.querySelector("button.active");
+      if (!tabsContainer || !activeButton) return;
+
+      tabsContainer.scrollTo({
+        left: activeButton.offsetLeft - (tabsContainer.clientWidth - activeButton.clientWidth) / 2,
+        behavior: "auto",
+      });
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, [activeTab]);
 
   return (
     <>
@@ -41,7 +58,7 @@ function TournamentHero({ torneo, fechaActual, activeTab = "resumen", onTabChang
 
     </section>
     <nav className="tournament-tabs" aria-label="Secciones del torneo">
-      <div className="tournament-shell">
+      <div className="tournament-shell" ref={tabsRef}>
         {tabs.map(([id, label]) => <button key={id} type="button" className={activeTab === id ? "active" : ""} aria-current={activeTab === id ? "page" : undefined} onClick={() => onTabChange?.(id)}>{label}</button>)}
       </div>
     </nav>

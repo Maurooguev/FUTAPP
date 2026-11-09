@@ -6,7 +6,6 @@ function Register() {
   const [nombre, setNombre] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [rol, setRol] = useState(() => new URLSearchParams(window.location.search).get("intent") === "crear-torneo" ? "ORGANIZADOR" : "JUGADOR");
   const [codigoInvitacion, setCodigoInvitacion] = useState("");
   const [error, setError] = useState("");
 
@@ -18,22 +17,22 @@ function Register() {
   const intent = searchParams.get("intent");
   const intentCopy = {
     "crear-torneo": "Creá tu cuenta y empezá a armar tu torneo.",
-    "guardar-favoritos": "Creá tu cuenta para guardar torneos, equipos y jugadores.",
-    "crear-perfil": "Creá tu cuenta para generar y completar tu perfil.",
+    "guardar-favoritos": "Creá tu cuenta de organizador para administrar tus competencias.",
+    "crear-perfil": "Creá tu cuenta de organizador y empezá a gestionar torneos.",
   }[intent];
 
   const manejarRegistro = async (e) => {
     e.preventDefault();
 
     setError("");
-    try { await register(nombre, email, password, rol, codigoInvitacion); navigate(safeNext, { replace: true }); } catch (registerError) { setError(registerError.message); }
+    try { await register(nombre, email, password, codigoInvitacion); navigate(safeNext, { replace: true }); } catch (registerError) { setError(registerError.message); }
   };
 
   return (
     <div className="auth-page">
       <div className="auth-card">
         <h1>Registrarse</h1>
-        <p>{intentCopy || "Creá tu cuenta en FUTAPP."}</p>
+        <p>{intentCopy || "Creá tu cuenta de organizador y gestioná tus torneos desde un solo lugar."}</p>
 
         <form onSubmit={manejarRegistro}>
           <label>Nombre</label>
@@ -57,8 +56,7 @@ function Register() {
           <label>Contraseña</label><input type="password" minLength="10" value={password} onChange={(e) => setPassword(e.target.value)} required />
           <label>Código de invitación <small>(beta privada)</small></label>
           <input type="text" autoComplete="off" value={codigoInvitacion} onChange={(e) => setCodigoInvitacion(e.target.value)} />
-          <label>Tipo de cuenta</label><select value={rol} onChange={(e) => setRol(e.target.value)}><option value="JUGADOR">Jugador</option><option value="DIRECTOR_EQUIPO">Director de equipo</option><option value="ORGANIZADOR">Organizador de torneo</option></select>
-          <small>Elegí con atención: el tipo de cuenta no se puede cambiar después.</small>
+          <small>Esta primera versión de FUTAPP está enfocada en organizadores de torneos. Los equipos y jugadores no necesitan crear una cuenta para tener su perfil público.</small>
           {error && <p className="tournament-form-error">{error}</p>}
 
           <button type="submit" className="auth-btn">

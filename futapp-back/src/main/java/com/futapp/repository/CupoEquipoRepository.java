@@ -6,4 +6,5 @@ import java.util.List;
 
 public interface CupoEquipoRepository extends JpaRepository<CupoEquipo, Long> {
     List<CupoEquipo> findByDivisionIdDivisionOrderByNumero(Long idDivision);
+    List<CupoEquipo> findByDivisionTorneoIdTorneoOrderByNumero(Long idTorneo);
 }

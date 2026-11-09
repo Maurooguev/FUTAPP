@@ -1,0 +1,1 @@
+ALTER TABLE partido ADD COLUMN IF NOT EXISTS motivo_estado VARCHAR(300);

@@ -5,7 +5,12 @@
 .organizer-heading h1 { margin: 3px 0; font-size: 29px; }
 .organizer-heading p { margin: 0; color: #64748b; font-size: 12px; }
 .organizer-heading button,.organizer-empty button { padding: 10px 15px; border: 0; border-radius: 5px; background: #18b957; color: #fff; font-size: 11px; font-weight: 800; }
-.organizer-totals { display: grid; grid-template-columns: repeat(5,1fr); gap: 8px; margin-top: 20px; }
+.organizer-focus { display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-top: 20px; padding: 18px 20px; border: 1px solid #a9d9e9; border-left: 5px solid #08a1d1; border-radius: 10px; background: linear-gradient(115deg,#eafaff,#fff 70%); box-shadow: 0 10px 24px rgba(8,119,167,.08); }
+.organizer-focus span { color: #0877a7; font-size: 9px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; }
+.organizer-focus h2 { margin: 3px 0 2px; color: #0f172a; font-size: 20px; }
+.organizer-focus p { margin: 0; color: #64748b; font-size: 11px; }
+.organizer-focus button { flex: 0 0 auto; min-width: 150px; padding: 11px 16px; border: 0; border-radius: 6px; color: #fff; font-size: 11px; font-weight: 900; }
+.organizer-totals { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; margin-top: 12px; }
 .organizer-totals article { min-height: 76px; padding: 12px 14px; border: 1px solid #dbe3e8; border-radius: 6px; background: #fff; }
 .organizer-totals span { display: block; color: #64748b; font-size: 9px; font-weight: 700; text-transform: uppercase; }
 .organizer-totals strong { display: inline-block; margin-top: 5px; color: #0f172a; font-size: 24px; }
@@ -21,30 +26,42 @@
 .organizer-category-empty { padding: 24px; text-align: center; }
 .organizer-tournament.state-eliminado,.organizer-tournament.state-cancelado,.organizer-tournament.state-archivado { opacity: .82; }
 .organizer-tournament { overflow: hidden; border: 1px solid #d8e0e5; border-radius: 7px; background: #fff; }
-.organizer-tournament-main { display: flex; align-items: center; gap: 12px; padding: 15px 17px 10px; }
+.organizer-tournament-main { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 15px 17px 10px; }
+.organizer-tournament-identity { display: flex; min-width: 0; align-items: center; gap: 12px; }
+.organizer-tournament-identity > div:last-child { min-width: 0; }
+.organizer-mark { display: grid; flex: 0 0 43px; width: 43px; height: 43px; place-items: center; overflow: hidden; border-radius: 9px; background: #edf7fa; }
+.organizer-mark img { width: 34px; height: 34px; object-fit: contain; }
+.organizer-mark span { font-size: 20px; }
 .organizer-badge { padding: 5px 7px; border-radius: 4px; background: #e4f2f7; color: #0877a7; font-size: 8px; font-weight: 900; }
+.organizer-badge.state-activo { background: #dcfce7; color: #15803d; }
+.organizer-badge.state-publicado { background: #dbeafe; color: #1d4ed8; }
+.organizer-badge.state-borrador { background: #fef3c7; color: #a16207; }
+.organizer-badge.state-finalizado { background: #e2e8f0; color: #475569; }
 .organizer-tournament-main span { color: #0877a7; font-size: 9px; font-weight: 800; }
 .organizer-tournament-main h2 { margin: 1px 0; font-size: 18px; }
 .organizer-tournament-main p { margin: 0; color: #64748b; font-size: 10px; }
-.organizer-progress { display: grid; grid-template-columns: repeat(5,1fr); padding: 0 17px 13px; }
+.organizer-progress { display: grid; grid-template-columns: repeat(4,1fr); padding: 0 17px 13px; }
 .organizer-progress div { padding: 8px 12px; border-left: 1px solid #e2e8f0; }
 .organizer-progress div:first-child { border-left: 0; padding-left: 0; }
 .organizer-progress span,.organizer-tournament footer span { display: block; color: #64748b; font-size: 8px; text-transform: uppercase; }
 .organizer-progress strong { display: block; margin-top: 2px; font-size: 13px; }
+.organizer-progress .needs-attention strong { color: #b45309; }
 .organizer-tournament footer { display: flex; align-items: center; justify-content: space-between; gap: 15px; padding: 10px 17px; background: #f7fafb; }
 .organizer-tournament footer strong { font-size: 11px; }
 .organizer-tournament footer small { display: block; margin-top: 3px; color: #64748b; font-size: 9px; }
-.organizer-tournament footer button { padding: 8px 12px; border: 0; border-radius: 4px; background: #0877a7; color: #fff; font-size: 10px; font-weight: 800; }
-.organizer-tournament-actions { display: flex; gap: 7px; }
-.organizer-tournament-actions button.result { background: #18a957; }
+.organizer-tournament footer button { min-width: 142px; padding: 9px 13px; border: 0; border-radius: 5px; color: #fff; font-size: 10px; font-weight: 900; }
+.tone-primary { background: #0877a7; }.tone-ready { background: #16a34a; }.tone-warning { background: #d97706; }.tone-neutral { background: #64748b; }
 .organizer-message,.organizer-empty { margin-top: 18px; padding: 28px; border: 1px solid #dbe3e8; background: #fff; text-align: center; }
 .organizer-message.error { color: #b42318; }
 .organizer-empty h2 { margin: 0; }.organizer-empty p { color: #64748b; font-size: 12px; }
-@media (max-width: 800px) { .organizer-totals { grid-template-columns: repeat(2,1fr); }.organizer-progress { grid-template-columns: repeat(2,1fr); row-gap: 7px; }.organizer-progress div:nth-child(odd) { border-left: 0; padding-left: 0; }.organizer-heading { align-items: start; }.organizer-tournament footer { align-items: start; flex-direction: column; }.organizer-tournament-actions { width: 100%; }.organizer-tournament-actions button { flex: 1; } }
+@media (max-width: 800px) { .organizer-page { padding: 18px 12px 44px; }.organizer-heading { align-items: start; }.organizer-heading h1 { font-size: 25px; }.organizer-heading p { max-width: 230px; }.organizer-heading button { white-space: nowrap; }.organizer-focus { align-items: stretch; flex-direction: column; gap: 13px; padding: 16px; }.organizer-focus button { width: 100%; }.organizer-totals { grid-template-columns: repeat(2,1fr); }.organizer-totals article { min-height: 68px; }.organizer-progress { grid-template-columns: repeat(2,1fr); row-gap: 7px; }.organizer-progress div:nth-child(odd) { border-left: 0; padding-left: 0; }.organizer-tournament-main { align-items: flex-start; }.organizer-tournament-main h2 { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }.organizer-badge { flex: 0 0 auto; }.organizer-tournament footer { align-items: stretch; flex-direction: column; }.organizer-primary-action { width: 100%; }.organizer-profile-entry { align-items: flex-start; margin-top: 24px; } }
 
 :root[data-theme="dark"] .organizer-page { background: #142632; color: #e7eef2; }
 :root[data-theme="dark"] .organizer-heading h1 { color: #f3f7f9; }
 :root[data-theme="dark"] .organizer-heading p { color: #b9c8d2; }
+:root[data-theme="dark"] .organizer-focus { background: linear-gradient(115deg,#173a48,#213744 70%); border-color: #385f70; border-left-color: #20a3d4; box-shadow: 0 10px 24px rgba(3,12,18,.22); }
+:root[data-theme="dark"] .organizer-focus h2 { color: #f3f7f9; }
+:root[data-theme="dark"] .organizer-focus p { color: #b9c8d2; }
 :root[data-theme="dark"] .organizer-totals article { background: #213744; border-color: #38505d; box-shadow: 0 7px 18px rgba(3,12,18,.22); }
 :root[data-theme="dark"] .organizer-totals span,
 :root[data-theme="dark"] .organizer-progress span,
@@ -54,6 +71,7 @@
 :root[data-theme="dark"] .organizer-tournament { background: #213744; border-color: #38505d; }
 :root[data-theme="dark"] .organizer-tournament-main h2 { color: #f3f7f9; }
 :root[data-theme="dark"] .organizer-tournament-main p { color: #b9c8d2; }
+:root[data-theme="dark"] .organizer-mark { background: #142632; }
 :root[data-theme="dark"] .organizer-progress div { border-color: #48616e; }
 :root[data-theme="dark"] .organizer-tournament footer { background: #1a303c; border-top: 1px solid #38505d; }
 :root[data-theme="dark"] .organizer-tournament footer strong { color: #e7eef2; }
